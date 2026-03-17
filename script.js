@@ -211,7 +211,7 @@ const FLOW_COTACAO=[
     {id:'company',type:'text',msgs:['Qual o nome da sua empresa?'],ph:'Nome da empresa...'},
     {id:'employees',type:'pills',msgs:['Quantas pessoas trabalham na empresa?'],opts:[{l:'1–10',v:'1-10',tier:'micro'},{l:'10–25',v:'10-25',tier:'pequena'},{l:'25–50',v:'25-50',tier:'media'},{l:'50–100',v:'50-100',tier:'media_grande'},{l:'100+',v:'100+',tier:'grande'}]},
     {id:'segment',type:'pills',msgs:['Qual o segmento?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
-    {id:'needs',type:'pills',msgs:['Qual a principal necessidade hoje?'],opts:[{l:'Suporte e gestão de TI',v:'suporte'},{l:'Google Workspace / E-mail',v:'google'},{l:'Implementar IA na empresa',v:'ia'},{l:'Liderança tecnológica (CTO)',v:'cto'},{l:'Múltiplas necessidades',v:'multiplo'}]},
+    {id:'needs',type:'multi',msgs:['Quais são suas necessidades? (selecione todas que se aplicam)'],opts:[{l:'Suporte e gestão de TI',v:'suporte'},{l:'Google Workspace / E-mail',v:'google'},{l:'Implementar IA na empresa',v:'ia'},{l:'Liderança tecnológica (CTO)',v:'cto'},{l:'Automação de processos',v:'automacao'}]},
     {id:'repetitive_tasks',type:'pills',msgs:d=>[`Na ${esc(d.company)}, existem tarefas repetitivas que consomem tempo da equipe?`],opts:[{l:'Sim, muitas!',v:'many'},{l:'Algumas',v:'some'},{l:'Poucas',v:'few'},{l:'Não sei identificar',v:'unknown'}]},
     {id:'pain',type:'pills',msgs:['Qual o maior desafio hoje?'],opts:[{l:'TI instável / cai muito',v:'instavel'},{l:'Sem controle ou visibilidade',v:'sem_controle'},{l:'Gastos altos com TI',v:'custo'},{l:'Equipe improdutiva',v:'produtividade'},{l:'Segurança e LGPD',v:'seguranca'},{l:'Falta de inovação',v:'inovacao'}]},
     {id:'urgency',type:'pills',msgs:['Qual a urgência?'],opts:[{l:'Imediata — preciso já',v:'imediata'},{l:'Próximos 30 dias',v:'30dias'},{l:'Estou pesquisando',v:'pesquisa'}]},
@@ -480,27 +480,31 @@ async function generateCotacao(){
     const recSvcs=[];
     const recDetails=[];
     const sz=d.employees||'1-10';
-    const need=d.needs||'multiplo';
+    const needs=Array.isArray(d.needs)?d.needs:(d.needs?[d.needs]:['suporte']);
     const pain=d.pain||'';
     const segment=d.segment||'outro';
     const repTasks=d.repetitive_tasks||'unknown';
 
-    // Smart recommendations
-    if(need==='suporte'||need==='multiplo'){
+    // Smart recommendations based on multi-select needs
+    if(needs.includes('suporte')){
         recSvcs.push('it_management');
         recDetails.push({svc:'Gestão de TI Completa',why:'Help Desk dedicado, monitoramento 24/7, segurança e backup. A base para tudo funcionar.',icon:'🛡️'});
     }
-    if(need==='google'||need==='multiplo'){
+    if(needs.includes('google')){
         recSvcs.push('google_workspace');
         recDetails.push({svc:'Google Workspace com IA Gemini',why:'E-mail corporativo, Drive, Meet e Gemini AI integrado para produtividade máxima.',icon:'📧'});
     }
-    if(need==='ia'||need==='multiplo'||repTasks==='many'){
+    if(needs.includes('ia')||needs.includes('automacao')||repTasks==='many'){
         recSvcs.push('ai_development');
         recDetails.push({svc:'IA Aplicada & Automação',why:'Eliminação de tarefas repetitivas, portais inteligentes, dashboards e chatbots com IA.',icon:'🤖'});
     }
-    if(need==='cto'||(sz==='50-100'||sz==='100+'||sz==='100-500'||sz==='500+')){
+    if(needs.includes('cto')||(sz==='50-100'||sz==='100+'||sz==='100-500'||sz==='500+')){
         recSvcs.push('cto_service');
         recDetails.push({svc:'CTO as a Service',why:'Liderança tecnológica, estratégia e governança sem custo de C-level fixo.',icon:'🎯'});
+    }
+    if(needs.includes('automacao')&&!recSvcs.includes('ai_development')){
+        recSvcs.push('ai_development');
+        recDetails.push({svc:'Automação de Processos (RPA + IA)',why:'Elimine tarefas repetitivas — sua equipe foca no estratégico.',icon:'⚡'});
     }
     if(pain==='seguranca'&&!recSvcs.includes('it_management')){
         recSvcs.push('it_management');
@@ -585,7 +589,8 @@ async function generateCotacao(){
     html+=`<div class="diag-urgency"><span>${urgLabel}</span></div>`;
 
     // CTA
-    const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (${d.employees} colaboradores, segmento ${d.segment}). Fiz uma cotação no site e tenho interesse em: ${recDetails.map(s=>s.svc).join(', ')}. Necessidade: ${d.needs}. Urgência: ${d.urgency}.`);
+    const needsLabel=Array.isArray(d.needs)?d.needs.join(', '):(d.needs||'');
+    const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (${d.employees} colaboradores, segmento ${d.segment}). Fiz uma cotação no site e tenho interesse em: ${recDetails.map(s=>s.svc).join(', ')}. Necessidades: ${needsLabel}. Urgência: ${d.urgency}.`);
     html+=`<div class="diag-cta">`;
     html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Falar com especialista</a>`;
     html+=`<button class="btn-ghost" onclick="sendByEmail('cotacao')">📧 Enviar por e-mail</button>`;
@@ -944,10 +949,11 @@ function sendByEmail(type){
             +`Atenciosamente,\nGuinux.IA — Assistente Inteligente\nGuinux | InteligêncIA em TI`;
     } else {
         const svcs=[];
-        if(d.needs==='suporte'||d.needs==='multiplo') svcs.push('Gestão de TI Completa');
-        if(d.needs==='google'||d.needs==='multiplo') svcs.push('Google Workspace com IA');
-        if(d.needs==='ia'||d.needs==='multiplo') svcs.push('IA Aplicada & Automação');
-        if(d.needs==='cto') svcs.push('CTO as a Service');
+        const needs=Array.isArray(d.needs)?d.needs:(d.needs?[d.needs]:[]);
+        if(needs.includes('suporte')) svcs.push('Gestão de TI Completa');
+        if(needs.includes('google')) svcs.push('Google Workspace com IA');
+        if(needs.includes('ia')||needs.includes('automacao')) svcs.push('IA Aplicada & Automação');
+        if(needs.includes('cto')) svcs.push('CTO as a Service');
         if(svcs.length===0) svcs.push('Gestão de TI Completa');
 
         subject=`Cotação Personalizada — ${company} | Guinux.IA`;
@@ -955,7 +961,7 @@ function sendByEmail(type){
             +`Empresa: ${company}\n`
             +`Colaboradores: ${employees}\n`
             +`Segmento: ${segment}\n`
-            +`Necessidade: ${d.needs}\n`
+            +`Necessidades: ${needs.join(', ')}\n`
             +`Urgência: ${d.urgency}\n\n`
             +`Serviços recomendados:\n${svcs.map(s=>'  ✅ '+s).join('\n')}\n\n`
             +`Para receber a proposta detalhada com valores:\n`
