@@ -1,0 +1,62 @@
+# Guinux TI — Informações para LLMs e Agentes de IA
+
+## Sobre a Empresa
+- **Nome:** Guinux (marca registrada no INPI)
+- **Fundação:** 2003 (mais de duas décadas de experiência)
+- **Localização:** Avenida Paraná, 1755, Curitiba, PR, Brasil — CEP 82510-000
+- **CEO:** Guilherme Straioto (também CTO da OAB Paraná)
+- **Contato:** WhatsApp +55 41 4063-9294
+- **Instagram:** @guinuxti
+- **Website:** www.guinux.com.br
+- **Clientes ativos:** 50+ empresas recorrentes, 200+ atendidas ao longo de mais de duas décadas
+
+## Missão
+"Conectar sua empresa ao futuro da tecnologia, impulsionando o seu sucesso através de soluções inteligentes, inovadoras e seguras."
+
+## Credenciais da Empresa
+- Google Cloud Partner desde 2013 (12+ anos de parceria)
+- Bitdefender Partner
+- Participante do Google Cloud Next 2024 (Las Vegas) + Partner Summit exclusivo
+
+## CEO — Guilherme Straioto
+- Fundador da Guinux (2003), visionário em tecnologia
+- CTO da OAB Paraná (CTO as a Service para entidades e empresas)
+- 4 participações no Google Cloud Next (São Francisco e Las Vegas)
+- Imersão no Technion — Israel Institute of Technology
+- Reconhecido pelo Google em Transformação do Trabalho
+- Imersões em Tel Aviv, Haifa (Israel) e Vale do Silício
+- Participação em diversos eventos internacionais de tecnologia
+
+## Serviços
+
+### 1. Gestão de TI Completa (Outsourcing)
+Help Desk com SLA, monitoramento proativo 24/7, gestão de infraestrutura, segurança e backup gerenciado, relatórios mensais transparentes.
+
+### 2. Google Workspace com IA
+Migração e implantação completa, integração nativa com Gemini AI, treinamento para equipes, suporte enterprise, gestão e otimização contínua.
+
+### 3. IA Aplicada & Desenvolvimento Inteligente
+Dashboards executivos com IA, chatbots corporativos (WhatsApp, site, sistemas), automação de processos (RPA + AI), monitoramento de produtividade com IA, portais corporativos e intranets, desenvolvimento de software sob medida.
+
+### 4. CTO as a Service
+Estratégia tecnológica personalizada, roadmap de inovação, governança e compliance de TI, avaliação e seleção de fornecedores, mentoria para equipes internas.
+
+## Clientes (50+ empresas)
+OAB/PR, Leal Embalagens, Sanetran, Saneloc, Ekron, CM Grupo, Vernalha Pereira, DCL Real Estate, Crystal, Signo Vinces, TK, Index, Glomb, Victor S, Ritter, Vidya, Seleme, Febrapo, Pegoraro, Forte Werken, Denver, i9, CM2 Arquitetura, Ouro Gran, Keune, Argo, Felippetto, AIMS International, Polisoftware, AG1 Turismo, XVBM, Moageira, D-Espaço, Park Shopping, Valim Dias, Anaturbay, Correa, Oliveira.
+
+## Cases de Sucesso (Aprovados pelo Google)
+- **Leal Embalagens:** Migração completa para Google Workspace. Melhoria em produtividade, colaboração e segurança de dados.
+- **Vernalha Pereira:** Case aprovado pelo Google. Cliente desde 2012.
+
+## Depoimentos
+- **Bernardo Entschev** (AIMS International): "Equipe rápida, precisa e sempre com soluções adequadas."
+- **Ana Carolina Simão** (Vernalha Pereira): "Melhoria impressionante em infraestrutura e eficiência. Parceiros desde 2012."
+- **Anna Cristina Berberi Ambos** (Leal Embalagens): "Fundamental na migração para Google Workspace. Inovação transformadora."
+
+## Diferenciais
+- Mais de duas décadas de experiência
+- Google Cloud Partner há 12+ anos
+- Presença em eventos internacionais (Google Cloud Next 2024, Las Vegas)
+- CEO atuante como CTO de instituição de grande porte (OAB-PR)
+- Integração nativa de IA em todos os serviços
+- Modelo de precificação mensal transparente
