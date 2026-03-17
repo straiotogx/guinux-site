@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     const term=document.getElementById('aiTerminal');
     if(term){let p=false;new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&!p){p=true;term.querySelectorAll('.tl').forEach(l=>setTimeout(()=>l.classList.add('visible'),+l.dataset.delay||0))}}),{threshold:.3}).observe(term)}
 
-    // Hero prompt → open chat modal
+    // Hero prompt → open chat modal with welcome menu
     const heroPromptBox=document.getElementById('heroPromptBox');
     if(heroPromptBox){
-        heroPromptBox.addEventListener('click',()=>openChat('faq'));
+        heroPromptBox.addEventListener('click',()=>openChat('welcome'));
     }
 
     // Chat modal controls
@@ -90,8 +90,16 @@ const SVC_NAMES={it_management:'Gestão de TI Completa',google_workspace:'Google
 // Open chat modal
 function openChat(flowId){
     const modal=document.getElementById('chatModal');
+    // Fix Chrome iOS viewport height
+    const setVh=()=>{modal.style.height=window.innerHeight+'px'};
+    setVh();
+    window.addEventListener('resize',setVh);
+    modal._cleanVh=()=>window.removeEventListener('resize',setVh);
     modal.classList.add('active');
     document.body.style.overflow='hidden';
+    document.body.style.position='fixed';
+    document.body.style.width='100%';
+    document.body.style.top=`-${window.scrollY}px`;
     // Update active tab
     document.querySelectorAll('.chat-tab').forEach(t=>{
         t.classList.toggle('active',t.dataset.flow===flowId);
@@ -105,17 +113,83 @@ function openChat(flowId){
     chatData={};
     chatStep=0;
     currentFlow=flowId;
-    setTimeout(()=>processStep(),300);
+
+    if(flowId==='welcome'){
+        setTimeout(()=>showWelcomeMenu(),300);
+    } else {
+        setTimeout(()=>processStep(),300);
+    }
 }
 
 function closeChat(){
     const modal=document.getElementById('chatModal');
+    if(modal._cleanVh) modal._cleanVh();
     modal.classList.remove('active');
+    modal.style.height='';
+    const scrollY=document.body.style.top;
     document.body.style.overflow='';
+    document.body.style.position='';
+    document.body.style.width='';
+    document.body.style.top='';
+    window.scrollTo(0,parseInt(scrollY||'0')*-1);
 }
 
 // Legacy alias
 function startFlow(flowId){openChat(flowId)}
+
+/* ========= WELCOME MENU (pre-loaded options) ========= */
+async function showWelcomeMenu(){
+    await showTyping(500);
+    addBotMsg('Olá! Sou a <strong>Guinux.IA</strong> — assistente inteligente da Guinux.');
+    await showTyping(600);
+    addBotMsg('Como posso te ajudar hoje? Escolha uma opção:');
+    await new Promise(r=>setTimeout(r,300));
+
+    // Render 3 cards in the chat messages area
+    const cardsHtml=`
+    <div class="welcome-cards">
+        <button class="welcome-card" onclick="switchFlow('diagnostico')">
+            <div class="welcome-card-icon">🔍</div>
+            <div class="welcome-card-content">
+                <strong>Diagnóstico Gratuito</strong>
+                <span>Análise completa de risco, potencial e maturidade digital da sua empresa com IA</span>
+            </div>
+            <div class="welcome-card-arrow">→</div>
+        </button>
+        <button class="welcome-card" onclick="switchFlow('cotacao')">
+            <div class="welcome-card-icon">💰</div>
+            <div class="welcome-card-content">
+                <strong>Cotação Personalizada</strong>
+                <span>Proposta sob medida com serviços recomendados para seu porte e necessidade</span>
+            </div>
+            <div class="welcome-card-arrow">→</div>
+        </button>
+        <button class="welcome-card" onclick="switchFlow('faq')">
+            <div class="welcome-card-icon">💬</div>
+            <div class="welcome-card-content">
+                <strong>Dúvidas Frequentes</strong>
+                <span>Perguntas sobre serviços, preços, atendimento e tecnologias da Guinux</span>
+            </div>
+            <div class="welcome-card-arrow">→</div>
+        </button>
+    </div>`;
+    addRawMsg(cardsHtml);
+    chatInput.innerHTML='';
+    chatInput.classList.remove('active');
+}
+
+function switchFlow(flowId){
+    document.querySelectorAll('.chat-tab').forEach(t=>{
+        t.classList.toggle('active',t.dataset.flow===flowId);
+    });
+    chatMsgs.innerHTML='';
+    chatInput.innerHTML='';
+    chatInput.classList.add('active');
+    chatData={};
+    chatStep=0;
+    currentFlow=flowId;
+    processStep();
+}
 
 /* ========= FAQ FLOW ========= */
 const FAQ_DATA=[
@@ -128,50 +202,42 @@ const FAQ_DATA=[
 ];
 
 const FLOW_FAQ=[
-    {id:'faq_greeting',type:'auto',msgs:['Olá! Sou a Guinux.IA ✨','Aqui estão as perguntas mais comuns. Clique na que te interessa:']},
+    {id:'faq_greeting',type:'auto',msgs:['Certo! Veja as perguntas mais comuns:']},
     {id:'faq_choice',type:'faq_pills'},
 ];
 
 /* ========= COTAÇÃO FLOW ========= */
 const FLOW_COTACAO=[
-    {id:'greeting',type:'auto',msgs:['Olá! Sou a Guinux.IA ✨','Vou montar uma proposta personalizada para sua empresa. Leva menos de 2 minutos!']},
+    {id:'greeting',type:'auto',msgs:['Vamos montar uma proposta personalizada para sua empresa!','Leva menos de 2 minutos.']},
     {id:'name',type:'text',msgs:['Qual é o seu nome?'],ph:'Digite seu nome...'},
-    {id:'company',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual o nome da sua empresa?`],ph:'Nome da empresa...'},
-    {id:'employees',type:'pills',msgs:['Qual o porte da empresa?'],opts:[{l:'1–10 pessoas',v:'1-10',tier:'micro'},{l:'10–25 pessoas',v:'10-25',tier:'pequena'},{l:'25–50 pessoas',v:'25-50',tier:'media'},{l:'50–100 pessoas',v:'50-100',tier:'media_grande'},{l:'100+ pessoas',v:'100+',tier:'grande'}]},
-    {id:'segment',type:'pills',msgs:d=>[`${esc(d.company)} com ${d.employees} — entendi!`,'Qual o segmento da empresa?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
-    {id:'needs',type:'pills',msgs:d=>{
-        const sz=d.employees;
-        let intro='';
-        if(sz==='1-10') intro='Para empresas do seu porte, eficiência é tudo.';
-        else if(sz==='10-25') intro='Empresas em crescimento como a sua precisam de base sólida.';
-        else if(sz==='25-50') intro='Com esse porte, uma TI bem estruturada faz toda a diferença.';
-        else intro='Para empresas do seu porte, estratégia e governança são essenciais.';
-        return [intro,'Qual a principal necessidade hoje?'];
-    },opts:[{l:'Preciso de suporte e gestão de TI',v:'suporte'},{l:'Quero migrar para Google Workspace',v:'google'},{l:'Quero implementar IA na empresa',v:'ia'},{l:'Preciso de liderança tecnológica (CTO)',v:'cto'},{l:'Tenho múltiplas necessidades',v:'multiplo'}]},
-    {id:'pain',type:'pills',msgs:['E qual o maior desafio que vocês enfrentam hoje?'],opts:[{l:'TI instável / cai muito',v:'instavel'},{l:'Sem controle ou visibilidade',v:'sem_controle'},{l:'Gastos altos com TI',v:'custo'},{l:'Equipe improdutiva',v:'produtividade'},{l:'Segurança e LGPD',v:'seguranca'},{l:'Não estamos inovando',v:'inovacao'}]},
-    {id:'urgency',type:'pills',msgs:['Qual a urgência para resolver isso?'],opts:[{l:'Imediata — preciso agora',v:'imediata'},{l:'Próximos 30 dias',v:'30dias'},{l:'Estou pesquisando',v:'pesquisa'}]},
+    {id:'company',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! 😊 Qual o nome da sua empresa?`],ph:'Nome da empresa...'},
+    {id:'employees',type:'pills',msgs:['Quantas pessoas trabalham na empresa?'],opts:[{l:'1–10',v:'1-10',tier:'micro'},{l:'10–25',v:'10-25',tier:'pequena'},{l:'25–50',v:'25-50',tier:'media'},{l:'50–100',v:'50-100',tier:'media_grande'},{l:'100+',v:'100+',tier:'grande'}]},
+    {id:'segment',type:'pills',msgs:['Qual o segmento?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
+    {id:'needs',type:'pills',msgs:['Qual a principal necessidade hoje?'],opts:[{l:'Suporte e gestão de TI',v:'suporte'},{l:'Google Workspace / E-mail',v:'google'},{l:'Implementar IA na empresa',v:'ia'},{l:'Liderança tecnológica (CTO)',v:'cto'},{l:'Múltiplas necessidades',v:'multiplo'}]},
+    {id:'pain',type:'pills',msgs:['Qual o maior desafio hoje?'],opts:[{l:'TI instável',v:'instavel'},{l:'Sem controle ou visibilidade',v:'sem_controle'},{l:'Gastos altos com TI',v:'custo'},{l:'Equipe improdutiva',v:'produtividade'},{l:'Segurança e LGPD',v:'seguranca'},{l:'Falta de inovação',v:'inovacao'}]},
+    {id:'urgency',type:'pills',msgs:['Qual a urgência?'],opts:[{l:'Imediata',v:'imediata'},{l:'Próximos 30 dias',v:'30dias'},{l:'Estou pesquisando',v:'pesquisa'}]},
     {id:'cotacao_result',type:'cotacao_end'},
 ];
 
-/* ========= DIAGNÓSTICO FLOW ========= */
+/* ========= DIAGNÓSTICO FLOW (Impressionante) ========= */
 const FLOW_DIAGNOSTICO=[
-    {id:'greeting',type:'auto',msgs:['Olá! Sou a Guinux.IA ✨','Vou analisar sua empresa e gerar um diagnóstico completo de risco e potencial.','Vamos lá?']},
-    {id:'name',type:'text',msgs:['Qual é o seu nome?'],ph:'Digite seu nome...'},
-    {id:'company',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual o nome da sua empresa?`],ph:'Nome da empresa...'},
-    {id:'employees',type:'pills',msgs:['Quantos colaboradores a empresa possui?'],opts:[{l:'1–10',v:'1-10'},{l:'10–25',v:'10-25'},{l:'25–50',v:'25-50'},{l:'50–100',v:'50-100'},{l:'100+',v:'100+'}]},
-    {id:'it_status',type:'pills',msgs:d=>[`Entendi, ${esc(d.company)} com ${d.employees} colaboradores. Como está a TI hoje?`],opts:[{l:'Sem equipe de TI',v:'none'},{l:'TI interna',v:'internal'},{l:'Terceirizada (insatisfeito)',v:'outsourced'},{l:'Modelo híbrido',v:'hybrid'}]},
-    {id:'infra',type:'pills',msgs:['E a infraestrutura, onde estão seus servidores e dados?'],opts:[{l:'Servidores locais',v:'onprem'},{l:'Tudo na nuvem',v:'cloud'},{l:'Híbrido',v:'hybrid'},{l:'Não sei',v:'unknown'}]},
-    {id:'ai_usage',type:'pills',msgs:['E inteligência artificial? Como a empresa usa IA hoje?'],opts:[{l:'Não utilizamos',v:'none'},{l:'Uso descentralizado',v:'scattered'},{l:'Usamos, queremos otimizar',v:'optimize'}]},
-    {id:'services',type:'multi',msgs:d=>{
-        let r=d.ai_usage==='none'?'Interessante — há muito potencial para ganhos com IA.':d.ai_usage==='scattered'?'Uso descentralizado pode gerar riscos. Boa hora de estruturar.':'Ótimo! Vamos escalar isso.';
-        return [r,'Quais serviços te interessam? Selecione um ou mais:'];
-    },opts:[{l:'Gestão de TI Completa',v:'it_management'},{l:'Google Workspace com IA',v:'google_workspace'},{l:'IA Aplicada & Desenvolvimento',v:'ai_development'},{l:'CTO as a Service',v:'cto_service'}]},
+    {id:'greeting',type:'auto',msgs:['Vou realizar uma análise completa da maturidade digital da sua empresa.','São perguntas rápidas — e o resultado vai te surpreender.']},
+    {id:'name',type:'text',msgs:['Para começar, qual é o seu nome?'],ph:'Seu nome...'},
+    {id:'company',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual o nome da empresa?`],ph:'Nome da empresa...'},
+    {id:'employees',type:'pills',msgs:['Quantos colaboradores?'],opts:[{l:'1–10',v:'1-10'},{l:'10–25',v:'10-25'},{l:'25–50',v:'25-50'},{l:'50–100',v:'50-100'},{l:'100+',v:'100+'}]},
+    {id:'segment',type:'pills',msgs:['Qual o segmento da empresa?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
+    {id:'it_status',type:'pills',msgs:['Como é a TI da empresa hoje?'],opts:[{l:'Não temos equipe de TI',v:'none'},{l:'TI interna própria',v:'internal'},{l:'Terceirizada (insatisfeito)',v:'outsourced'},{l:'Modelo híbrido',v:'hybrid'}]},
+    {id:'infra',type:'pills',msgs:['Onde ficam seus servidores e dados?'],opts:[{l:'Servidores físicos locais',v:'onprem'},{l:'Tudo na nuvem',v:'cloud'},{l:'Híbrido (local + nuvem)',v:'hybrid'},{l:'Não sei ao certo',v:'unknown'}]},
+    {id:'backup',type:'pills',msgs:['Como é feito o backup dos dados?'],opts:[{l:'Backup automático na nuvem',v:'cloud_auto'},{l:'Backup manual / HD externo',v:'manual'},{l:'Não temos backup',v:'none'},{l:'Não sei',v:'unknown'}]},
+    {id:'security',type:'pills',msgs:['A empresa tem antivírus corporativo e políticas de segurança?'],opts:[{l:'Sim, tudo configurado',v:'full'},{l:'Tem antivírus, mas sem políticas',v:'partial'},{l:'Cada um usa o seu',v:'individual'},{l:'Não temos nada',v:'none'}]},
+    {id:'ai_usage',type:'pills',msgs:['Como a empresa usa Inteligência Artificial hoje?'],opts:[{l:'Não utilizamos',v:'none'},{l:'Uso individual, sem padrão',v:'scattered'},{l:'Já usamos, queremos mais',v:'optimize'}]},
+    {id:'tools',type:'multi',msgs:['Quais ferramentas a empresa usa? (selecione todas)'],opts:[{l:'Google Workspace',v:'google'},{l:'Microsoft 365',v:'microsoft'},{l:'ERP / Sistema de gestão',v:'erp'},{l:'CRM',v:'crm'},{l:'Ferramentas de IA',v:'ai_tools'},{l:'Nenhuma dessas',v:'none'}]},
     {id:'satisfaction',type:'stars',msgs:['De 1 a 5, qual sua satisfação com a TI atual?']},
-    {id:'message',type:'text',msgs:['Quer descrever algum desafio ou necessidade específica? (opcional)'],ph:'Descreva aqui ou deixe em branco...',optional:true},
+    {id:'biggest_pain',type:'text',msgs:['Por fim, descreva em uma frase: qual o maior problema de TI da empresa hoje?'],ph:'Ex: "a internet cai toda hora", "não temos controle"...',optional:true},
 ];
 
 /* ========= CHAT ENGINE ========= */
-let chatData={},chatStep=0,chatMsgs,chatInput,currentFlow='diagnostico';
+let chatData={},chatStep=0,chatMsgs,chatInput,currentFlow='welcome';
 
 function getFlowSteps(){
     if(currentFlow==='faq') return FLOW_FAQ;
@@ -200,12 +266,12 @@ async function processStep(){
 
     const msgs=typeof q.msgs==='function'?q.msgs(chatData):q.msgs;
     for(const m of msgs){
-        await showTyping(500+Math.random()*600);
+        await showTyping(400+Math.random()*400);
         addBotMsg(m);
     }
     if(q.type==='auto'){
         chatStep++;
-        setTimeout(()=>processStep(),1000);
+        setTimeout(()=>processStep(),800);
         return;
     }
     renderInput(q);
@@ -264,7 +330,7 @@ function renderFaqPills(){
             await showTyping(600+Math.random()*400);
             addBotMsg(faq.a);
             await showTyping(400);
-            addBotMsg('Tem outra dúvida? Ou quer fazer uma cotação?');
+            addBotMsg('Tem outra dúvida? Ou quer explorar mais?');
             renderFaqFollowUp();
         });
         wrap.appendChild(btn);
@@ -282,18 +348,10 @@ function renderFaqFollowUp(){
     const cotBtn=document.createElement('button');
     cotBtn.className='ci-pill';cotBtn.style.borderColor='var(--teal)';cotBtn.style.color='var(--teal)';
     cotBtn.textContent='Fazer cotação →';
-    cotBtn.addEventListener('click',()=>{
-        chatInput.innerHTML='';chatMsgs.innerHTML='';
-        chatData={};chatStep=0;currentFlow='cotacao';
-        processStep();
-    });
+    cotBtn.addEventListener('click',()=>switchFlow('cotacao'));
     const diagBtn=document.createElement('button');
     diagBtn.className='ci-pill';diagBtn.textContent='Fazer diagnóstico →';
-    diagBtn.addEventListener('click',()=>{
-        chatInput.innerHTML='';chatMsgs.innerHTML='';
-        chatData={};chatStep=0;currentFlow='diagnostico';
-        processStep();
-    });
+    diagBtn.addEventListener('click',()=>switchFlow('diagnostico'));
     wrap.appendChild(moreBtn);wrap.appendChild(cotBtn);wrap.appendChild(diagBtn);
     chatInput.appendChild(wrap);
 }
@@ -400,19 +458,21 @@ async function generateCotacao(){
     const name=esc((d.name||'').split(' ')[0])||'Cliente';
 
     await showTyping(800);
-    addBotMsg(`Perfeito, ${name}! Analisando o perfil da ${esc(d.company||'sua empresa')}...`);
+    addBotMsg(`Perfeito, ${name}! Analisando o perfil da <strong>${esc(d.company||'sua empresa')}</strong>...`);
     await showTyping(1000);
-    addBotMsg('Montando proposta personalizada...');
+    addBotMsg('Cruzando dados de porte, segmento e necessidade...');
     await showTyping(1200);
+    addBotMsg('Proposta pronta! Veja o que preparei:');
+    await new Promise(r=>setTimeout(r,400));
 
-    // Smart service recommendation based on needs + size
     const recSvcs=[];
     const recDetails=[];
     const sz=d.employees||'1-10';
     const need=d.needs||'multiplo';
     const pain=d.pain||'';
+    const segment=d.segment||'outro';
 
-    // Always recommend based on primary need
+    // Smart recommendations
     if(need==='suporte'||need==='multiplo'){
         recSvcs.push('it_management');
         recDetails.push({svc:'Gestão de TI Completa',why:'Help Desk dedicado, monitoramento 24/7, segurança e backup. A base para tudo funcionar.',icon:'🛡️'});
@@ -429,7 +489,6 @@ async function generateCotacao(){
         recSvcs.push('cto_service');
         recDetails.push({svc:'CTO as a Service',why:'Liderança tecnológica, estratégia e governança sem custo de C-level fixo.',icon:'🎯'});
     }
-    // Add based on pain points
     if(pain==='seguranca'&&!recSvcs.includes('it_management')){
         recSvcs.push('it_management');
         recDetails.push({svc:'Gestão de TI Completa',why:'Segurança, LGPD e compliance — proteja seus dados e sua operação.',icon:'🛡️'});
@@ -443,94 +502,174 @@ async function generateCotacao(){
         recDetails.push({svc:'Gestão de TI Completa',why:'Base sólida para qualquer empresa que quer crescer com tecnologia.',icon:'🛡️'});
     }
 
-    // Optimization insights
-    const optimizations=[];
-    if(pain==='instavel') optimizations.push('Monitoramento proativo pode reduzir downtime em até 95%');
-    if(pain==='custo') optimizations.push('Migração para nuvem e otimização podem reduzir custos em 30-40%');
-    if(pain==='produtividade') optimizations.push('IA em tarefas repetitivas pode liberar até 35% do tempo da equipe');
-    if(pain==='sem_controle') optimizations.push('Dashboards e relatórios transparentes dão visibilidade total da operação');
-    if(pain==='seguranca') optimizations.push('Implementação de LGPD, backup e segurança corporativa com Bitdefender');
-    if(pain==='inovacao') optimizations.push('Roadmap de inovação com IA, automação e transformação digital');
-    if(optimizations.length===0) optimizations.push('Estrutura profissional de TI pode aumentar produtividade em até 30%');
+    // Segment-specific insight
+    const segInsights={
+        juridico:'Escritórios de advocacia que adotam IA aumentam produtividade em até 40% na análise documental.',
+        imobiliario:'O setor imobiliário está entre os que mais se beneficiam de portais com IA para atendimento.',
+        industria:'Indústrias com TI bem estruturada reduzem paradas não planejadas em até 60%.',
+        saude:'Na saúde, segurança de dados e LGPD não são opcionais — são obrigação legal.',
+        servicos:'Empresas de serviços que implementam IA ganham velocidade e escala sem aumentar equipe.',
+        varejo:'No varejo, IA em atendimento e logística pode aumentar conversão em até 25%.',
+        tecnologia:'Mesmo empresas de tech se beneficiam de outsourcing para focar no core business.',
+    };
 
-    // Build cotação card
-    let html=`<div class="diagnosis">`;
-    html+=`<div class="diag-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg> PROPOSTA PERSONALIZADA — ${esc(d.company||'Empresa')}</div>`;
+    const optimizations=[];
+    if(pain==='instavel') optimizations.push({text:'Redução de até 95% no downtime com monitoramento proativo',pct:95});
+    if(pain==='custo') optimizations.push({text:'Economia de 30-40% migrando para nuvem otimizada',pct:35});
+    if(pain==='produtividade') optimizations.push({text:'Até 35% mais produtividade com IA em tarefas repetitivas',pct:35});
+    if(pain==='sem_controle') optimizations.push({text:'Visibilidade total com dashboards e relatórios em tempo real',pct:80});
+    if(pain==='seguranca') optimizations.push({text:'LGPD, backup e segurança corporativa implementados',pct:90});
+    if(pain==='inovacao') optimizations.push({text:'Roadmap de inovação com IA, automação e transformação digital',pct:70});
+    if(optimizations.length===0) optimizations.push({text:'Estrutura profissional de TI pode aumentar produtividade em até 30%',pct:30});
+
+    // Build card
+    let html=`<div class="diagnosis cotacao-card">`;
+    html+=`<div class="diag-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg> PROPOSTA PERSONALIZADA</div>`;
 
     // Company profile
-    html+=`<div class="diag-section"><h4>📋 Perfil da Empresa</h4>`;
-    html+=`<ul class="diag-items potential"><li><strong>${esc(d.company)}</strong> · ${d.employees} colaboradores</li>`;
-    html+=`<li>Segmento: ${esc(d.segment||'Não informado')}</li>`;
-    html+=`<li>Necessidade principal: ${esc(d.needs==='multiplo'?'Múltiplas necessidades':d.needs||'')}</li></ul></div>`;
+    html+=`<div class="diag-section"><div class="diag-company-badge">`;
+    html+=`<strong>${esc(d.company)}</strong>`;
+    html+=`<span>${d.employees} colaboradores · ${esc(segment)}</span></div></div>`;
+
+    // Segment insight
+    if(segInsights[segment]){
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">💡</span><span>${segInsights[segment]}</span></div>`;
+    }
 
     // Recommended services
-    html+=`<div class="diag-section"><h4>✨ Serviços Recomendados</h4>`;
+    html+=`<div class="diag-section"><h4>Serviços Recomendados</h4>`;
     recDetails.forEach(s=>{
-        html+=`<div style="display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.5rem;padding:.5rem;background:rgba(26,122,122,.06);border-radius:8px">`;
-        html+=`<span style="font-size:1.25rem;flex-shrink:0">${s.icon}</span>`;
-        html+=`<div><strong style="color:#fff;font-size:.8125rem">${s.svc}</strong><br><span style="font-size:.75rem;color:#B0B4C8">${s.why}</span></div></div>`;
+        html+=`<div class="diag-svc-card">`;
+        html+=`<span class="diag-svc-icon">${s.icon}</span>`;
+        html+=`<div><strong>${s.svc}</strong><span>${s.why}</span></div></div>`;
     });
     html+=`</div>`;
 
-    // Optimization
-    html+=`<div class="diag-section"><h4>🚀 Potencial de Otimização</h4>`;
-    const potBar=Math.min(optimizations.length*25+20,90);
-    html+=`<div class="diag-bar"><div class="diag-bar-fill pot-high" style="width:${potBar}%"></div></div>`;
-    html+=`<ul class="diag-items potential">${optimizations.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+    // Optimization bars
+    html+=`<div class="diag-section"><h4>Potencial de Otimização</h4>`;
+    optimizations.forEach(o=>{
+        html+=`<div class="diag-opt-row"><span class="diag-opt-label">${o.text}</span>`;
+        html+=`<div class="diag-bar"><div class="diag-bar-fill pot-high" style="width:${o.pct}%"></div></div></div>`;
+    });
+    html+=`</div>`;
 
     // Urgency badge
-    const urgLabel=d.urgency==='imediata'?'⚡ Atendimento prioritário':'📅 Agendaremos uma reunião';
-    html+=`<div style="text-align:center;padding:.5rem;background:rgba(26,122,122,.1);border-radius:8px;margin-bottom:1rem"><span style="font-size:.8125rem;font-weight:600;color:var(--teal)">${urgLabel}</span></div>`;
+    const urgLabel=d.urgency==='imediata'?'⚡ Atendimento prioritário — resposta em até 2h':'📅 Agendaremos uma reunião de apresentação';
+    html+=`<div class="diag-urgency"><span>${urgLabel}</span></div>`;
 
     // CTA
     const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (${d.employees} colaboradores, segmento ${d.segment}). Fiz uma cotação no site e tenho interesse em: ${recDetails.map(s=>s.svc).join(', ')}. Necessidade: ${d.needs}. Urgência: ${d.urgency}.`);
     html+=`<div class="diag-cta">`;
     html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Receber proposta detalhada</a>`;
-    html+=`<button class="btn-ghost" onclick="chatMsgs.innerHTML='';chatData={};chatStep=0;currentFlow='diagnostico';chatInput.classList.add('active');processStep()">Fazer diagnóstico completo →</button>`;
+    html+=`<button class="btn-ghost" onclick="switchFlow('diagnostico')">Fazer diagnóstico completo →</button>`;
     html+=`</div></div>`;
 
     addRawMsg(html);
     expandAndAnimate();
 }
 
-/* ========= DIAGNOSIS GENERATOR ========= */
+/* ========= DIAGNOSIS GENERATOR (Impressionante) ========= */
 async function generateDiagnosis(){
     chatInput.innerHTML='';chatInput.classList.remove('active');
+    const d=chatData;
+    const name=esc((d.name||'').split(' ')[0])||'Cliente';
+
+    // Dramatic analysis sequence
+    await showTyping(800);
+    addBotMsg(`${name}, coletei todas as informações. Iniciando análise...`);
 
     await showTyping(1000);
-    addBotMsg('Analisando suas respostas...');
+    addBotMsg('🔄 Processando perfil da empresa...');
+    await showTyping(800);
+    addBotMsg('🔄 Avaliando infraestrutura e segurança...');
+    await showTyping(800);
+    addBotMsg('🔄 Calculando maturidade digital e risco operacional...');
+    await showTyping(800);
+    addBotMsg('🔄 Gerando recomendações personalizadas com IA...');
     await showTyping(1200);
-    addBotMsg('Calculando indicadores de risco e potencial...');
-    await showTyping(1500);
-    addBotMsg('Diagnóstico pronto! Aqui está:');
-    await new Promise(r=>setTimeout(r,400));
+    addBotMsg('✅ Diagnóstico concluído!');
+    await new Promise(r=>setTimeout(r,500));
 
-    const d=chatData;
     const risk=calcRisk(d);
     const pot=calcPotential(d);
+    const maturity=calcMaturity(d);
     const svcs=recommendSvcs(d);
+    const segment=d.segment||'outro';
 
-    let html=`<div class="diagnosis">`;
-    html+=`<div class="diag-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5L22 10l-7.5 2.5L12 20l-2.5-7.5L2 10l7.5-2.5L12 0z"/></svg> DIAGNÓSTICO DE RISCO & POTENCIAL — ${esc(d.company||'Empresa')}</div>`;
+    // Build diagnosis card
+    let html=`<div class="diagnosis diag-premium">`;
+    html+=`<div class="diag-header-bar">`;
+    html+=`<div class="diag-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5L22 10l-7.5 2.5L12 20l-2.5-7.5L2 10l7.5-2.5L12 0z"/></svg> DIAGNÓSTICO COMPLETO</div>`;
+    html+=`<div class="diag-company-badge"><strong>${esc(d.company)}</strong><span>${d.employees} colaboradores · ${esc(segment)}</span></div>`;
+    html+=`</div>`;
 
+    // 3 score gauges
     const riskClass=risk.score>=7?'risk-high':risk.score>=4?'risk-mid':'risk-low';
-    const riskLabel=risk.score>=7?'Alto':risk.score>=4?'Médio':'Baixo';
-    html+=`<div class="diag-section"><h4>⚠ Índice de Risco: ${riskLabel} (${risk.score}/10)</h4>`;
+    const riskLabel=risk.score>=7?'ALTO':risk.score>=4?'MÉDIO':'BAIXO';
+    const riskEmoji=risk.score>=7?'🔴':risk.score>=4?'🟡':'🟢';
+    const matLabel=maturity.score>=7?'AVANÇADA':maturity.score>=4?'INTERMEDIÁRIA':'INICIAL';
+    const matClass=maturity.score>=7?'pot-high':maturity.score>=4?'risk-mid':'risk-high';
+
+    html+=`<div class="diag-scores">`;
+    // Risk
+    html+=`<div class="diag-score-card">`;
+    html+=`<div class="diag-score-number ${riskClass}">${risk.score}<span>/10</span></div>`;
+    html+=`<div class="diag-score-label">${riskEmoji} Risco ${riskLabel}</div></div>`;
+    // Maturity
+    html+=`<div class="diag-score-card">`;
+    html+=`<div class="diag-score-number ${matClass}">${maturity.score}<span>/10</span></div>`;
+    html+=`<div class="diag-score-label">📊 Maturidade ${matLabel}</div></div>`;
+    // Potential
+    html+=`<div class="diag-score-card">`;
+    html+=`<div class="diag-score-number pot-high">${pot.score}<span>/10</span></div>`;
+    html+=`<div class="diag-score-label">🚀 Potencial de Melhoria</div></div>`;
+    html+=`</div>`;
+
+    // Risk analysis
+    html+=`<div class="diag-section"><h4>⚠️ Análise de Risco</h4>`;
     html+=`<div class="diag-bar"><div class="diag-bar-fill ${riskClass}" style="width:${risk.score*10}%"></div></div>`;
     html+=`<ul class="diag-items risk">${risk.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
 
-    const potClass=pot.score>=7?'pot-high':'pot-mid';
-    html+=`<div class="diag-section"><h4>🚀 Potencial de Melhoria: ${pot.score}/10</h4>`;
-    html+=`<div class="diag-bar"><div class="diag-bar-fill ${potClass}" style="width:${pot.score*10}%"></div></div>`;
+    // Maturity analysis
+    html+=`<div class="diag-section"><h4>📊 Maturidade Digital</h4>`;
+    html+=`<div class="diag-bar"><div class="diag-bar-fill ${matClass}" style="width:${maturity.score*10}%"></div></div>`;
+    html+=`<ul class="diag-items potential">${maturity.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+
+    // Potential
+    html+=`<div class="diag-section"><h4>🚀 Potencial de Melhoria</h4>`;
+    html+=`<div class="diag-bar"><div class="diag-bar-fill pot-high" style="width:${pot.score*10}%"></div></div>`;
     html+=`<ul class="diag-items potential">${pot.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
 
-    html+=`<div class="diag-section"><h4>✨ Serviços Recomendados</h4>`;
-    html+=`<div class="diag-svcs">${svcs.map(s=>`<span class="diag-svc">${SVC_NAMES[s]||s}</span>`).join('')}</div></div>`;
+    // Personalized recommendations
+    html+=`<div class="diag-section"><h4>✨ Recomendações Personalizadas</h4>`;
+    const recs=getDetailedRecs(d,risk,maturity);
+    recs.forEach(r=>{
+        html+=`<div class="diag-svc-card">`;
+        html+=`<span class="diag-svc-icon">${r.icon}</span>`;
+        html+=`<div><strong>${r.title}</strong><span>${r.desc}</span></div></div>`;
+    });
+    html+=`</div>`;
 
-    const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company}. Fiz o diagnóstico no site e meu índice de risco é ${riskLabel} (${risk.score}/10). Gostaria de conversar sobre: ${svcs.map(s=>SVC_NAMES[s]).join(', ')}.`);
+    // ROI estimate
+    const roi=calcROI(d,risk);
+    html+=`<div class="diag-roi">`;
+    html+=`<div class="diag-roi-title">📈 Estimativa de Impacto (12 meses)</div>`;
+    html+=`<div class="diag-roi-grid">`;
+    roi.forEach(r=>{
+        html+=`<div class="diag-roi-item"><div class="diag-roi-value">${r.value}</div><div class="diag-roi-label">${r.label}</div></div>`;
+    });
+    html+=`</div></div>`;
+
+    // Biggest pain echo
+    if(d.biggest_pain){
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">🎯</span><span>Sobre "<em>${esc(d.biggest_pain)}</em>" — isso é exatamente o tipo de problema que resolvemos com ${svcs.length>1?'a combinação de serviços recomendados':'o serviço recomendado'}. Nossos clientes com desafios similares viram resultados em menos de 30 dias.</span></div>`;
+    }
+
+    // CTA
+    const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (${d.employees} colab., ${segment}). Fiz o diagnóstico no site:\n\n📊 Risco: ${riskLabel} (${risk.score}/10)\n📊 Maturidade: ${matLabel} (${maturity.score}/10)\n📊 Potencial: ${pot.score}/10\n\nGostaria de conversar sobre: ${svcs.map(s=>SVC_NAMES[s]).join(', ')}.${d.biggest_pain?'\n\nDesafio principal: '+d.biggest_pain:''}`);
     html+=`<div class="diag-cta">`;
-    html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Falar com especialista</a>`;
-    html+=`<button class="btn-ghost" onclick="location.reload()">Refazer</button>`;
+    html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Falar com especialista agora</a>`;
+    html+=`<button class="btn-ghost" onclick="switchFlow('cotacao')">Ver cotação personalizada →</button>`;
     html+=`</div></div>`;
 
     addRawMsg(html);
@@ -547,46 +686,146 @@ function expandAndAnimate(){
             setTimeout(()=>b.style.width=w,50);
         });
         const diag=document.querySelector('.diagnosis');
-        if(diag) diag.scrollIntoView({behavior:'smooth',block:'center'});
+        if(diag) diag.scrollIntoView({behavior:'smooth',block:'start'});
     },200);
 }
+
+/* ========= CALCULATION ENGINES ========= */
 
 function calcRisk(d){
     let score=0;const items=[];
     if(d.it_status==='none'){score+=3;items.push('Sem equipe de TI — vulnerabilidade crítica em caso de incidentes')}
     else if(d.it_status==='outsourced'){score+=2;items.push('TI terceirizada com insatisfação — risco de queda no serviço')}
-    if(d.infra==='onprem'){score+=2;items.push('Servidores locais — risco de perda de dados e downtime')}
+    if(d.infra==='onprem'){score+=2;items.push('Servidores locais — risco de perda de dados, ransomware e downtime')}
     else if(d.infra==='unknown'){score+=1.5;items.push('Infraestrutura desconhecida — falta de visibilidade aumenta riscos')}
-    if(d.ai_usage==='none'){score+=1;items.push('Sem IA — concorrentes que adotam IA ganham vantagem competitiva')}
-    else if(d.ai_usage==='scattered'){score+=1.5;items.push('IA sem governança — risco de dados sensíveis e inconsistência')}
-    if(d.satisfaction&&d.satisfaction<=2){score+=1.5;items.push('Baixa satisfação com TI atual — pode impactar produtividade')}
+    if(d.backup==='none'){score+=2.5;items.push('Sem backup — um incidente pode significar perda total de dados')}
+    else if(d.backup==='manual'){score+=1.5;items.push('Backup manual é falho — risco de esquecimento e perda parcial')}
+    else if(d.backup==='unknown'){score+=1;items.push('Backup desconhecido — não há garantia de recuperação')}
+    if(d.security==='none'){score+=2;items.push('Sem antivírus ou políticas — empresa totalmente exposta a ataques')}
+    else if(d.security==='individual'){score+=1.5;items.push('Segurança descentralizada — cada colaborador é um ponto de risco')}
+    else if(d.security==='partial'){score+=0.5;items.push('Antivírus sem políticas — proteção parcial, gestão limitada')}
+    if(d.ai_usage==='none'){score+=0.5;items.push('Sem IA — concorrentes que adotam ganham vantagem competitiva')}
+    else if(d.ai_usage==='scattered'){score+=1;items.push('IA sem governança — risco de vazamento de dados sensíveis')}
+    if(d.satisfaction&&d.satisfaction<=2){score+=1;items.push('Baixa satisfação com TI — pode estar impactando a operação diariamente')}
     const emp=d.employees||'';
-    if((emp==='50-100'||emp==='100+')&&d.it_status==='none'){score+=1;items.push('Empresa de porte médio/grande sem TI — exposição elevada')}
-    if(items.length===0)items.push('Seu cenário atual apresenta baixo risco operacional');
+    if((emp==='50-100'||emp==='100+')&&d.it_status==='none'){score+=1;items.push('Empresa de grande porte sem TI dedicada — exposição severa')}
+    if(items.length===0)items.push('Cenário atual com risco operacional controlado');
     return{score:Math.min(Math.round(score),10),items};
 }
 
 function calcPotential(d){
     let score=0;const items=[];
-    if(d.ai_usage==='none'){score+=3;items.push('Implementar IA pode gerar até 35% de ganho em eficiência')}
-    else if(d.ai_usage==='scattered'){score+=2;items.push('Centralizar IA com governança pode eliminar redundâncias e riscos')}
-    else{score+=1;items.push('Escalar IA existente com automações profundas e integrações')}
+    if(d.ai_usage==='none'){score+=3;items.push('Implementar IA pode gerar até 35% de ganho em eficiência operacional')}
+    else if(d.ai_usage==='scattered'){score+=2;items.push('Centralizar IA com governança elimina redundâncias e acelera resultados')}
+    else{score+=1;items.push('Escalar IA existente com automações avançadas e integrações profundas')}
     if(d.infra==='onprem'){score+=2;items.push('Migração para nuvem pode reduzir custos de infraestrutura em até 40%')}
-    else if(d.infra==='hybrid'){score+=1;items.push('Otimizar modelo híbrido para máxima eficiência')}
-    if(d.it_status==='none'||d.it_status==='outsourced'){score+=2;items.push('Gestão profissional de TI pode aumentar uptime para 99.9%')}
+    else if(d.infra==='hybrid'){score+=1;items.push('Otimizar modelo híbrido para máxima eficiência e menor custo')}
+    if(d.it_status==='none'||d.it_status==='outsourced'){score+=2;items.push('Gestão profissional de TI pode elevar uptime para 99.9%')}
+    if(d.backup==='none'||d.backup==='manual'){score+=1;items.push('Backup automatizado na nuvem garante continuidade do negócio')}
+    if(d.security==='none'||d.security==='individual'){score+=1;items.push('Segurança corporativa pode prevenir até 99% das ameaças comuns')}
     const emp=d.employees||'';
-    if(emp==='50-100'||emp==='100+'){score+=1;items.push('Escala da empresa potencializa ROI de cada investimento em tecnologia')}
-    if(d.satisfaction&&d.satisfaction<=3){score+=1;items.push('Margem significativa para melhoria na experiência de TI')}
+    if(emp==='50-100'||emp==='100+'){score+=1;items.push('Escala da empresa maximiza ROI de cada investimento em tecnologia')}
+    if(d.satisfaction&&d.satisfaction<=3){score+=0.5;items.push('Grande margem para melhoria na experiência de TI dos colaboradores')}
     return{score:Math.min(Math.round(score),10),items};
 }
 
+function calcMaturity(d){
+    let score=10;const items=[];
+    // Start at 10 and subtract
+    if(d.it_status==='none'){score-=3;items.push('Sem equipe de TI dedicada')}
+    else if(d.it_status==='outsourced'){score-=1.5;items.push('TI terceirizada com insatisfação')}
+    else if(d.it_status==='internal'){score-=0.5;items.push('TI interna — bom, mas pode escalar melhor')}
+    else{items.push('Modelo híbrido de TI — boa prática')}
+
+    if(d.infra==='onprem'){score-=2;items.push('Infraestrutura local — modelo legado')}
+    else if(d.infra==='cloud'){items.push('Infraestrutura na nuvem — moderno')}
+    else if(d.infra==='unknown'){score-=2;items.push('Infraestrutura desconhecida — falta de governança')}
+
+    if(d.backup==='cloud_auto'){items.push('Backup automático na nuvem — excelente')}
+    else if(d.backup==='manual'){score-=1.5;items.push('Backup manual — processo frágil')}
+    else if(d.backup==='none'){score-=2.5;items.push('Sem backup — risco crítico')}
+
+    if(d.security==='full'){items.push('Segurança corporativa implementada')}
+    else if(d.security==='none'){score-=2;items.push('Sem proteção de segurança')}
+    else if(d.security==='individual'){score-=1.5;items.push('Segurança individual — sem gestão centralizada')}
+
+    if(d.ai_usage==='optimize'){items.push('Já utiliza IA — empresa inovadora')}
+    else if(d.ai_usage==='none'){score-=1;items.push('Sem uso de IA — oportunidade latente')}
+
+    const tools=d.tools||[];
+    if(tools.includes('google')||tools.includes('microsoft')){items.push('Ferramentas de produtividade em uso')}
+    if(tools.includes('erp')){items.push('ERP implementado')}
+    if(tools.includes('crm')){items.push('CRM em uso')}
+    if(tools.includes('none')){score-=1;items.push('Nenhuma ferramenta corporativa — processo manual')}
+
+    return{score:Math.max(Math.min(Math.round(score),10),1),items};
+}
+
 function recommendSvcs(d){
-    const svcs=new Set(d.services||[]);
+    const svcs=new Set();
     if(d.it_status==='none'||d.it_status==='outsourced')svcs.add('it_management');
     if(d.ai_usage!=='optimize')svcs.add('google_workspace');
     if(d.ai_usage==='none'||d.ai_usage==='scattered')svcs.add('ai_development');
     const emp=d.employees||'';
     if(emp==='50-100'||emp==='100+')svcs.add('cto_service');
+    if(d.security==='none'||d.security==='individual')svcs.add('it_management');
     if(svcs.size===0)svcs.add('it_management');
     return[...svcs];
+}
+
+function getDetailedRecs(d,risk,maturity){
+    const recs=[];
+    if(d.it_status==='none'||d.it_status==='outsourced'){
+        recs.push({icon:'🛡️',title:'Gestão de TI Completa',desc:'Help Desk dedicado, monitoramento 24/7, gestão de ativos, backup e segurança. Base para tudo funcionar.'});
+    }
+    if(d.backup==='none'||d.backup==='manual'){
+        recs.push({icon:'💾',title:'Backup & Disaster Recovery',desc:'Backup automático na nuvem com recuperação rápida. Nunca mais perca dados por incidente ou ransomware.'});
+    }
+    if(d.security==='none'||d.security==='individual'){
+        recs.push({icon:'🔒',title:'Segurança Corporativa + LGPD',desc:'Antivírus gerenciado (Bitdefender), políticas de acesso, treinamento anti-phishing e adequação LGPD.'});
+    }
+    if(d.ai_usage==='none'||d.ai_usage==='scattered'){
+        recs.push({icon:'🤖',title:'IA Aplicada & Automação',desc:'Implementar IA com governança: automação de processos, chatbots, dashboards inteligentes com Gemini e Claude.'});
+    }
+    const tools=d.tools||[];
+    if(!tools.includes('google')&&!tools.includes('microsoft')){
+        recs.push({icon:'📧',title:'Google Workspace com Gemini',desc:'E-mail corporativo, Drive, Meet, Chat e Gemini AI integrado. Produtividade e colaboração em outro nível.'});
+    }
+    const emp=d.employees||'';
+    if(emp==='50-100'||emp==='100+'){
+        recs.push({icon:'🎯',title:'CTO as a Service',desc:'Liderança tecnológica estratégica, roadmap de inovação, governança e compliance sem custo de C-level fixo.'});
+    }
+    if(recs.length===0){
+        recs.push({icon:'🚀',title:'Consultoria de Inovação',desc:'Análise aprofundada e roadmap personalizado para transformação digital da sua empresa.'});
+    }
+    return recs;
+}
+
+function calcROI(d,risk){
+    const roi=[];
+    if(d.it_status==='none'||d.it_status==='outsourced'){
+        roi.push({value:'↑ 99.9%',label:'Uptime da operação'});
+    }
+    if(d.backup==='none'||d.backup==='manual'){
+        roi.push({value:'↓ 95%',label:'Risco de perda de dados'});
+    }
+    if(d.ai_usage==='none'){
+        roi.push({value:'↑ 35%',label:'Produtividade com IA'});
+    } else if(d.ai_usage==='scattered'){
+        roi.push({value:'↑ 20%',label:'Eficiência com IA governada'});
+    }
+    if(d.infra==='onprem'){
+        roi.push({value:'↓ 40%',label:'Custo de infraestrutura'});
+    }
+    if(d.security==='none'||d.security==='individual'){
+        roi.push({value:'↓ 99%',label:'Ameaças bloqueadas'});
+    }
+    if(d.satisfaction&&d.satisfaction<=3){
+        roi.push({value:'↑ 4x',label:'Satisfação da equipe com TI'});
+    }
+    if(roi.length===0){
+        roi.push({value:'↑ 30%',label:'Eficiência operacional'});
+        roi.push({value:'↓ 25%',label:'Custo total de TI'});
+    }
+    return roi.slice(0,4);
 }
