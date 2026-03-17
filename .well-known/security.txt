@@ -1,0 +1,5 @@
+Contact: mailto:contato@guinux.com.br
+Contact: https://wa.me/554140639294
+Expires: 2027-03-17T00:00:00.000Z
+Preferred-Languages: pt-BR, en
+Canonical: https://www.guinux.com.br/.well-known/security.txt

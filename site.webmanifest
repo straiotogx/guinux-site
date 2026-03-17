@@ -1,0 +1,16 @@
+{
+  "name": "Guinux — InteligêncIA em TI",
+  "short_name": "Guinux",
+  "description": "Gestão de TI Completa, IA Aplicada & Google Cloud Partner — Curitiba, PR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFBFC",
+  "theme_color": "#1A7A7A",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "icons": [
+    {"src": "/favicon-16x16.png", "sizes": "16x16", "type": "image/png"},
+    {"src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png"},
+    {"src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png"}
+  ]
+}
