@@ -211,7 +211,7 @@ const FLOW_COTACAO=[
     {id:'company',type:'text',msgs:['Qual o nome da sua empresa?'],ph:'Nome da empresa...'},
     {id:'employees',type:'pills',msgs:['Quantas pessoas trabalham na empresa?'],opts:[{l:'1–10',v:'1-10',tier:'micro'},{l:'10–25',v:'10-25',tier:'pequena'},{l:'25–50',v:'25-50',tier:'media'},{l:'50–100',v:'50-100',tier:'media_grande'},{l:'100+',v:'100+',tier:'grande'}]},
     {id:'segment',type:'pills',msgs:['Qual o segmento?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
-    {id:'needs',type:'multi',msgs:['Quais são suas necessidades? (selecione todas que se aplicam)'],opts:[{l:'Suporte e gestão de TI',v:'suporte'},{l:'Google Workspace / E-mail',v:'google'},{l:'Implementar IA na empresa',v:'ia'},{l:'Liderança tecnológica (CTO)',v:'cto'},{l:'Automação de processos',v:'automacao'}]},
+    {id:'needs',type:'multi',msgs:['Quais são suas necessidades? (selecione todas que se aplicam)'],opts:[{l:'Suporte e gestão de TI',v:'suporte'},{l:'Google Workspace / E-mail',v:'google'},{l:'Implementar IA na empresa',v:'ia'},{l:'Portal Corporativo com IA',v:'portal'},{l:'Liderança tecnológica (CTO)',v:'cto'},{l:'Automação de processos',v:'automacao'}]},
     {id:'repetitive_tasks',type:'pills',msgs:d=>[`Na ${esc(d.company)}, existem tarefas repetitivas que consomem tempo da equipe?`],opts:[{l:'Sim, muitas!',v:'many'},{l:'Algumas',v:'some'},{l:'Poucas',v:'few'},{l:'Não sei identificar',v:'unknown'}]},
     {id:'pain',type:'pills',msgs:['Qual o maior desafio hoje?'],opts:[{l:'TI instável / cai muito',v:'instavel'},{l:'Sem controle ou visibilidade',v:'sem_controle'},{l:'Gastos altos com TI',v:'custo'},{l:'Equipe improdutiva',v:'produtividade'},{l:'Segurança e LGPD',v:'seguranca'},{l:'Falta de inovação',v:'inovacao'}]},
     {id:'urgency',type:'pills',msgs:['Qual a urgência?'],opts:[{l:'Imediata — preciso já',v:'imediata'},{l:'Próximos 30 dias',v:'30dias'},{l:'Estou pesquisando',v:'pesquisa'}]},
@@ -496,7 +496,11 @@ async function generateCotacao(){
     }
     if(needs.includes('ia')||needs.includes('automacao')||repTasks==='many'){
         recSvcs.push('ai_development');
-        recDetails.push({svc:'IA Aplicada & Automação',why:'Eliminação de tarefas repetitivas, portais inteligentes, dashboards e chatbots com IA.',icon:'🤖'});
+        recDetails.push({svc:'IA Aplicada & Automação',why:'Eliminação de tarefas repetitivas, dashboards inteligentes e chatbots com IA.',icon:'🤖'});
+    }
+    if(needs.includes('portal')){
+        recSvcs.push('portal_ia');
+        recDetails.push({svc:'Portal Corporativo com IA',why:'Portal de alta tecnologia com IA nativa — financeiro, RH, projetos, processos em uma interface inteligente que aprende com sua operação.',icon:'🌐'});
     }
     if(needs.includes('cto')||(sz==='50-100'||sz==='100+'||sz==='100-500'||sz==='500+')){
         recSvcs.push('cto_service');
@@ -908,12 +912,12 @@ function calcROI(d,risk){
     return roi.slice(0,6);
 }
 
-/* ========= SEND BY EMAIL ========= */
-function sendByEmail(type){
+/* ========= SEND BY EMAIL (automatic with beautiful HTML) ========= */
+async function sendByEmail(type){
     const d=chatData;
     const email=d.email||'';
     if(!email){
-        addBotMsg('Para enviar por e-mail, informe seu e-mail na próxima vez que usar o assistente.');
+        addBotMsg('⚠️ E-mail não informado. Refaça o processo para incluir seu e-mail.');
         return;
     }
     const name=d.name||'Cliente';
@@ -921,56 +925,172 @@ function sendByEmail(type){
     const segment=d.segment||'';
     const employees=d.employees||'';
 
-    let subject,body;
+    await showTyping(600);
+    addBotMsg(`📧 Enviando para <strong>${esc(email)}</strong>...`);
+
+    // Build beautiful HTML email
+    const htmlContent=generateEmailHTML(type,d);
+    const subject=type==='diagnostico'
+        ?`Diagnóstico Digital — ${company} | Guinux.IA`
+        :`Cotação Personalizada — ${company} | Guinux.IA`;
+
+    try{
+        const res=await fetch('/api/send-report',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({to:email,name,company,subject,htmlContent,type})
+        });
+        const data=await res.json();
+        if(data.success){
+            addBotMsg(`✅ Enviado com sucesso para <strong>${esc(email)}</strong>! Verifique sua caixa de entrada (e spam, por precaução).`);
+        }else{
+            throw new Error(data.error||'Falha no envio');
+        }
+    }catch(err){
+        console.error('Email send error:',err);
+        // Fallback to mailto
+        const fallbackSubject=encodeURIComponent(subject);
+        const fallbackBody=encodeURIComponent(`Olá ${name},\n\nSegue seu ${type==='diagnostico'?'diagnóstico':'cotação'} da ${company}.\n\nPara ver o resultado completo, acesse: www.guinux.com.br e refaça o processo.\n\nAtenciosamente,\nGuinux.IA`);
+        window.open(`mailto:${encodeURIComponent(email)}?subject=${fallbackSubject}&body=${fallbackBody}`,'_blank');
+        addBotMsg(`📧 E-mail preparado para <strong>${esc(email)}</strong>. Confira seu cliente de e-mail.`);
+    }
+}
+
+function generateEmailHTML(type,d){
+    const name=d.name||'Cliente';
+    const company=d.company||'Empresa';
+    const segment=d.segment||'';
+    const employees=d.employees||'';
+
+    const headerColor='#1A7A7A';
+    const bgColor='#f7f8fa';
+
+    let content='';
+
     if(type==='diagnostico'){
         const risk=calcRisk(d);
         const maturity=calcMaturity(d);
         const pot=calcPotential(d);
         const riskLabel=risk.score>=7?'ALTO':risk.score>=4?'MÉDIO':'BAIXO';
         const matLabel=maturity.score>=7?'AVANÇADA':maturity.score>=4?'INTERMEDIÁRIA':'INICIAL';
+        const riskColor=risk.score>=7?'#e74c3c':risk.score>=4?'#f39c12':'#27ae60';
+        const matColor=maturity.score>=7?'#27ae60':maturity.score>=4?'#f39c12':'#e74c3c';
         const empMap={'1-10':8,'10-25':20,'25-50':40,'50-100':80,'100-500':200,'100+':200,'500+':500};
         const empCount=empMap[employees]||10;
         const taskMult=(d.repetitive_tasks==='many')?0.15:(d.repetitive_tasks==='some')?0.08:0.04;
         const hoursSaved=Math.round(empCount*taskMult*4);
+        const recs=getDetailedRecs(d,risk,maturity);
+        const roi=calcROI(d,risk);
 
-        subject=`Diagnóstico Digital — ${company} | Guinux.IA`;
-        body=`Olá ${name}!\n\nSegue o diagnóstico digital da ${company}:\n\n`
-            +`📊 RISCO OPERACIONAL: ${riskLabel} (${risk.score}/10)\n`
-            +`${risk.items.map(i=>'  • '+i).join('\n')}\n\n`
-            +`📊 MATURIDADE DIGITAL: ${matLabel} (${maturity.score}/10)\n`
-            +`${maturity.items.map(i=>'  • '+i).join('\n')}\n\n`
-            +`🚀 POTENCIAL DE MELHORIA: ${pot.score}/10\n`
-            +`${pot.items.map(i=>'  • '+i).join('\n')}\n\n`
-            +`⚡ AUTOMAÇÃO: ~${hoursSaved}+ horas/mês podem ser economizadas\n\n`
-            +`${d.biggest_pain?'Desafio principal: '+d.biggest_pain+'\n\n':''}`
-            +`Para agendar uma reunião e aprofundar este diagnóstico:\n`
-            +`📞 WhatsApp: +55 41 4063-9294\n`
-            +`🌐 www.guinux.com.br\n\n`
-            +`Atenciosamente,\nGuinux.IA — Assistente Inteligente\nGuinux | InteligêncIA em TI`;
+        content=`
+        <div style="background:${bgColor};padding:20px;border-radius:12px;margin:20px 0">
+            <h2 style="color:#1A1A2A;margin:0 0 4px">${company}</h2>
+            <p style="color:#666;margin:0;font-size:14px">${employees} colaboradores · ${segment}</p>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="12" style="margin:20px 0">
+            <tr>
+                <td style="background:#fff;border:2px solid ${riskColor};border-radius:12px;padding:20px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${riskColor}">${risk.score}<span style="font-size:16px;color:#999">/10</span></div>
+                    <div style="font-size:12px;font-weight:700;color:${riskColor};text-transform:uppercase">Risco ${riskLabel}</div>
+                </td>
+                <td style="background:#fff;border:2px solid ${matColor};border-radius:12px;padding:20px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${matColor}">${maturity.score}<span style="font-size:16px;color:#999">/10</span></div>
+                    <div style="font-size:12px;font-weight:700;color:${matColor};text-transform:uppercase">Maturidade ${matLabel}</div>
+                </td>
+                <td style="background:#fff;border:2px solid ${headerColor};border-radius:12px;padding:20px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${headerColor}">${pot.score}<span style="font-size:16px;color:#999">/10</span></div>
+                    <div style="font-size:12px;font-weight:700;color:${headerColor};text-transform:uppercase">Potencial</div>
+                </td>
+            </tr>
+        </table>
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0;border-left:4px solid ${riskColor}">
+            <h3 style="color:#1A1A2A;margin:0 0 12px">⚠️ Análise de Risco</h3>
+            ${risk.items.map(i=>`<p style="color:#555;margin:4px 0;font-size:14px">• ${i}</p>`).join('')}
+        </div>
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0;border-left:4px solid ${matColor}">
+            <h3 style="color:#1A1A2A;margin:0 0 12px">📊 Maturidade Digital</h3>
+            ${maturity.items.map(i=>`<p style="color:#555;margin:4px 0;font-size:14px">• ${i}</p>`).join('')}
+        </div>
+
+        ${hoursSaved>0?`
+        <div style="background:linear-gradient(135deg,#1A7A7A10,#2B5A8C10);border-radius:12px;padding:20px;margin:16px 0;border:1px solid #1A7A7A30">
+            <h3 style="color:#1A1A2A;margin:0 0 8px">⚡ Potencial de Automação</h3>
+            <p style="color:#1A7A7A;font-size:24px;font-weight:800;margin:8px 0">${hoursSaved}+ horas/mês</p>
+            <p style="color:#666;font-size:14px;margin:0">podem ser economizadas com automação e IA (≈ R$ ${(hoursSaved*45).toLocaleString('pt-BR')}/mês em produtividade)</p>
+        </div>`:''}
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0;border-left:4px solid ${headerColor}">
+            <h3 style="color:#1A1A2A;margin:0 0 12px">🚀 Potencial de Melhoria</h3>
+            ${pot.items.map(i=>`<p style="color:#555;margin:4px 0;font-size:14px">• ${i}</p>`).join('')}
+        </div>
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0">
+            <h3 style="color:#1A1A2A;margin:0 0 16px">✨ Recomendações Personalizadas</h3>
+            ${recs.map(r=>`<div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:${bgColor};border-radius:8px;margin:8px 0">
+                <span style="font-size:24px">${r.icon}</span>
+                <div><strong style="color:#1A1A2A">${r.title}</strong><br><span style="color:#666;font-size:13px">${r.desc}</span></div>
+            </div>`).join('')}
+        </div>
+
+        <div style="background:linear-gradient(135deg,#1A7A7A,#2B5A8C);border-radius:12px;padding:24px;margin:16px 0;color:#fff">
+            <h3 style="color:#fff;margin:0 0 16px">📈 Estimativa de Impacto (12 meses)</h3>
+            <table width="100%" cellpadding="8" cellspacing="0">
+                <tr>${roi.slice(0,4).map(r=>`<td style="text-align:center"><div style="font-size:24px;font-weight:800">${r.value}</div><div style="font-size:11px;opacity:.8">${r.label}</div></td>`).join('')}</tr>
+            </table>
+        </div>
+
+        ${d.biggest_pain?`<div style="background:#FFF3E0;border-radius:12px;padding:16px;margin:16px 0;border-left:4px solid #FF9800">
+            <p style="color:#333;margin:0;font-size:14px">🎯 Sobre "<em>${d.biggest_pain}</em>" — isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</p>
+        </div>`:''}`;
+
     } else {
-        const svcs=[];
+        // Cotação
         const needs=Array.isArray(d.needs)?d.needs:(d.needs?[d.needs]:[]);
-        if(needs.includes('suporte')) svcs.push('Gestão de TI Completa');
-        if(needs.includes('google')) svcs.push('Google Workspace com IA');
-        if(needs.includes('ia')||needs.includes('automacao')) svcs.push('IA Aplicada & Automação');
-        if(needs.includes('cto')) svcs.push('CTO as a Service');
-        if(svcs.length===0) svcs.push('Gestão de TI Completa');
+        const svcs=[];
+        if(needs.includes('suporte')) svcs.push({n:'Gestão de TI Completa',i:'🛡️'});
+        if(needs.includes('google')) svcs.push({n:'Google Workspace com IA Gemini',i:'📧'});
+        if(needs.includes('ia')) svcs.push({n:'IA Aplicada & Automação',i:'🤖'});
+        if(needs.includes('portal')) svcs.push({n:'Portal Corporativo com IA',i:'🌐'});
+        if(needs.includes('cto')) svcs.push({n:'CTO as a Service',i:'🎯'});
+        if(needs.includes('automacao')) svcs.push({n:'Automação de Processos',i:'⚡'});
+        if(svcs.length===0) svcs.push({n:'Gestão de TI Completa',i:'🛡️'});
 
-        subject=`Cotação Personalizada — ${company} | Guinux.IA`;
-        body=`Olá ${name}!\n\nSegue a cotação personalizada para a ${company}:\n\n`
-            +`Empresa: ${company}\n`
-            +`Colaboradores: ${employees}\n`
-            +`Segmento: ${segment}\n`
-            +`Necessidades: ${needs.join(', ')}\n`
-            +`Urgência: ${d.urgency}\n\n`
-            +`Serviços recomendados:\n${svcs.map(s=>'  ✅ '+s).join('\n')}\n\n`
-            +`Para receber a proposta detalhada com valores:\n`
-            +`📞 WhatsApp: +55 41 4063-9294\n`
-            +`🌐 www.guinux.com.br\n\n`
-            +`Atenciosamente,\nGuinux.IA — Assistente Inteligente\nGuinux | InteligêncIA em TI`;
+        content=`
+        <div style="background:${bgColor};padding:20px;border-radius:12px;margin:20px 0">
+            <h2 style="color:#1A1A2A;margin:0 0 4px">${company}</h2>
+            <p style="color:#666;margin:0;font-size:14px">${employees} colaboradores · ${segment} · Urgência: ${d.urgency||'não informada'}</p>
+        </div>
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0">
+            <h3 style="color:#1A1A2A;margin:0 0 16px">Serviços Recomendados</h3>
+            ${svcs.map(s=>`<div style="display:flex;gap:12px;align-items:center;padding:12px;background:${bgColor};border-radius:8px;margin:8px 0">
+                <span style="font-size:24px">${s.i}</span>
+                <strong style="color:#1A1A2A">${s.n}</strong>
+            </div>`).join('')}
+        </div>`;
     }
 
-    const mailtoUrl=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoUrl,'_blank');
-    addBotMsg(`📧 E-mail preparado para <strong>${esc(email)}</strong>! Confira sua caixa de saída.`);
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+    <div style="max-width:640px;margin:0 auto;padding:20px">
+        <div style="background:linear-gradient(135deg,#1A7A7A,#2B5A8C);border-radius:16px 16px 0 0;padding:30px;text-align:center">
+            <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800">GUINUX</h1>
+            <p style="color:rgba(255,255,255,.8);margin:4px 0 0;font-size:13px;letter-spacing:2px">INTELIGÊNCIA EM TI</p>
+        </div>
+        <div style="background:#fff;border-radius:0 0 16px 16px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+            <p style="color:#333;font-size:16px">Olá <strong>${name}</strong>,</p>
+            <p style="color:#555;font-size:14px">Segue o resultado do seu ${type==='diagnostico'?'diagnóstico digital':'cotação personalizada'}, gerado pela <strong>Guinux.IA</strong>.</p>
+            ${content}
+            <div style="text-align:center;margin:30px 0 10px">
+                <a href="https://wa.me/554140639294" style="display:inline-block;background:linear-gradient(135deg,#1A7A7A,#2B5A8C);color:#fff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px">Falar com especialista →</a>
+            </div>
+            <p style="text-align:center;color:#999;font-size:12px;margin-top:8px">Ou ligue: +55 41 4063-9294</p>
+        </div>
+        <div style="text-align:center;padding:20px;color:#999;font-size:11px">
+            <p>Guinux | InteligêncIA em TI<br>Av. Paraná, 1755 — Curitiba, PR<br>Google Cloud Partner desde 2013</p>
+            <p><a href="https://www.guinux.com.br" style="color:#1A7A7A">www.guinux.com.br</a></p>
+        </div>
+    </div>
+    </body></html>`;
 }
