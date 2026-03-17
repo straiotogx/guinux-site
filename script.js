@@ -205,14 +205,16 @@ const FLOW_FAQ=[
 
 /* ========= COTAÇÃO FLOW ========= */
 const FLOW_COTACAO=[
-    {id:'greeting',type:'auto',msgs:['Vamos montar uma proposta personalizada para sua empresa!','Leva menos de 2 minutos.']},
+    {id:'greeting',type:'auto',msgs:['Vamos montar uma proposta personalizada para sua empresa!','São perguntas rápidas — leva menos de 2 minutos.']},
     {id:'name',type:'text',msgs:['Qual é o seu nome?'],ph:'Digite seu nome...'},
-    {id:'company',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! 😊 Qual o nome da sua empresa?`],ph:'Nome da empresa...'},
+    {id:'email',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual seu e-mail para enviarmos a proposta?`],ph:'seu@email.com.br'},
+    {id:'company',type:'text',msgs:['Qual o nome da sua empresa?'],ph:'Nome da empresa...'},
     {id:'employees',type:'pills',msgs:['Quantas pessoas trabalham na empresa?'],opts:[{l:'1–10',v:'1-10',tier:'micro'},{l:'10–25',v:'10-25',tier:'pequena'},{l:'25–50',v:'25-50',tier:'media'},{l:'50–100',v:'50-100',tier:'media_grande'},{l:'100+',v:'100+',tier:'grande'}]},
     {id:'segment',type:'pills',msgs:['Qual o segmento?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
     {id:'needs',type:'pills',msgs:['Qual a principal necessidade hoje?'],opts:[{l:'Suporte e gestão de TI',v:'suporte'},{l:'Google Workspace / E-mail',v:'google'},{l:'Implementar IA na empresa',v:'ia'},{l:'Liderança tecnológica (CTO)',v:'cto'},{l:'Múltiplas necessidades',v:'multiplo'}]},
-    {id:'pain',type:'pills',msgs:['Qual o maior desafio hoje?'],opts:[{l:'TI instável',v:'instavel'},{l:'Sem controle ou visibilidade',v:'sem_controle'},{l:'Gastos altos com TI',v:'custo'},{l:'Equipe improdutiva',v:'produtividade'},{l:'Segurança e LGPD',v:'seguranca'},{l:'Falta de inovação',v:'inovacao'}]},
-    {id:'urgency',type:'pills',msgs:['Qual a urgência?'],opts:[{l:'Imediata',v:'imediata'},{l:'Próximos 30 dias',v:'30dias'},{l:'Estou pesquisando',v:'pesquisa'}]},
+    {id:'repetitive_tasks',type:'pills',msgs:d=>[`Na ${esc(d.company)}, existem tarefas repetitivas que consomem tempo da equipe?`],opts:[{l:'Sim, muitas!',v:'many'},{l:'Algumas',v:'some'},{l:'Poucas',v:'few'},{l:'Não sei identificar',v:'unknown'}]},
+    {id:'pain',type:'pills',msgs:['Qual o maior desafio hoje?'],opts:[{l:'TI instável / cai muito',v:'instavel'},{l:'Sem controle ou visibilidade',v:'sem_controle'},{l:'Gastos altos com TI',v:'custo'},{l:'Equipe improdutiva',v:'produtividade'},{l:'Segurança e LGPD',v:'seguranca'},{l:'Falta de inovação',v:'inovacao'}]},
+    {id:'urgency',type:'pills',msgs:['Qual a urgência?'],opts:[{l:'Imediata — preciso já',v:'imediata'},{l:'Próximos 30 dias',v:'30dias'},{l:'Estou pesquisando',v:'pesquisa'}]},
     {id:'cotacao_result',type:'cotacao_end'},
 ];
 
@@ -220,17 +222,28 @@ const FLOW_COTACAO=[
 const FLOW_DIAGNOSTICO=[
     {id:'greeting',type:'auto',msgs:['Vou realizar uma análise completa da maturidade digital da sua empresa.','São perguntas rápidas — e o resultado vai te surpreender.']},
     {id:'name',type:'text',msgs:['Para começar, qual é o seu nome?'],ph:'Seu nome...'},
-    {id:'company',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual o nome da empresa?`],ph:'Nome da empresa...'},
-    {id:'employees',type:'pills',msgs:['Quantos colaboradores?'],opts:[{l:'1–10',v:'1-10'},{l:'10–25',v:'10-25'},{l:'25–50',v:'25-50'},{l:'50–100',v:'50-100'},{l:'100+',v:'100+'}]},
-    {id:'segment',type:'pills',msgs:['Qual o segmento da empresa?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
+    {id:'email',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual seu e-mail? Vou enviar o diagnóstico completo.`],ph:'seu@email.com.br'},
+    {id:'company',type:'text',msgs:['Qual o nome da empresa?'],ph:'Nome da empresa...'},
+    {id:'employees',type:'pills',msgs:['Quantos colaboradores a empresa tem?'],opts:[{l:'1–10',v:'1-10'},{l:'10–25',v:'10-25'},{l:'25–50',v:'25-50'},{l:'50–100',v:'50-100'},{l:'100–500',v:'100-500'},{l:'500+',v:'500+'}]},
+    {id:'segment',type:'pills',msgs:['Qual o segmento da empresa?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Educação',v:'educacao'},{l:'Outro',v:'outro'}]},
     {id:'it_status',type:'pills',msgs:['Como é a TI da empresa hoje?'],opts:[{l:'Não temos equipe de TI',v:'none'},{l:'TI interna própria',v:'internal'},{l:'Terceirizada (insatisfeito)',v:'outsourced'},{l:'Modelo híbrido',v:'hybrid'}]},
     {id:'infra',type:'pills',msgs:['Onde ficam seus servidores e dados?'],opts:[{l:'Servidores físicos locais',v:'onprem'},{l:'Tudo na nuvem',v:'cloud'},{l:'Híbrido (local + nuvem)',v:'hybrid'},{l:'Não sei ao certo',v:'unknown'}]},
     {id:'backup',type:'pills',msgs:['Como é feito o backup dos dados?'],opts:[{l:'Backup automático na nuvem',v:'cloud_auto'},{l:'Backup manual / HD externo',v:'manual'},{l:'Não temos backup',v:'none'},{l:'Não sei',v:'unknown'}]},
     {id:'security',type:'pills',msgs:['A empresa tem antivírus corporativo e políticas de segurança?'],opts:[{l:'Sim, tudo configurado',v:'full'},{l:'Tem antivírus, mas sem políticas',v:'partial'},{l:'Cada um usa o seu',v:'individual'},{l:'Não temos nada',v:'none'}]},
-    {id:'ai_usage',type:'pills',msgs:['Como a empresa usa Inteligência Artificial hoje?'],opts:[{l:'Não utilizamos',v:'none'},{l:'Uso individual, sem padrão',v:'scattered'},{l:'Já usamos, queremos mais',v:'optimize'}]},
+    {id:'repetitive_tasks',type:'pills',msgs:d=>[`Entendi. Agora sobre produtividade: na ${esc(d.company)}, existem tarefas manuais e repetitivas?`],opts:[{l:'Sim, muitas! Gasta muito tempo',v:'many'},{l:'Algumas poderiam ser automatizadas',v:'some'},{l:'Poucas ou nenhuma',v:'few'},{l:'Não sei identificar',v:'unknown'}]},
+    {id:'repetitive_examples',type:'pills',msgs:d=>{
+        if(d.repetitive_tasks==='many'||d.repetitive_tasks==='some') return['Quais tipos de tarefas mais se repetem?'];
+        return['Qual área consome mais tempo da equipe?'];
+    },opts:[{l:'Envio de relatórios / planilhas',v:'reports'},{l:'Atendimento / respostas ao cliente',v:'support'},{l:'Processos de aprovação',v:'approvals'},{l:'Entrada de dados / cadastros',v:'data_entry'},{l:'Financeiro / contas a pagar',v:'finance'},{l:'Controle de documentos',v:'docs'}]},
+    {id:'automation_interest',type:'pills',msgs:d=>{
+        const segHints={juridico:'análise de contratos e petições',imobiliario:'gestão de contratos e atendimento',industria:'controle de produção e qualidade',servicos:'propostas e follow-up de clientes',saude:'prontuários e agendamentos',varejo:'estoque e atendimento',tecnologia:'deploy e monitoramento',educacao:'comunicação e matrículas'};
+        const hint=segHints[d.segment]||'processos internos';
+        return[`No seu segmento, IA já automatiza ${hint}. Isso é algo que interessa?`];
+    },opts:[{l:'Muito! Quero implementar',v:'high'},{l:'Interessante, quero saber mais',v:'medium'},{l:'Talvez no futuro',v:'low'}]},
+    {id:'ai_usage',type:'pills',msgs:['A empresa já usa Inteligência Artificial hoje?'],opts:[{l:'Não utilizamos nada',v:'none'},{l:'Uso individual, sem padrão',v:'scattered'},{l:'Usamos ChatGPT / Gemini',v:'basic'},{l:'Já temos IA integrada',v:'optimize'}]},
     {id:'tools',type:'multi',msgs:['Quais ferramentas a empresa usa? (selecione todas)'],opts:[{l:'Google Workspace',v:'google'},{l:'Microsoft 365',v:'microsoft'},{l:'ERP / Sistema de gestão',v:'erp'},{l:'CRM',v:'crm'},{l:'Ferramentas de IA',v:'ai_tools'},{l:'Nenhuma dessas',v:'none'}]},
     {id:'satisfaction',type:'stars',msgs:['De 1 a 5, qual sua satisfação com a TI atual?']},
-    {id:'biggest_pain',type:'text',msgs:['Por fim, descreva em uma frase: qual o maior problema de TI da empresa hoje?'],ph:'Ex: "a internet cai toda hora", "não temos controle"...',optional:true},
+    {id:'biggest_pain',type:'text',msgs:['Última pergunta: qual o maior problema de TI ou tecnologia que te incomoda hoje?'],ph:'Ex: "a internet cai toda hora", "perco tempo com planilhas"...',optional:true},
 ];
 
 /* ========= CHAT ENGINE ========= */
@@ -457,9 +470,11 @@ async function generateCotacao(){
     await showTyping(800);
     addBotMsg(`Perfeito, ${name}! Analisando o perfil da <strong>${esc(d.company||'sua empresa')}</strong>...`);
     await showTyping(1000);
-    addBotMsg('Cruzando dados de porte, segmento e necessidade...');
+    addBotMsg('🔄 Cruzando dados de porte, segmento e necessidade...');
+    await showTyping(800);
+    addBotMsg('🔄 Avaliando potencial de automação...');
     await showTyping(1200);
-    addBotMsg('Proposta pronta! Veja o que preparei:');
+    addBotMsg('✅ Proposta pronta! Veja o que preparei:');
     await new Promise(r=>setTimeout(r,400));
 
     const recSvcs=[];
@@ -468,6 +483,7 @@ async function generateCotacao(){
     const need=d.needs||'multiplo';
     const pain=d.pain||'';
     const segment=d.segment||'outro';
+    const repTasks=d.repetitive_tasks||'unknown';
 
     // Smart recommendations
     if(need==='suporte'||need==='multiplo'){
@@ -478,21 +494,21 @@ async function generateCotacao(){
         recSvcs.push('google_workspace');
         recDetails.push({svc:'Google Workspace com IA Gemini',why:'E-mail corporativo, Drive, Meet e Gemini AI integrado para produtividade máxima.',icon:'📧'});
     }
-    if(need==='ia'||need==='multiplo'){
+    if(need==='ia'||need==='multiplo'||repTasks==='many'){
         recSvcs.push('ai_development');
-        recDetails.push({svc:'IA Aplicada & Desenvolvimento',why:'Portais com IA, dashboards, automação de processos — faça mais com menos.',icon:'🤖'});
+        recDetails.push({svc:'IA Aplicada & Automação',why:'Eliminação de tarefas repetitivas, portais inteligentes, dashboards e chatbots com IA.',icon:'🤖'});
     }
-    if(need==='cto'||(sz==='50-100'||sz==='100+')){
+    if(need==='cto'||(sz==='50-100'||sz==='100+'||sz==='100-500'||sz==='500+')){
         recSvcs.push('cto_service');
         recDetails.push({svc:'CTO as a Service',why:'Liderança tecnológica, estratégia e governança sem custo de C-level fixo.',icon:'🎯'});
     }
     if(pain==='seguranca'&&!recSvcs.includes('it_management')){
         recSvcs.push('it_management');
-        recDetails.push({svc:'Gestão de TI Completa',why:'Segurança, LGPD e compliance — proteja seus dados e sua operação.',icon:'🛡️'});
+        recDetails.push({svc:'Gestão de TI + Segurança',why:'Segurança corporativa, LGPD e compliance — proteja dados e operação.',icon:'🔒'});
     }
     if(pain==='produtividade'&&!recSvcs.includes('ai_development')){
         recSvcs.push('ai_development');
-        recDetails.push({svc:'IA Aplicada & Desenvolvimento',why:'Automação e IA para eliminar tarefas repetitivas e otimizar equipe.',icon:'🤖'});
+        recDetails.push({svc:'IA para Produtividade',why:'Automação e IA para eliminar tarefas repetitivas e otimizar equipe.',icon:'🤖'});
     }
     if(recSvcs.length===0){
         recSvcs.push('it_management');
@@ -501,13 +517,14 @@ async function generateCotacao(){
 
     // Segment-specific insight
     const segInsights={
-        juridico:'Escritórios de advocacia que adotam IA aumentam produtividade em até 40% na análise documental.',
-        imobiliario:'O setor imobiliário está entre os que mais se beneficiam de portais com IA para atendimento.',
-        industria:'Indústrias com TI bem estruturada reduzem paradas não planejadas em até 60%.',
-        saude:'Na saúde, segurança de dados e LGPD não são opcionais — são obrigação legal.',
-        servicos:'Empresas de serviços que implementam IA ganham velocidade e escala sem aumentar equipe.',
-        varejo:'No varejo, IA em atendimento e logística pode aumentar conversão em até 25%.',
-        tecnologia:'Mesmo empresas de tech se beneficiam de outsourcing para focar no core business.',
+        juridico:'Escritórios de advocacia que adotam IA aumentam produtividade em até 40% na análise documental. A OAB Paraná, nosso cliente, é referência nessa transformação.',
+        imobiliario:'O setor imobiliário está entre os que mais se beneficiam de portais com IA. Cases como a DCL Real Estate comprovam ganhos de eficiência operacional.',
+        industria:'Indústrias com TI bem estruturada reduzem paradas não planejadas em até 60%. Nosso cliente Leal Embalagens é case aprovado pelo Google.',
+        saude:'Na saúde, segurança de dados e LGPD não são opcionais — são obrigação legal. IA em prontuários e agendamentos transforma a operação.',
+        servicos:'Empresas de serviços que implementam IA ganham velocidade e escala sem aumentar equipe. A automação de propostas e follow-up é game-changer.',
+        varejo:'No varejo, IA em atendimento e logística pode aumentar conversão em até 25%. Automação de estoque e precificação geram economia imediata.',
+        tecnologia:'Mesmo empresas de tech se beneficiam de outsourcing de TI para focar no core business. Sua equipe de dev não deveria cuidar de infra.',
+        educacao:'Na educação, IA transforma comunicação com alunos, matrículas e gestão acadêmica. Automação reduz carga administrativa em até 50%.',
     };
 
     const optimizations=[];
@@ -517,7 +534,15 @@ async function generateCotacao(){
     if(pain==='sem_controle') optimizations.push({text:'Visibilidade total com dashboards e relatórios em tempo real',pct:80});
     if(pain==='seguranca') optimizations.push({text:'LGPD, backup e segurança corporativa implementados',pct:90});
     if(pain==='inovacao') optimizations.push({text:'Roadmap de inovação com IA, automação e transformação digital',pct:70});
+    if(repTasks==='many') optimizations.push({text:'Automação de tarefas repetitivas com IA — economia de horas/semana',pct:85});
+    else if(repTasks==='some') optimizations.push({text:'Processos automatizáveis identificados — ganho estimado de 20%',pct:60});
     if(optimizations.length===0) optimizations.push({text:'Estrutura profissional de TI pode aumentar produtividade em até 30%',pct:30});
+
+    // Estimate automation hours saved
+    const empMap={'1-10':8,'10-25':20,'25-50':40,'50-100':80,'100-500':200,'100+':200,'500+':500};
+    const empCount=empMap[sz]||10;
+    const taskMult=repTasks==='many'?0.15:repTasks==='some'?0.08:0.04;
+    const hoursSaved=Math.round(empCount*taskMult*4);
 
     // Build card
     let html=`<div class="diagnosis cotacao-card">`;
@@ -531,6 +556,11 @@ async function generateCotacao(){
     // Segment insight
     if(segInsights[segment]){
         html+=`<div class="diag-insight"><span class="diag-insight-icon">💡</span><span>${segInsights[segment]}</span></div>`;
+    }
+
+    // Automation insight
+    if(hoursSaved>0){
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">⚡</span><span>Com base no porte e perfil da ${esc(d.company)}, estimamos que <strong>${hoursSaved}+ horas/mês</strong> podem ser economizadas com automação e IA em tarefas repetitivas.</span></div>`;
     }
 
     // Recommended services
@@ -557,7 +587,8 @@ async function generateCotacao(){
     // CTA
     const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (${d.employees} colaboradores, segmento ${d.segment}). Fiz uma cotação no site e tenho interesse em: ${recDetails.map(s=>s.svc).join(', ')}. Necessidade: ${d.needs}. Urgência: ${d.urgency}.`);
     html+=`<div class="diag-cta">`;
-    html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Receber proposta detalhada</a>`;
+    html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Falar com especialista</a>`;
+    html+=`<button class="btn-ghost" onclick="sendByEmail('cotacao')">📧 Enviar por e-mail</button>`;
     html+=`<button class="btn-ghost" onclick="switchFlow('diagnostico')">Fazer diagnóstico completo →</button>`;
     html+=`</div></div>`;
 
@@ -573,18 +604,19 @@ async function generateDiagnosis(){
 
     // Dramatic analysis sequence
     await showTyping(800);
-    addBotMsg(`${name}, coletei todas as informações. Iniciando análise...`);
-
+    addBotMsg(`${name}, coletei todas as informações. Iniciando análise com IA...`);
     await showTyping(1000);
-    addBotMsg('🔄 Processando perfil da empresa...');
+    addBotMsg('🔄 Processando perfil da empresa e segmento...');
     await showTyping(800);
     addBotMsg('🔄 Avaliando infraestrutura e segurança...');
     await showTyping(800);
+    addBotMsg('🔄 Analisando potencial de automação e IA...');
+    await showTyping(800);
     addBotMsg('🔄 Calculando maturidade digital e risco operacional...');
     await showTyping(800);
-    addBotMsg('🔄 Gerando recomendações personalizadas com IA...');
+    addBotMsg('🔄 Gerando recomendações personalizadas...');
     await showTyping(1200);
-    addBotMsg('✅ Diagnóstico concluído!');
+    addBotMsg('✅ Diagnóstico concluído! Resultado impressionante.');
     await new Promise(r=>setTimeout(r,500));
 
     const risk=calcRisk(d);
@@ -592,11 +624,31 @@ async function generateDiagnosis(){
     const maturity=calcMaturity(d);
     const svcs=recommendSvcs(d);
     const segment=d.segment||'outro';
+    const repTasks=d.repetitive_tasks||'unknown';
+    const repExamples=d.repetitive_examples||'';
+    const autoInterest=d.automation_interest||'medium';
+
+    // Estimate automation
+    const empMap={'1-10':8,'10-25':20,'25-50':40,'50-100':80,'100-500':200,'100+':200,'500+':500};
+    const empCount=empMap[d.employees]||10;
+    const taskMult=repTasks==='many'?0.15:repTasks==='some'?0.08:0.04;
+    const hoursSaved=Math.round(empCount*taskMult*4);
+    const moneySaved=Math.round(hoursSaved*45);
+
+    // Automation-specific examples based on their answers
+    const autoExamples={
+        reports:'Relatórios e planilhas podem ser gerados automaticamente por IA, economizando horas semanais',
+        support:'Chatbots com IA podem responder até 70% das perguntas frequentes dos clientes 24/7',
+        approvals:'Fluxos de aprovação digital eliminam gargalos — aprovações que levavam dias viram minutos',
+        data_entry:'Entrada de dados automatizada com IA — extração de informações de documentos e e-mails',
+        finance:'Conciliação financeira e contas a pagar/receber automatizadas reduzem erros e tempo em 80%',
+        docs:'Gestão inteligente de documentos com IA — busca, classificação e versionamento automáticos'
+    };
 
     // Build diagnosis card
     let html=`<div class="diagnosis diag-premium">`;
     html+=`<div class="diag-header-bar">`;
-    html+=`<div class="diag-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5L22 10l-7.5 2.5L12 20l-2.5-7.5L2 10l7.5-2.5L12 0z"/></svg> DIAGNÓSTICO COMPLETO</div>`;
+    html+=`<div class="diag-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5L22 10l-7.5 2.5L12 20l-2.5-7.5L2 10l7.5-2.5L12 0z"/></svg> DIAGNÓSTICO COMPLETO — ${esc(d.company).toUpperCase()}</div>`;
     html+=`<div class="diag-company-badge"><strong>${esc(d.company)}</strong><span>${d.employees} colaboradores · ${esc(segment)}</span></div>`;
     html+=`</div>`;
 
@@ -608,18 +660,9 @@ async function generateDiagnosis(){
     const matClass=maturity.score>=7?'pot-high':maturity.score>=4?'risk-mid':'risk-high';
 
     html+=`<div class="diag-scores">`;
-    // Risk
-    html+=`<div class="diag-score-card">`;
-    html+=`<div class="diag-score-number ${riskClass}">${risk.score}<span>/10</span></div>`;
-    html+=`<div class="diag-score-label">${riskEmoji} Risco ${riskLabel}</div></div>`;
-    // Maturity
-    html+=`<div class="diag-score-card">`;
-    html+=`<div class="diag-score-number ${matClass}">${maturity.score}<span>/10</span></div>`;
-    html+=`<div class="diag-score-label">📊 Maturidade ${matLabel}</div></div>`;
-    // Potential
-    html+=`<div class="diag-score-card">`;
-    html+=`<div class="diag-score-number pot-high">${pot.score}<span>/10</span></div>`;
-    html+=`<div class="diag-score-label">🚀 Potencial de Melhoria</div></div>`;
+    html+=`<div class="diag-score-card"><div class="diag-score-number ${riskClass}">${risk.score}<span>/10</span></div><div class="diag-score-label">${riskEmoji} Risco ${riskLabel}</div></div>`;
+    html+=`<div class="diag-score-card"><div class="diag-score-number ${matClass}">${maturity.score}<span>/10</span></div><div class="diag-score-label">📊 Maturidade ${matLabel}</div></div>`;
+    html+=`<div class="diag-score-card"><div class="diag-score-number pot-high">${pot.score}<span>/10</span></div><div class="diag-score-label">🚀 Potencial de Melhoria</div></div>`;
     html+=`</div>`;
 
     // Risk analysis
@@ -632,6 +675,34 @@ async function generateDiagnosis(){
     html+=`<div class="diag-bar"><div class="diag-bar-fill ${matClass}" style="width:${maturity.score*10}%"></div></div>`;
     html+=`<ul class="diag-items potential">${maturity.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
 
+    // AUTOMATION & AI section (NEW - impressive)
+    html+=`<div class="diag-section"><h4>🤖 Análise de Automação & IA</h4>`;
+    if(hoursSaved>0){
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">⚡</span><span>Estimativa: <strong>${hoursSaved}+ horas/mês</strong> economizadas com automação (≈ R$ ${moneySaved.toLocaleString('pt-BR')}/mês em produtividade recuperada)</span></div>`;
+    }
+    if(autoExamples[repExamples]){
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">🎯</span><span>${autoExamples[repExamples]}</span></div>`;
+    }
+    const autoItems=[];
+    if(repTasks==='many') autoItems.push('Alto volume de tarefas repetitivas — automação é prioridade #1');
+    else if(repTasks==='some') autoItems.push('Tarefas repetitivas identificadas — bom potencial de automação');
+    if(d.ai_usage==='none') autoItems.push('Sem IA na operação — implementar agora coloca a empresa na frente dos concorrentes');
+    else if(d.ai_usage==='scattered') autoItems.push('IA sem governança — centralizar uso evita vazamento de dados e multiplica resultados');
+    else if(d.ai_usage==='basic') autoItems.push('Uso básico de IA — integrar Gemini/Claude no fluxo de trabalho amplifica resultados em 3x');
+    if(autoInterest==='high') autoItems.push('Interesse alto em automação — ROI rápido, resultados em 30-60 dias');
+    const segAutoHints={
+        juridico:'IA pode analisar contratos, gerar petições e classificar documentos automaticamente',
+        imobiliario:'Atendimento 24/7 com chatbot IA, gestão de contratos e follow-up automático',
+        industria:'Monitoramento de produção, controle de qualidade e manutenção preditiva com IA',
+        servicos:'Automação de propostas, contratos, follow-up e relatórios de projeto',
+        saude:'Triagem inteligente, agendamento otimizado e gestão de prontuários com IA',
+        varejo:'Precificação dinâmica, previsão de demanda e atendimento inteligente',
+        tecnologia:'CI/CD automatizado, monitoramento inteligente e gestão de incidentes com IA',
+        educacao:'Comunicação personalizada, gestão de matrículas e análise de desempenho com IA'
+    };
+    if(segAutoHints[segment]) autoItems.push(segAutoHints[segment]);
+    html+=`<ul class="diag-items potential">${autoItems.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+
     // Potential
     html+=`<div class="diag-section"><h4>🚀 Potencial de Melhoria</h4>`;
     html+=`<div class="diag-bar"><div class="diag-bar-fill pot-high" style="width:${pot.score*10}%"></div></div>`;
@@ -641,31 +712,29 @@ async function generateDiagnosis(){
     html+=`<div class="diag-section"><h4>✨ Recomendações Personalizadas</h4>`;
     const recs=getDetailedRecs(d,risk,maturity);
     recs.forEach(r=>{
-        html+=`<div class="diag-svc-card">`;
-        html+=`<span class="diag-svc-icon">${r.icon}</span>`;
-        html+=`<div><strong>${r.title}</strong><span>${r.desc}</span></div></div>`;
+        html+=`<div class="diag-svc-card"><span class="diag-svc-icon">${r.icon}</span><div><strong>${r.title}</strong><span>${r.desc}</span></div></div>`;
     });
     html+=`</div>`;
 
-    // ROI estimate
+    // ROI estimate (enhanced)
     const roi=calcROI(d,risk);
-    html+=`<div class="diag-roi">`;
-    html+=`<div class="diag-roi-title">📈 Estimativa de Impacto (12 meses)</div>`;
-    html+=`<div class="diag-roi-grid">`;
-    roi.forEach(r=>{
+    if(hoursSaved>10) roi.push({value:`↑ ${hoursSaved}h`,label:'Horas/mês economizadas'});
+    html+=`<div class="diag-roi"><div class="diag-roi-title">📈 Estimativa de Impacto (12 meses)</div><div class="diag-roi-grid">`;
+    roi.slice(0,6).forEach(r=>{
         html+=`<div class="diag-roi-item"><div class="diag-roi-value">${r.value}</div><div class="diag-roi-label">${r.label}</div></div>`;
     });
     html+=`</div></div>`;
 
     // Biggest pain echo
     if(d.biggest_pain){
-        html+=`<div class="diag-insight"><span class="diag-insight-icon">🎯</span><span>Sobre "<em>${esc(d.biggest_pain)}</em>" — isso é exatamente o tipo de problema que resolvemos com ${svcs.length>1?'a combinação de serviços recomendados':'o serviço recomendado'}. Nossos clientes com desafios similares viram resultados em menos de 30 dias.</span></div>`;
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">🎯</span><span>Sobre "<em>${esc(d.biggest_pain)}</em>" — isso é exatamente o tipo de problema que resolvemos. A ${esc(d.company)} tem perfil muito parecido com clientes nossos que viram resultados em menos de 30 dias após implementação.</span></div>`;
     }
 
     // CTA
-    const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (${d.employees} colab., ${segment}). Fiz o diagnóstico no site:\n\n📊 Risco: ${riskLabel} (${risk.score}/10)\n📊 Maturidade: ${matLabel} (${maturity.score}/10)\n📊 Potencial: ${pot.score}/10\n\nGostaria de conversar sobre: ${svcs.map(s=>SVC_NAMES[s]).join(', ')}.${d.biggest_pain?'\n\nDesafio principal: '+d.biggest_pain:''}`);
+    const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (${d.employees} colab., ${segment}). Fiz o diagnóstico no site:\n\n📊 Risco: ${riskLabel} (${risk.score}/10)\n📊 Maturidade: ${matLabel} (${maturity.score}/10)\n📊 Potencial: ${pot.score}/10\n⚡ Horas/mês automatizáveis: ${hoursSaved}+\n\nGostaria de conversar sobre: ${svcs.map(s=>SVC_NAMES[s]).join(', ')}.${d.biggest_pain?'\n\nDesafio principal: '+d.biggest_pain:''}`);
     html+=`<div class="diag-cta">`;
     html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Falar com especialista agora</a>`;
+    html+=`<button class="btn-ghost" onclick="sendByEmail('diagnostico')">📧 Enviar diagnóstico por e-mail</button>`;
     html+=`<button class="btn-ghost" onclick="switchFlow('cotacao')">Ver cotação personalizada →</button>`;
     html+=`</div></div>`;
 
@@ -762,9 +831,10 @@ function recommendSvcs(d){
     const svcs=new Set();
     if(d.it_status==='none'||d.it_status==='outsourced')svcs.add('it_management');
     if(d.ai_usage!=='optimize')svcs.add('google_workspace');
-    if(d.ai_usage==='none'||d.ai_usage==='scattered')svcs.add('ai_development');
+    if(d.ai_usage==='none'||d.ai_usage==='scattered'||d.ai_usage==='basic')svcs.add('ai_development');
+    if(d.repetitive_tasks==='many'||d.automation_interest==='high')svcs.add('ai_development');
     const emp=d.employees||'';
-    if(emp==='50-100'||emp==='100+')svcs.add('cto_service');
+    if(emp==='50-100'||emp==='100+'||emp==='100-500'||emp==='500+')svcs.add('cto_service');
     if(d.security==='none'||d.security==='individual')svcs.add('it_management');
     if(svcs.size===0)svcs.add('it_management');
     return[...svcs];
@@ -781,15 +851,18 @@ function getDetailedRecs(d,risk,maturity){
     if(d.security==='none'||d.security==='individual'){
         recs.push({icon:'🔒',title:'Segurança Corporativa + LGPD',desc:'Antivírus gerenciado (Bitdefender), políticas de acesso, treinamento anti-phishing e adequação LGPD.'});
     }
-    if(d.ai_usage==='none'||d.ai_usage==='scattered'){
+    if(d.ai_usage==='none'||d.ai_usage==='scattered'||d.ai_usage==='basic'){
         recs.push({icon:'🤖',title:'IA Aplicada & Automação',desc:'Implementar IA com governança: automação de processos, chatbots, dashboards inteligentes com Gemini e Claude.'});
+    }
+    if(d.repetitive_tasks==='many'||d.repetitive_tasks==='some'){
+        recs.push({icon:'⚡',title:'Automação de Processos (RPA + IA)',desc:'Eliminar tarefas repetitivas com automação inteligente. Sua equipe foca no estratégico, a IA cuida do operacional.'});
     }
     const tools=d.tools||[];
     if(!tools.includes('google')&&!tools.includes('microsoft')){
         recs.push({icon:'📧',title:'Google Workspace com Gemini',desc:'E-mail corporativo, Drive, Meet, Chat e Gemini AI integrado. Produtividade e colaboração em outro nível.'});
     }
     const emp=d.employees||'';
-    if(emp==='50-100'||emp==='100+'){
+    if(emp==='50-100'||emp==='100+'||emp==='100-500'||emp==='500+'){
         recs.push({icon:'🎯',title:'CTO as a Service',desc:'Liderança tecnológica estratégica, roadmap de inovação, governança e compliance sem custo de C-level fixo.'});
     }
     if(recs.length===0){
@@ -820,9 +893,78 @@ function calcROI(d,risk){
     if(d.satisfaction&&d.satisfaction<=3){
         roi.push({value:'↑ 4x',label:'Satisfação da equipe com TI'});
     }
+    if(d.repetitive_tasks==='many'){
+        roi.push({value:'↓ 60%',label:'Tempo em tarefas manuais'});
+    }
     if(roi.length===0){
         roi.push({value:'↑ 30%',label:'Eficiência operacional'});
         roi.push({value:'↓ 25%',label:'Custo total de TI'});
     }
-    return roi.slice(0,4);
+    return roi.slice(0,6);
+}
+
+/* ========= SEND BY EMAIL ========= */
+function sendByEmail(type){
+    const d=chatData;
+    const email=d.email||'';
+    if(!email){
+        addBotMsg('Para enviar por e-mail, informe seu e-mail na próxima vez que usar o assistente.');
+        return;
+    }
+    const name=d.name||'Cliente';
+    const company=d.company||'Empresa';
+    const segment=d.segment||'';
+    const employees=d.employees||'';
+
+    let subject,body;
+    if(type==='diagnostico'){
+        const risk=calcRisk(d);
+        const maturity=calcMaturity(d);
+        const pot=calcPotential(d);
+        const riskLabel=risk.score>=7?'ALTO':risk.score>=4?'MÉDIO':'BAIXO';
+        const matLabel=maturity.score>=7?'AVANÇADA':maturity.score>=4?'INTERMEDIÁRIA':'INICIAL';
+        const empMap={'1-10':8,'10-25':20,'25-50':40,'50-100':80,'100-500':200,'100+':200,'500+':500};
+        const empCount=empMap[employees]||10;
+        const taskMult=(d.repetitive_tasks==='many')?0.15:(d.repetitive_tasks==='some')?0.08:0.04;
+        const hoursSaved=Math.round(empCount*taskMult*4);
+
+        subject=`Diagnóstico Digital — ${company} | Guinux.IA`;
+        body=`Olá ${name}!\n\nSegue o diagnóstico digital da ${company}:\n\n`
+            +`📊 RISCO OPERACIONAL: ${riskLabel} (${risk.score}/10)\n`
+            +`${risk.items.map(i=>'  • '+i).join('\n')}\n\n`
+            +`📊 MATURIDADE DIGITAL: ${matLabel} (${maturity.score}/10)\n`
+            +`${maturity.items.map(i=>'  • '+i).join('\n')}\n\n`
+            +`🚀 POTENCIAL DE MELHORIA: ${pot.score}/10\n`
+            +`${pot.items.map(i=>'  • '+i).join('\n')}\n\n`
+            +`⚡ AUTOMAÇÃO: ~${hoursSaved}+ horas/mês podem ser economizadas\n\n`
+            +`${d.biggest_pain?'Desafio principal: '+d.biggest_pain+'\n\n':''}`
+            +`Para agendar uma reunião e aprofundar este diagnóstico:\n`
+            +`📞 WhatsApp: +55 41 4063-9294\n`
+            +`🌐 www.guinux.com.br\n\n`
+            +`Atenciosamente,\nGuinux.IA — Assistente Inteligente\nGuinux | InteligêncIA em TI`;
+    } else {
+        const svcs=[];
+        if(d.needs==='suporte'||d.needs==='multiplo') svcs.push('Gestão de TI Completa');
+        if(d.needs==='google'||d.needs==='multiplo') svcs.push('Google Workspace com IA');
+        if(d.needs==='ia'||d.needs==='multiplo') svcs.push('IA Aplicada & Automação');
+        if(d.needs==='cto') svcs.push('CTO as a Service');
+        if(svcs.length===0) svcs.push('Gestão de TI Completa');
+
+        subject=`Cotação Personalizada — ${company} | Guinux.IA`;
+        body=`Olá ${name}!\n\nSegue a cotação personalizada para a ${company}:\n\n`
+            +`Empresa: ${company}\n`
+            +`Colaboradores: ${employees}\n`
+            +`Segmento: ${segment}\n`
+            +`Necessidade: ${d.needs}\n`
+            +`Urgência: ${d.urgency}\n\n`
+            +`Serviços recomendados:\n${svcs.map(s=>'  ✅ '+s).join('\n')}\n\n`
+            +`Para receber a proposta detalhada com valores:\n`
+            +`📞 WhatsApp: +55 41 4063-9294\n`
+            +`🌐 www.guinux.com.br\n\n`
+            +`Atenciosamente,\nGuinux.IA — Assistente Inteligente\nGuinux | InteligêncIA em TI`;
+    }
+
+    const mailtoUrl=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoUrl,'_blank');
+    addBotMsg(`📧 E-mail preparado para <strong>${esc(email)}</strong>! Confira sua caixa de saída.`);
 }
