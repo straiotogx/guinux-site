@@ -139,20 +139,17 @@ function startFlow(flowId){openChat(flowId)}
 
 /* ========= WELCOME MENU (pre-loaded options) ========= */
 async function showWelcomeMenu(){
-    await showTyping(500);
-    addBotMsg('Olá! Sou a <strong>Guinux.IA</strong> — assistente inteligente da Guinux.');
-    await showTyping(600);
-    addBotMsg('Como posso te ajudar hoje? Escolha uma opção:');
-    await new Promise(r=>setTimeout(r,300));
+    await showTyping(400);
+    addBotMsg('Olá! Sou a <strong>Guinux.IA</strong> — Como posso te ajudar?');
+    await new Promise(r=>setTimeout(r,200));
 
-    // Render 3 cards in the chat messages area
     const cardsHtml=`
     <div class="welcome-cards">
         <button class="welcome-card" onclick="switchFlow('diagnostico')">
             <div class="welcome-card-icon">🔍</div>
             <div class="welcome-card-content">
                 <strong>Diagnóstico Gratuito</strong>
-                <span>Análise completa de risco, potencial e maturidade digital da sua empresa com IA</span>
+                <span>Análise de risco, potencial e maturidade digital com IA</span>
             </div>
             <div class="welcome-card-arrow">→</div>
         </button>
@@ -160,7 +157,7 @@ async function showWelcomeMenu(){
             <div class="welcome-card-icon">💰</div>
             <div class="welcome-card-content">
                 <strong>Cotação Personalizada</strong>
-                <span>Proposta sob medida com serviços recomendados para seu porte e necessidade</span>
+                <span>Proposta sob medida para seu porte e necessidade</span>
             </div>
             <div class="welcome-card-arrow">→</div>
         </button>
@@ -168,7 +165,7 @@ async function showWelcomeMenu(){
             <div class="welcome-card-icon">💬</div>
             <div class="welcome-card-content">
                 <strong>Dúvidas Frequentes</strong>
-                <span>Perguntas sobre serviços, preços, atendimento e tecnologias da Guinux</span>
+                <span>Serviços, preços, atendimento e tecnologias</span>
             </div>
             <div class="welcome-card-arrow">→</div>
         </button>
