@@ -1109,6 +1109,7 @@ async function downloadAnalisePDF(){
     const cnpjData=cr.cnpjData||null;
     const socialMedia=cr.socialMedia||{};
     const companyDescription=cr.companyDescription||cr.description||'';
+    const benchmark=cr.competitorBenchmark||null;
 
     // Pre-load logo as data URI to avoid CORS/tainted canvas issues
     let logoSrc='';
@@ -1251,6 +1252,57 @@ async function downloadAnalisePDF(){
             <div style="background:#FFF8E1;border-left:4px solid #F59E0B;border-radius:0 8px 8px 0;padding:12px 16px">
                 <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:4px">🎯 Sua principal dor</div>
                 <div style="font-size:9px;color:#78716C;line-height:1.5">"<em>${d.biggest_pain}</em>" — Isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</div>
+            </div>
+        </div>`:''}
+
+        ${benchmark?`
+        <!-- ===== BENCHMARK COMPETITIVO ===== -->
+        <div style="padding:0 36px 16px;page-break-inside:avoid">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                <div style="width:18px;height:3px;background:${OB};border-radius:2px"></div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${OB}">Benchmark Competitivo — ${benchmark.segmentLabel||segLabel}</div>
+            </div>
+            <div style="background:linear-gradient(135deg,#f8fafc,#f0f7fa);border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                    <div>
+                        <div style="font-size:12px;font-weight:800;color:${OD}">${company}</div>
+                        <div style="font-size:9px;color:#64748b;margin-top:1px">${benchmark.positioning}</div>
+                    </div>
+                    <div style="display:flex;gap:16px">
+                        <div style="text-align:center">
+                            <div style="font-size:20px;font-weight:900;color:${benchmark.totalCompanyScore>=benchmark.totalMarketScore?OG:OR}">${benchmark.totalCompanyScore}/10</div>
+                            <div style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px">Sua empresa</div>
+                        </div>
+                        <div style="text-align:center">
+                            <div style="font-size:20px;font-weight:900;color:#94a3b8">${benchmark.totalMarketScore}/10</div>
+                            <div style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px">Média mercado</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                    ${benchmark.dimensions.map(dim=>{
+                        const cw=Math.round(Math.min(dim.company,10)*10);
+                        const mw=Math.round(Math.min(dim.market,10)*10);
+                        const col=dim.company>=dim.market?OG:OR;
+                        return `<div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+                                <div style="font-size:8px;font-weight:600;color:${OD}">${dim.label}</div>
+                                <div style="font-size:8px;color:#64748b">${dim.company.toFixed(1)} <span style="color:#94a3b8">vs ${dim.market.toFixed(1)} mercado</span></div>
+                            </div>
+                            <div style="position:relative;height:7px;background:#e2e8f0;border-radius:4px">
+                                <div style="position:absolute;left:0;top:0;height:100%;width:${mw}%;background:#cbd5e1;border-radius:4px"></div>
+                                <div style="position:absolute;left:0;top:0;height:100%;width:${cw}%;background:${col};border-radius:4px;opacity:.8"></div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+                ${benchmark.competitors&&benchmark.competitors.length>0?`
+                <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0">
+                    <div style="font-size:7px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Concorrentes identificados</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px">
+                        ${benchmark.competitors.map(c=>`<span style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:2px 8px;border-radius:4px;font-size:8px;font-weight:600">${c.name}</span>`).join('')}
+                    </div>
+                </div>`:''}
             </div>
         </div>`:''}
 

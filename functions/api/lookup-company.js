@@ -222,6 +222,9 @@ export async function onRequestPost(context) {
             fetchPromises.cnpjSearch = searchDDG(`CNPJ "${companyName}" ${cleanDomain}`, 12000);
         }
 
+        // --- Competitor research ---
+        fetchPromises.ddgCompetitors = searchDDG(`concorrentes "${companyName}" ${cleanDomain}`, 10000);
+
         // --- BuiltWith-style tech detection (via Wappalyzer-like headers) ---
         fetchPromises.securityHeaders = (async () => {
             try {
@@ -324,8 +327,8 @@ export async function onRequestPost(context) {
             const snippets = gText.match(/[^.]{30,200}(?:empresa|company|líder|mercado|cliente|solução|tecnologia|fundad|crescimento|faturamento|colaborador|funcionário|prêmio|award|advogado|advocacia|seccional)[^.]{0,150}\./gi) || [];
             googleMentions = snippets.slice(0, 10).map(s => s.trim());
 
-            // Also extract employee mentions from search results
-            const empMatch = gText.match(/(\d[\d.,]*)\s*(?:funcionários|colaboradores|employees|seguidores|followers|advogados|associados|membros)/i);
+            // Also extract employee mentions from search results — exclude social metrics (seguidores/followers/membros)
+            const empMatch = gText.match(/(\d[\d.,]*)\s*(?:funcionários|colaboradores|employees)/i);
             if (empMatch) {
                 const num = parseInt(empMatch[1].replace(/[.,]/g, ''));
                 if (num >= 5 && num <= 500000) linkedinEmployees = num;
@@ -334,7 +337,8 @@ export async function onRequestPost(context) {
 
         if (results.ddgLinkedin) {
             const liText = stripHtml(results.ddgLinkedin);
-            const empMatch2 = liText.match(/(\d[\d.,]*)\s*(?:funcionários|colaboradores|employees|followers)/i);
+            // Match only real employee counts, not follower/member counts
+            const empMatch2 = liText.match(/(\d[\d.,]*)\s*(?:funcionários|colaboradores|employees)/i);
             if (empMatch2 && !linkedinEmployees) {
                 const num = parseInt(empMatch2[1].replace(/[.,]/g, ''));
                 if (num >= 5 && num <= 500000) linkedinEmployees = num;
@@ -1409,6 +1413,105 @@ export async function onRequestPost(context) {
         }
 
         // ====================================================================
+        //  PHASE 20: COMPETITOR BENCHMARK
+        // ====================================================================
+        const competitorNames = [];
+        if (results.ddgCompetitors) {
+            const compText = stripHtml(results.ddgCompetitors);
+            const skipDomains = new Set([
+                cleanDomain, 'duckduckgo.com', 'google.com', 'bing.com', 'wikipedia.org',
+                'youtube.com', 'facebook.com', 'instagram.com', 'linkedin.com', 'twitter.com',
+                'tiktok.com', 'globo.com', 'uol.com.br', 'reclameaqui.com.br', 'glassdoor.com.br',
+                'jusbrasil.com.br', 'migalhas.com.br', 'conjur.com.br',
+            ]);
+            const domainMatches = [...compText.matchAll(/\b([a-z0-9][a-z0-9-]*\.(?:com|com\.br|adv\.br|net\.br|org\.br|net|org|med\.br)(?:\.br)?)\b/gi)];
+            for (const m of domainMatches) {
+                const dom = m[1].toLowerCase();
+                if (!skipDomains.has(dom)) {
+                    skipDomains.add(dom);
+                    const baseName = dom.split('.')[0].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                    competitorNames.push({ name: baseName, domain: dom });
+                    if (competitorNames.length >= 4) break;
+                }
+            }
+        }
+
+        // Segment market benchmarks — Brazilian SMB market (2025)
+        const segBenchmarks = {
+            juridico:    { digital: 4.5, tech: 3.0, automation: 2.0, reputation: 5.0, infrastructure: 4.0 },
+            tecnologia:  { digital: 7.0, tech: 7.0, automation: 5.5, reputation: 5.0, infrastructure: 6.5 },
+            saude:       { digital: 5.0, tech: 4.0, automation: 3.0, reputation: 4.5, infrastructure: 4.5 },
+            contabil:    { digital: 4.5, tech: 5.0, automation: 4.0, reputation: 4.0, infrastructure: 4.5 },
+            industria:   { digital: 4.0, tech: 3.5, automation: 3.5, reputation: 3.5, infrastructure: 4.0 },
+            varejo:      { digital: 6.0, tech: 4.5, automation: 4.0, reputation: 4.5, infrastructure: 5.0 },
+            financeiro:  { digital: 6.5, tech: 6.0, automation: 5.0, reputation: 5.0, infrastructure: 6.0 },
+            imobiliario: { digital: 5.0, tech: 3.5, automation: 3.0, reputation: 4.0, infrastructure: 4.5 },
+            educacao:    { digital: 5.5, tech: 4.5, automation: 3.5, reputation: 4.0, infrastructure: 5.0 },
+            logistica:   { digital: 5.0, tech: 4.5, automation: 4.5, reputation: 3.5, infrastructure: 5.0 },
+            agro:        { digital: 3.5, tech: 4.0, automation: 3.0, reputation: 3.0, infrastructure: 3.5 },
+            alimenticio: { digital: 4.5, tech: 3.0, automation: 3.0, reputation: 4.0, infrastructure: 4.0 },
+            marketing:   { digital: 7.0, tech: 6.0, automation: 5.0, reputation: 4.5, infrastructure: 5.5 },
+            servicos:    { digital: 5.0, tech: 4.0, automation: 3.5, reputation: 4.0, infrastructure: 4.5 },
+            engenharia:  { digital: 4.0, tech: 4.0, automation: 3.0, reputation: 3.5, infrastructure: 4.0 },
+            outro:       { digital: 4.0, tech: 3.5, automation: 3.0, reputation: 4.0, infrastructure: 4.0 },
+        };
+        const mktAvg = segBenchmarks[segment] || segBenchmarks.outro;
+
+        // Company scores per dimension (0–10)
+        const bSocialCount = Object.keys(socialMedia).length;
+        let bScoreDigital = 0;
+        if (infraData.hasSSL) bScoreDigital += 2;
+        if (infraData.cdn) bScoreDigital += 1;
+        if (bSocialCount >= 3) bScoreDigital += 2; else if (bSocialCount >= 1) bScoreDigital += 1;
+        if (clients.length >= 5) bScoreDigital += 2; else if (clients.length >= 1) bScoreDigital += 1;
+        if (siteAnalysis.hasSearch) bScoreDigital += 1;
+        if (companyValues.length > 0) bScoreDigital += 1;
+        bScoreDigital = Math.min(10, bScoreDigital);
+
+        const bScoreTech = Math.min(10, Math.round((techStack.length * 1.2 + headerTech.length * 0.4) * 10) / 10);
+
+        const posSignalCount = digitalMaturitySignals.filter(s => s.type === 'positive').length;
+        const bScoreAutomation = Math.min(10, (siteAnalysis.hasChatbot ? 3 : 0) + posSignalCount);
+
+        let bScoreReputation = 4;
+        if (reclameAquiData && reclameAquiData.score) bScoreReputation = reclameAquiData.score;
+        if (glassdoorData && glassdoorData.score) {
+            const gdScore = glassdoorData.score * 2;
+            bScoreReputation = reclameAquiData ? Math.round((bScoreReputation + gdScore) / 2 * 10) / 10 : gdScore;
+        }
+        if (googleMentions.length >= 5) bScoreReputation = Math.min(10, bScoreReputation + 1);
+
+        const bScoreInfra = Math.min(10, infraData.securityScore + (
+            infraData.emailProvider === 'Google Workspace' || infraData.emailProvider === 'Microsoft 365' ? 2 : 0
+        ));
+
+        const benchDimensions = [
+            { label: 'Presença Digital',  company: bScoreDigital,    market: mktAvg.digital },
+            { label: 'Stack Tecnológico', company: bScoreTech,        market: mktAvg.tech },
+            { label: 'Automação & IA',    company: bScoreAutomation,  market: mktAvg.automation },
+            { label: 'Reputação Online',  company: bScoreReputation,  market: mktAvg.reputation },
+            { label: 'Infraestrutura',    company: bScoreInfra,       market: mktAvg.infrastructure },
+        ];
+
+        const totalCompanyScore = Math.round(benchDimensions.reduce((s, d) => s + d.company, 0) / benchDimensions.length * 10) / 10;
+        const totalMarketScore  = Math.round(benchDimensions.reduce((s, d) => s + d.market,  0) / benchDimensions.length * 10) / 10;
+
+        let benchPositioning = 'Na média do mercado';
+        if (totalCompanyScore >= totalMarketScore + 1.5) benchPositioning = 'Acima da média do mercado';
+        else if (totalCompanyScore >= totalMarketScore + 0.5) benchPositioning = 'Ligeiramente acima da média';
+        else if (totalCompanyScore <= totalMarketScore - 1.5) benchPositioning = 'Abaixo da média do mercado';
+        else if (totalCompanyScore <= totalMarketScore - 0.5) benchPositioning = 'Ligeiramente abaixo da média';
+
+        const competitorBenchmark = {
+            competitors: competitorNames,
+            dimensions: benchDimensions,
+            totalCompanyScore,
+            totalMarketScore,
+            positioning: benchPositioning,
+            segmentLabel: segmentLabel || segment,
+        };
+
+        // ====================================================================
         //  FINAL RESPONSE — All data compiled
         // ====================================================================
         return new Response(JSON.stringify({
@@ -1462,6 +1565,7 @@ export async function onRequestPost(context) {
                 backend: infraData.backend || null,
             },
             googleMentions: googleMentions.slice(0, 5),
+            competitorBenchmark,
             hasWebsite: !!title,
             isEstimate: !extractedEmployees && !cnpjData,
             // Metadata
