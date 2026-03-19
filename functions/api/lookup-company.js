@@ -718,12 +718,12 @@ export async function onRequestPost(context) {
         // ====================================================================
         let segment = 'outro', segmentLabel = '';
         const segmentMap = [
-            { keys: ['advog', 'jurídic', 'juridic', 'direito', 'escritório de advocacia', 'law firm', 'oab', 'ordem dos advogados'], cnae: ['6911', '6912', '9411'], seg: 'juridico', label: 'Advocacia / Jurídico' },
+            { keys: ['advog', 'jurídic', 'juridic', 'escritório de advocacia', 'law firm', 'oab', 'ordem dos advogados', 'direito empresar', 'direito civil', 'direito penal', 'direito trabalhist', 'direito tribut', 'área do direito', 'áreas do direito'], cnae: ['6911', '6912', '9411'], seg: 'juridico', label: 'Advocacia / Jurídico' },
             { keys: ['imobili', 'real estate', 'construção', 'construcao', 'incorpora', 'empreendimento', 'condomíni'], cnae: ['4110', '4120', '4299', '6810', '6821', '6822'], seg: 'imobiliario', label: 'Imobiliário / Construção' },
             { keys: ['indústri', 'industri', 'fábrica', 'fabrica', 'manufatura', 'produção industrial', 'embalage', 'metalúrgic', 'siderúrgic'], cnae: ['10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32'], seg: 'industria', label: 'Indústria' },
             { keys: ['hospital', 'clínica', 'clinica', 'médic', 'medic', 'farmácia', 'saúde', 'saude', 'laborat', 'odont', 'veterinár'], cnae: ['8610', '8620', '8630', '8640', '8650', '4771'], seg: 'saude', label: 'Saúde' },
-            { keys: ['varejo', 'loja', 'comércio', 'comercio', 'shop', 'store', 'e-commerce', 'ecommerce', 'marketplace'], cnae: ['47'], seg: 'varejo', label: 'Varejo / Comércio' },
-            { keys: ['tecnologia', 'software', 'tech', 'saas', 'startup', 'plataforma digital', 'desenvolvimento de'], cnae: ['6201', '6202', '6203', '6204', '6209', '6311', '6319'], seg: 'tecnologia', label: 'Tecnologia' },
+            { keys: ['varejo', 'loja virtual', 'comércio varejista', 'comercio varejista', 'e-commerce', 'ecommerce', 'loja online', 'marketplace', 'venda ao consumidor'], cnae: ['47'], seg: 'varejo', label: 'Varejo / Comércio' },
+            { keys: ['empresa de tecnologia', 'software', 'saas', 'startup', 'plataforma digital', 'desenvolvimento de software', 'desenvolvimento de sistemas', 'desenvolvimento web', 'solução tecnológica', 'solucao tecnologica'], cnae: ['6201', '6202', '6203', '6204', '6209', '6311', '6319'], seg: 'tecnologia', label: 'Tecnologia' },
             { keys: ['educação', 'educacao', 'escola', 'universidade', 'faculdade', 'ensino', 'curso', 'colégio'], cnae: ['85'], seg: 'educacao', label: 'Educação' },
             { keys: ['contábil', 'contabil', 'contabilidade', 'fiscal', 'tributár', 'auditoria'], cnae: ['6920'], seg: 'contabil', label: 'Contabilidade' },
             { keys: ['agro', 'agrícol', 'agricol', 'fazenda', 'pecuári', 'rural', 'semente'], cnae: ['01', '02', '03'], seg: 'agro', label: 'Agronegócio' },

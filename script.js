@@ -617,8 +617,33 @@ async function handleCompanyLookup(){
                     setTimeout(()=>processStep(),400);
                 });
 
-                formWrap.appendChild(nameRow);formWrap.appendChild(empRow);formWrap.appendChild(revRow);formWrap.appendChild(submitBtn);
+                // Segment correction row
+                const segRow=document.createElement('div');segRow.className='clc-form-row';
+                const segLabel2=document.createElement('label');segLabel2.textContent='Segmento da empresa:';
+                const segSel=document.createElement('select');
+                const segOptions=[
+                    {v:'juridico',l:'Advocacia / Jurídico'},{v:'saude',l:'Saúde'},{v:'contabil',l:'Contabilidade'},
+                    {v:'tecnologia',l:'Tecnologia'},{v:'industria',l:'Indústria'},{v:'varejo',l:'Varejo / Comércio'},
+                    {v:'financeiro',l:'Financeiro / Seguros'},{v:'imobiliario',l:'Imobiliário / Construção'},
+                    {v:'educacao',l:'Educação'},{v:'logistica',l:'Logística / Transporte'},{v:'agro',l:'Agronegócio'},
+                    {v:'marketing',l:'Marketing / Publicidade'},{v:'engenharia',l:'Engenharia'},
+                    {v:'servicos',l:'Serviços / Consultoria'},{v:'alimenticio',l:'Alimentício'},{v:'outro',l:'Outro'},
+                ];
+                segOptions.forEach(o=>{const opt=document.createElement('option');opt.value=o.v;opt.textContent=o.l;if(o.v===data.segment)opt.selected=true;segSel.appendChild(opt);});
+                segRow.appendChild(segLabel2);segRow.appendChild(segSel);
+
+                formWrap.appendChild(nameRow);formWrap.appendChild(empRow);formWrap.appendChild(revRow);formWrap.appendChild(segRow);formWrap.appendChild(submitBtn);
                 chatInput.appendChild(formWrap);
+
+                // Patch submitBtn click to also capture segment (fires after main handler)
+                submitBtn.addEventListener('click',()=>{
+                    const chosenSeg=segSel.value;
+                    const chosenSegLabel=segOptions.find(o=>o.v===chosenSeg)?.l||'';
+                    chatData.companyResearch.segment=chosenSeg;
+                    chatData.companyResearch.segmentLabel=chosenSegLabel;
+                    chatData.segment=chosenSeg;
+                });
+
                 setTimeout(()=>nameInp.focus(),100);
             });
 
@@ -1423,8 +1448,8 @@ async function downloadAnalisePDF(){
 
     const container=document.createElement('div');
     container.innerHTML=pdfHtml;
-    // Position ON-SCREEN but behind everything — html2canvas needs visible content
-    container.style.cssText='position:fixed;left:0;top:0;width:700px;background:#fff;z-index:-9999;opacity:0.01;pointer-events:none;overflow:visible;';
+    // Off-screen rendering — avoids z-index/opacity issues with html2canvas
+    container.style.cssText='position:absolute;left:-9999px;top:0;width:700px;background:#fff;overflow:hidden;';
     document.body.appendChild(container);
 
     // Force all images inside container to have explicit dimensions
@@ -1445,11 +1470,7 @@ async function downloadAnalisePDF(){
     try{
         await Promise.all(imgPromises);
         // Extra delay for DOM to fully paint
-        await new Promise(r=>setTimeout(r,1200));
-
-        // Make briefly visible for capture
-        container.style.opacity='1';
-        await new Promise(r=>setTimeout(r,100));
+        await new Promise(r=>setTimeout(r,800));
 
         const opt={
             margin:0,
@@ -1461,23 +1482,13 @@ async function downloadAnalisePDF(){
                 allowTaint:false,
                 letterRendering:true,
                 width:700,
-                height:container.scrollHeight,
-                windowWidth:700,
-                windowHeight:container.scrollHeight,
                 backgroundColor:'#ffffff',
                 scrollX:0,
                 scrollY:0,
-                x:0,
-                y:0,
                 logging:false,
-                removeContainer:false,
                 onclone:function(clonedDoc){
-                    const clonedEl=clonedDoc.querySelector('[style*="z-index: -9999"]')||clonedDoc.body.lastElementChild;
-                    if(clonedEl){
-                        clonedEl.style.position='static';
-                        clonedEl.style.opacity='1';
-                        clonedEl.style.zIndex='auto';
-                    }
+                    const el=clonedDoc.body.lastElementChild;
+                    if(el){el.style.position='static';el.style.left='0';}
                 }
             },
             jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
