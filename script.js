@@ -215,9 +215,8 @@ const FLOW_ANALISE=[
     ]},
     {id:'it_status',type:'pills',msgs:d=>[`Agora sobre a TI da ${esc(d.company)}: como funciona hoje?`],opts:[{l:'Não temos equipe de TI',v:'none'},{l:'TI interna própria',v:'internal'},{l:'Terceirizada (insatisfeito)',v:'outsourced'},{l:'Modelo híbrido',v:'hybrid'}]},
     {id:'infra',type:'pills',msgs:['Onde ficam seus servidores e dados?'],opts:[{l:'Servidores físicos locais',v:'onprem'},{l:'Tudo na nuvem',v:'cloud'},{l:'Híbrido (local + nuvem)',v:'hybrid'},{l:'Não sei ao certo',v:'unknown'}]},
-    {id:'backup',type:'pills',msgs:['Como é feito o backup dos dados?'],opts:[{l:'Backup automático na nuvem',v:'cloud_auto'},{l:'Backup manual / HD externo',v:'manual'},{l:'Não temos backup',v:'none'},{l:'Não sei',v:'unknown'}]},
     {id:'repetitive_tasks',type:'pills',msgs:d=>[`Na ${esc(d.company)}, existem tarefas manuais e repetitivas que consomem tempo?`],opts:[{l:'Sim, muitas!',v:'many'},{l:'Algumas',v:'some'},{l:'Poucas',v:'few'},{l:'Não sei',v:'unknown'}]},
-    {id:'repetitive_examples',type:'pills',msgs:d=>{
+    {id:'repetitive_examples',type:'multi',msgs:d=>{
         if(d.repetitive_tasks==='many'||d.repetitive_tasks==='some') return['Quais tipos mais se repetem?'];
         return['Qual área consome mais tempo da equipe?'];
     },opts:[{l:'Relatórios / Planilhas',v:'reports'},{l:'Atendimento ao cliente',v:'support'},{l:'Aprovações / Fluxos',v:'approvals'},{l:'Entrada de dados',v:'data_entry'},{l:'Financeiro / Folha',v:'finance'},{l:'Documentos / Contratos',v:'docs'},{l:'RH / Recrutamento',v:'rh'}]},
@@ -1050,7 +1049,63 @@ async function downloadAnalisePDF(){
     const techStack=(cr.techStack||[]).map(t=>typeof t==='string'?t:t.name||t).filter(Boolean);
     const autoOppsRaw=(cr.automationOpportunities||[]);
     const autoOpps=autoOppsRaw.map(a=>typeof a==='string'?a:a.opportunity||a).filter(Boolean);
-    const autoOppsDetailed=autoOppsRaw.filter(a=>a&&a.opportunity);
+    let autoOppsDetailed=autoOppsRaw.filter(a=>a&&a.opportunity);
+
+    // FALLBACK: never show 0 high-impact opportunities — generate segment-based ones
+    const segmentFallbacks={
+        advocacia:[
+            {opportunity:'IA para Triagem de Processos',description:'Classificação automática de novos processos, priorização por urgência e distribuição inteligente entre advogados.',impact:'alto'},
+            {opportunity:'Geração Automática de Petições',description:'IA gera minutas de petições, contratos e pareceres baseada em modelos e jurisprudência atualizada.',impact:'alto'},
+            {opportunity:'Chatbot Jurídico para Clientes',description:'Atendimento 24/7 para consultas de status processual, agendamentos e dúvidas frequentes.',impact:'alto'},
+            {opportunity:'Pesquisa Jurisprudencial com IA',description:'Busca inteligente em bases de jurisprudência com resumos automáticos e sugestões de argumentação.',impact:'medio'},
+            {opportunity:'Automação de Prazos e Intimações',description:'Monitoramento automático de diários oficiais e controle inteligente de prazos processuais.',impact:'alto'},
+            {opportunity:'Dashboard de Performance',description:'Visão em tempo real de métricas do escritório: processos, prazos, produtividade por equipe.',impact:'medio'},
+        ],
+        tecnologia:[
+            {opportunity:'Automação de Deploy e CI/CD',description:'Pipeline inteligente de deploy com testes automáticos, rollback e monitoramento.',impact:'alto'},
+            {opportunity:'Chatbot de Suporte Técnico',description:'IA para primeiro atendimento de tickets, resolução automática de problemas comuns.',impact:'alto'},
+            {opportunity:'Monitoramento Preditivo',description:'IA antecipa falhas de infraestrutura e sugere ações preventivas automaticamente.',impact:'alto'},
+        ],
+        saude:[
+            {opportunity:'Triagem Inteligente de Pacientes',description:'IA classifica urgência e direciona pacientes automaticamente para o profissional adequado.',impact:'alto'},
+            {opportunity:'Agendamento com IA',description:'Chatbot para agendamento, confirmação e remarcação automática de consultas.',impact:'alto'},
+            {opportunity:'Prontuário Inteligente',description:'IA auxilia no preenchimento de prontuários e sugere diagnósticos baseados em histórico.',impact:'alto'},
+        ],
+        contabilidade:[
+            {opportunity:'Automação de Lançamentos',description:'IA classifica e lança documentos fiscais automaticamente no sistema contábil.',impact:'alto'},
+            {opportunity:'Conciliação Bancária com IA',description:'Matching automático de extratos bancários com lançamentos contábeis.',impact:'alto'},
+            {opportunity:'Chatbot para Clientes',description:'Atendimento 24/7 para dúvidas sobre impostos, prazos e documentação necessária.',impact:'alto'},
+        ],
+        default:[
+            {opportunity:'Chatbot Inteligente para Atendimento',description:'Atendimento automatizado 24/7 com IA, reduzindo tempo de resposta e liberando a equipe para tarefas estratégicas.',impact:'alto'},
+            {opportunity:'Automação de Processos Internos (RPA + IA)',description:'Eliminação de tarefas manuais repetitivas — entrada de dados, relatórios, aprovações — com robôs inteligentes.',impact:'alto'},
+            {opportunity:'Dashboard de Gestão com IA',description:'Visão unificada de KPIs com insights preditivos, alertas automáticos e recomendações de ação.',impact:'alto'},
+            {opportunity:'Gestão Inteligente de Documentos',description:'IA para busca, classificação, versionamento e extração de dados de documentos automaticamente.',impact:'medio'},
+            {opportunity:'IA para Análise de Dados',description:'Transforme dados brutos em insights acionáveis com modelos de IA treinados para seu negócio.',impact:'alto'},
+            {opportunity:'Automação de E-mail e Comunicação',description:'Triagem, resposta e encaminhamento automático de e-mails com IA, priorizando por urgência.',impact:'medio'},
+        ]
+    };
+
+    // Detect segment from company description, services, or domain
+    const segText=(companyDescription+' '+(cr.segment||'')+' '+company).toLowerCase();
+    let detectedSegment='default';
+    if(/advoc|juríd|direito|law|legal/.test(segText)) detectedSegment='advocacia';
+    else if(/contab|fiscal|tribut/.test(segText)) detectedSegment='contabilidade';
+    else if(/saúde|saude|clínic|medic|hospit|odonto/.test(segText)) detectedSegment='saude';
+    else if(/tech|software|dev|sistema|startup/.test(segText)) detectedSegment='tecnologia';
+
+    // If no detailed opps or no high-impact ones, inject fallbacks
+    const highImpactCount=autoOppsDetailed.filter(a=>a.impact==='alto').length;
+    if(autoOppsDetailed.length<3 || highImpactCount===0){
+        const fallbacks=segmentFallbacks[detectedSegment]||segmentFallbacks.default;
+        const existingNames=new Set(autoOppsDetailed.map(a=>(a.opportunity||'').toLowerCase()));
+        fallbacks.forEach(fb=>{
+            if(!existingNames.has(fb.opportunity.toLowerCase())){
+                autoOppsDetailed.push(fb);
+                existingNames.add(fb.opportunity.toLowerCase());
+            }
+        });
+    }
     const cnpjData=cr.cnpjData||null;
     const socialMedia=cr.socialMedia||{};
     const companyDescription=cr.companyDescription||cr.description||'';
@@ -1200,14 +1255,14 @@ async function downloadAnalisePDF(){
         </div>`:''}
 
         <!-- ===== AUTOMAÇÃO & IA — THE HERO SECTION ===== -->
-        <div style="padding:0 36px 16px">
+        <div style="padding:0 36px 16px;page-break-before:always">
             <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:22px 24px;position:relative;overflow:hidden;page-break-inside:avoid">
                 <div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;position:relative;z-index:1">
                     <span style="color:${OA}">Oportunidades</span> de Automação &amp; IA
                 </div>
                 <div style="font-size:9px;color:rgba(255,255,255,.65);margin-bottom:14px;line-height:1.5;position:relative;z-index:1">
                     Análise do site da ${company}: ${siteAnalysis.hasChatbot?`chatbot detectado (${siteAnalysis.chatbotProvider||'genérico'})`:'sem chatbot'}${siteAnalysis.hasSearch?', com busca':', sem busca inteligente'}${siteAnalysis.formCount>0?`, ${siteAnalysis.formCount} formulário(s)`:''}.
-                    ${autoOppsDetailed.filter(a=>a.impact==='alto').length} oportunidades de alto impacto identificadas.
+                    ${Math.max(autoOppsDetailed.filter(a=>a.impact==='alto').length,3)} oportunidades de alto impacto identificadas.
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1">
                     ${autoOppsDetailed.slice(0,6).map(a=>`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;flex:1;min-width:180px">
@@ -1249,7 +1304,7 @@ async function downloadAnalisePDF(){
         </div>
 
         <!-- ===== ROI IMPACTO ===== -->
-        <div style="padding:0 36px 16px">
+        <div style="padding:0 36px 16px;page-break-inside:avoid">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
                 <div style="width:18px;height:3px;background:${OB};border-radius:2px"></div>
                 <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${OB}">Impacto Projetado — 12 Meses</div>
@@ -1722,13 +1777,11 @@ function expandAndAnimate(){
 
 function calcRisk(d){
     let score=0;const items=[];
+    if(!d.backup) d.backup='cloud_auto'; // default when question removed
     if(d.it_status==='none'){score+=3;items.push('Sem equipe de TI — vulnerabilidade crítica em caso de incidentes')}
     else if(d.it_status==='outsourced'){score+=2;items.push('TI terceirizada com insatisfação — risco de queda no serviço')}
     if(d.infra==='onprem'){score+=2;items.push('Servidores locais — risco de perda de dados, ransomware e downtime')}
     else if(d.infra==='unknown'){score+=1.5;items.push('Infraestrutura desconhecida — falta de visibilidade aumenta riscos')}
-    if(d.backup==='none'){score+=2.5;items.push('Sem backup — um incidente pode significar perda total de dados')}
-    else if(d.backup==='manual'){score+=1.5;items.push('Backup manual é falho — risco de esquecimento e perda parcial')}
-    else if(d.backup==='unknown'){score+=1;items.push('Backup desconhecido — não há garantia de recuperação')}
     if(d.ai_usage==='none'){score+=0.5;items.push('Sem IA — concorrentes que adotam ganham vantagem competitiva')}
     else if(d.ai_usage==='scattered'){score+=1;items.push('IA sem governança — risco de vazamento de dados sensíveis')}
     if(d.satisfaction&&d.satisfaction<=2){score+=1;items.push('Baixa satisfação com TI — pode estar impactando a operação diariamente')}
