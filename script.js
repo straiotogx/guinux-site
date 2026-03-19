@@ -1295,37 +1295,75 @@ async function downloadAnalisePDF(){
 
     const container=document.createElement('div');
     container.innerHTML=pdfHtml;
-    container.style.cssText='position:absolute;left:-9999px;top:0;width:720px;background:#fff;pointer-events:none;overflow:visible;';
+    // Position ON-SCREEN but behind everything — html2canvas needs visible content
+    container.style.cssText='position:fixed;left:0;top:0;width:720px;background:#fff;z-index:-9999;opacity:0.01;pointer-events:none;overflow:visible;';
     document.body.appendChild(container);
 
-    // Wait for any remaining images to load and ensure rendering
+    // Force all images inside container to have explicit dimensions
+    container.querySelectorAll('img').forEach(img=>{
+        img.style.maxWidth='none';
+        img.style.display='inline-block';
+    });
+
+    // Wait for any remaining images to load
     const imgs=container.querySelectorAll('img');
     const imgPromises=[...imgs].map(img=>new Promise(resolve=>{
         if(img.complete&&img.naturalWidth>0) return resolve();
         img.onload=resolve;
         img.onerror=resolve;
+        setTimeout(resolve,3000); // fallback timeout per image
     }));
 
-    Promise.all(imgPromises).then(()=>{
-        // Delay to ensure full DOM rendering
-        return new Promise(r=>setTimeout(r,800));
-    }).then(()=>{
+    try{
+        await Promise.all(imgPromises);
+        // Extra delay for DOM to fully paint
+        await new Promise(r=>setTimeout(r,1200));
+
+        // Make briefly visible for capture
+        container.style.opacity='1';
+        await new Promise(r=>setTimeout(r,100));
+
         const opt={
             margin:0,
             filename:`Guinux_Proposta_${company.replace(/[^a-zA-Z0-9]/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`,
             image:{type:'jpeg',quality:0.98},
-            html2canvas:{scale:2,useCORS:true,letterRendering:true,width:720,windowWidth:720,backgroundColor:'#ffffff',scrollX:0,scrollY:0,x:0,y:0},
+            html2canvas:{
+                scale:2,
+                useCORS:true,
+                allowTaint:false,
+                letterRendering:true,
+                width:720,
+                height:container.scrollHeight,
+                windowWidth:720,
+                windowHeight:container.scrollHeight,
+                backgroundColor:'#ffffff',
+                scrollX:0,
+                scrollY:0,
+                x:0,
+                y:0,
+                logging:false,
+                removeContainer:false,
+                onclone:function(clonedDoc){
+                    const clonedEl=clonedDoc.querySelector('[style*="z-index: -9999"]')||clonedDoc.body.lastElementChild;
+                    if(clonedEl){
+                        clonedEl.style.position='static';
+                        clonedEl.style.opacity='1';
+                        clonedEl.style.zIndex='auto';
+                    }
+                }
+            },
             jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
             pagebreak:{mode:['avoid-all','css','legacy']}
         };
 
-        return html2pdf().set(opt).from(container).save();
-    }).then(()=>{
-        document.body.removeChild(container);
-    }).catch(e=>{
+        await html2pdf().set(opt).from(container).save();
+        console.log('PDF generated successfully');
+    }catch(e){
         console.error('PDF error:',e);
+        alert('Erro ao gerar PDF. Tente novamente.');
+    }finally{
         try{document.body.removeChild(container);}catch(ex){}
-    });
+    }
 }
 
 /* ========= SILENT NOTIFICATION (Email + Google Chat Webhook) ========= */
