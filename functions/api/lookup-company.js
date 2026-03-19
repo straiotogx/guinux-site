@@ -12,21 +12,75 @@ export async function onRequestPost(context) {
 
         const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*/, '').trim().toLowerCase();
 
-        // ========= UTILITY: Fetch with timeout =========
-        const fetchPage = async (url, timeout = 8000) => {
+        // ========= UTILITY: Fetch with timeout (CF challenge aware) =========
+        const isCloudflareChallenge = (html) => {
+            if (!html) return false;
+            return html.includes('cf-challenge') || html.includes('challenge-platform')
+                || html.includes('turnstile') || html.includes('cf_clearance')
+                || (html.includes('Just a moment') && html.includes('cloudflare'))
+                || html.includes('Checking if the site connection is secure');
+        };
+
+        const fetchPage = async (url, timeout = 10000) => {
             try {
+                // First attempt: direct fetch WITHOUT cf options (avoids CF-to-CF issues)
                 const res = await fetch(url, {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+                        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Cache-Control': 'no-cache',
+                        'Sec-Fetch-Dest': 'document',
+                        'Sec-Fetch-Mode': 'navigate',
+                        'Sec-Fetch-Site': 'none',
+                        'Upgrade-Insecure-Requests': '1'
                     },
                     redirect: 'follow',
-                    cf: { cacheTtl: 3600 },
                     signal: AbortSignal.timeout(timeout)
                 });
                 if (!res.ok) return null;
-                return await res.text();
+                const html = await res.text();
+
+                // Detect Cloudflare challenge page → try Google Cache
+                if (isCloudflareChallenge(html)) {
+                    console.log(`CF challenge detected for ${url}, trying Google Cache`);
+                    return await fetchGoogleCache(url, timeout);
+                }
+
+                // Detect empty/minimal page (JS-rendered SPA with no SSR)
+                const textContent = html.replace(/<[^>]+>/g, '').trim();
+                if (textContent.length < 200 && html.length > 1000) {
+                    console.log(`Minimal text content for ${url}, page might be JS-rendered`);
+                    // Try Google Cache as fallback
+                    const cached = await fetchGoogleCache(url, timeout);
+                    return cached || html; // Return original if cache fails
+                }
+
+                return html;
+            } catch (e) {
+                console.log(`Fetch failed for ${url}: ${e.message}`);
+                return null;
+            }
+        };
+
+        // Google Cache fallback for CF-protected or JS-rendered sites
+        const fetchGoogleCache = async (url, timeout = 8000) => {
+            try {
+                const cacheUrl = `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(url)}&hl=pt-BR`;
+                const res = await fetch(cacheUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'text/html'
+                    },
+                    redirect: 'follow',
+                    signal: AbortSignal.timeout(timeout)
+                });
+                if (!res.ok) return null;
+                const html = await res.text();
+                if (html.includes('did not match any documents') || html.length < 500) return null;
+                console.log(`Google Cache hit for ${url}`);
+                return html;
             } catch (e) { return null; }
         };
 
@@ -172,10 +226,36 @@ export async function onRequestPost(context) {
         fetchPromises.dnsInfo = fetchJSON(`https://dns.google/resolve?name=${cleanDomain}&type=A`, 5000);
         fetchPromises.dnsInfo2 = fetchJSON(`https://dns.google/resolve?name=${cleanDomain}&type=MX`, 5000);
 
-        // --- Receita WS (secondary CNPJ source if no CNPJ found yet) ---
+        // --- CNPJ search by company name (multiple strategies) ---
         if (!extractedCnpj) {
+            // Strategy 1: Google search for CNPJ
             fetchPromises.cnpjSearch = fetchPage(
-                `https://www.google.com/search?q=CNPJ+${companyNameEncoded}+site:cnpj.biz+OR+site:casadosdados.com.br&hl=pt-BR`, 6000
+                `https://www.google.com/search?q=CNPJ+"${companyNameEncoded}"&hl=pt-BR&num=10`, 8000
+            );
+            // Strategy 2: Casa dos Dados API (free CNPJ search by name)
+            fetchPromises.cnpjSearchCasa = (async () => {
+                try {
+                    const res = await fetch('https://api.casadosdados.com.br/v2/public/cnpj/search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+                        body: JSON.stringify({
+                            query: { termo: [companyName.substring(0, 60)], uf: [], municipio: [], situacao_cadastral: 'ATIVA' },
+                            range: { inicio: 0, fim: 3 },
+                            extras: { somente_mei: false, excluir_mei: false, com_contato_telefonico: false, somente_fixo: false, somente_celular: false, somente_matriz: true }
+                        }),
+                        signal: AbortSignal.timeout(8000)
+                    });
+                    if (!res.ok) return null;
+                    return await res.json();
+                } catch (e) { return null; }
+            })();
+            // Strategy 3: CNPJ.biz search
+            fetchPromises.cnpjBiz = fetchPage(
+                `https://cnpj.biz/procura/${companyNameEncoded}`, 6000
+            );
+            // Strategy 4: Google search with domain for CNPJ
+            fetchPromises.cnpjSearchDomain = fetchPage(
+                `https://www.google.com/search?q=CNPJ+site:${domainEncoded}&hl=pt-BR`, 6000
             );
         }
 
@@ -222,22 +302,61 @@ export async function onRequestPost(context) {
         if (results.cnpjBrasil) cnpjData = parseBrasilApi(results.cnpjBrasil);
         if (!cnpjData && results.cnpjWs) cnpjData = parseCnpjWs(results.cnpjWs);
 
-        // If no CNPJ was found on website, try to extract from Google search results
-        if (!cnpjData && results.cnpjSearch) {
-            const searchText = stripHtml(results.cnpjSearch);
-            const cnpjFromSearch = searchText.match(/\b(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\b/);
-            if (cnpjFromSearch) {
-                const raw = cnpjFromSearch[1].replace(/[.\-\/]/g, '');
-                if (validateCnpj(raw)) {
-                    extractedCnpj = raw;
-                    // Fetch CNPJ data
-                    const [br, ws] = await Promise.allSettled([
-                        fetchJSON(`https://brasilapi.com.br/api/cnpj/v1/${raw}`, 8000),
-                        fetchJSON(`https://publica.cnpj.ws/cnpj/${raw}`, 8000)
-                    ]);
-                    if (br.status === 'fulfilled' && br.value) cnpjData = parseBrasilApi(br.value);
-                    if (!cnpjData && ws.status === 'fulfilled' && ws.value) cnpjData = parseCnpjWs(ws.value);
+        // If no CNPJ was found on website, try multiple search strategies
+        if (!cnpjData) {
+            let foundCnpjRaw = null;
+
+            // Strategy 1: Casa dos Dados API response
+            if (!foundCnpjRaw && results.cnpjSearchCasa && results.cnpjSearchCasa.cnpj) {
+                const items = results.cnpjSearchCasa.cnpj || [];
+                if (items.length > 0) {
+                    const raw = String(items[0].cnpj || '').replace(/[.\-\/]/g, '');
+                    if (raw.length === 14 && validateCnpj(raw)) {
+                        foundCnpjRaw = raw;
+                        console.log(`CNPJ found via Casa dos Dados: ${raw}`);
+                    }
                 }
+            }
+
+            // Strategy 2: Google search results
+            const searchSources = [results.cnpjSearch, results.cnpjSearchDomain, results.cnpjBiz].filter(Boolean);
+            for (const src of searchSources) {
+                if (foundCnpjRaw) break;
+                const searchText = stripHtml(src);
+                // Find ALL CNPJs in the search results, prioritize ones near the company name
+                const allCnpjs = [...searchText.matchAll(/\b(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\b/g)];
+                for (const match of allCnpjs) {
+                    const raw = match[1].replace(/[.\-\/]/g, '');
+                    if (raw.length === 14 && validateCnpj(raw)) {
+                        foundCnpjRaw = raw;
+                        console.log(`CNPJ found via search: ${raw}`);
+                        break;
+                    }
+                }
+            }
+
+            // Strategy 3: Search the allText + all fetched pages for CNPJ (sometimes in subpages)
+            if (!foundCnpjRaw) {
+                const fullContent = allTexts.join(' ');
+                const cnpjInPages = fullContent.match(/\b(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\b/);
+                if (cnpjInPages) {
+                    const raw = cnpjInPages[1].replace(/[.\-\/]/g, '');
+                    if (validateCnpj(raw)) {
+                        foundCnpjRaw = raw;
+                        console.log(`CNPJ found in subpages: ${raw}`);
+                    }
+                }
+            }
+
+            // If we found a CNPJ, fetch full data
+            if (foundCnpjRaw) {
+                extractedCnpj = foundCnpjRaw;
+                const [br, ws] = await Promise.allSettled([
+                    fetchJSON(`https://brasilapi.com.br/api/cnpj/v1/${foundCnpjRaw}`, 8000),
+                    fetchJSON(`https://publica.cnpj.ws/cnpj/${foundCnpjRaw}`, 8000)
+                ]);
+                if (br.status === 'fulfilled' && br.value) cnpjData = parseBrasilApi(br.value);
+                if (!cnpjData && ws.status === 'fulfilled' && ws.value) cnpjData = parseCnpjWs(ws.value);
             }
         }
 
