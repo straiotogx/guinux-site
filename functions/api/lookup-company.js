@@ -15,49 +15,33 @@ export async function onRequestPost(context) {
 
         const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*/, '').trim().toLowerCase();
 
-        // ========= UTILITY: Fetch with timeout (CF challenge aware) =========
-        const isCloudflareChallenge = (html) => {
-            if (!html) return false;
-            return html.includes('cf-challenge') || html.includes('challenge-platform')
-                || html.includes('turnstile') || html.includes('cf_clearance')
+        // ========= UTILITY: Fetch with timeout (CF-to-CF aware) =========
+        const isChallengePage = (html) => {
+            if (!html) return true;
+            // Detect Cloudflare challenge, DuckDuckGo CAPTCHA, or other bot blocks
+            return html.includes('challenge-platform') || html.includes('cf-challenge')
                 || (html.includes('Just a moment') && html.includes('cloudflare'))
-                || html.includes('Checking if the site connection is secure');
+                || html.includes('Checking if the site connection is secure')
+                || html.includes('Please complete the following challenge')
+                || html.includes('Access denied')
+                || html.includes('Enable JavaScript and cookies to continue');
         };
 
         const fetchPage = async (url, timeout = 10000) => {
             try {
-                // First attempt: direct fetch WITHOUT cf options (avoids CF-to-CF issues)
+                // Use minimal headers — CF Workers with too many headers get flagged
                 const res = await fetch(url, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-                        'Accept-Encoding': 'gzip, deflate, br',
-                        'Cache-Control': 'no-cache',
-                        'Sec-Fetch-Dest': 'document',
-                        'Sec-Fetch-Mode': 'navigate',
-                        'Sec-Fetch-Site': 'none',
-                        'Upgrade-Insecure-Requests': '1'
-                    },
+                    headers: { 'User-Agent': 'Mozilla/5.0 (compatible)' },
                     redirect: 'follow',
                     signal: AbortSignal.timeout(timeout)
                 });
                 if (!res.ok) return null;
                 const html = await res.text();
 
-                // Detect Cloudflare challenge page → try Google Cache
-                if (isCloudflareChallenge(html)) {
-                    console.log(`CF challenge detected for ${url}, trying Google Cache`);
-                    return await fetchGoogleCache(url, timeout);
-                }
-
-                // Detect empty/minimal page (JS-rendered SPA with no SSR)
-                const textContent = html.replace(/<[^>]+>/g, '').trim();
-                if (textContent.length < 200 && html.length > 1000) {
-                    console.log(`Minimal text content for ${url}, page might be JS-rendered`);
-                    // Try Google Cache as fallback
-                    const cached = await fetchGoogleCache(url, timeout);
-                    return cached || html; // Return original if cache fails
+                // Reject challenge/captcha pages
+                if (isChallengePage(html)) {
+                    console.log(`Challenge page detected for ${url}`);
+                    return null;
                 }
 
                 return html;
@@ -67,22 +51,23 @@ export async function onRequestPost(context) {
             }
         };
 
-        // Google Cache fallback for CF-protected or JS-rendered sites
-        const fetchGoogleCache = async (url, timeout = 8000) => {
+        // Dedicated DuckDuckGo search — needs special handling
+        const searchDDG = async (query, timeout = 10000) => {
             try {
-                const cacheUrl = `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(url)}&hl=pt-BR`;
-                const res = await fetch(cacheUrl, {
+                const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+                const res = await fetch(url, {
+                    method: 'POST',
                     headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Accept': 'text/html'
+                        'User-Agent': 'Mozilla/5.0 (compatible)',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
+                    body: `q=${encodeURIComponent(query)}`,
                     redirect: 'follow',
                     signal: AbortSignal.timeout(timeout)
                 });
                 if (!res.ok) return null;
                 const html = await res.text();
-                if (html.includes('did not match any documents') || html.length < 500) return null;
-                console.log(`Google Cache hit for ${url}`);
+                if (isChallengePage(html)) return null;
                 return html;
             } catch (e) { return null; }
         };
@@ -208,20 +193,14 @@ export async function onRequestPost(context) {
             fetchPromises.cnpjWs = fetchJSON(`https://publica.cnpj.ws/cnpj/${extractedCnpj}`, 10000);
         }
 
-        // --- DuckDuckGo Search (works from Workers, unlike Google) ---
-        fetchPromises.ddgSearch = fetchPage(
-            `https://html.duckduckgo.com/html/?q=${companyNameEncoded}+${domainEncoded}`, 8000
-        );
-        fetchPromises.ddgLinkedin = fetchPage(
-            `https://html.duckduckgo.com/html/?q=${companyNameEncoded}+linkedin.com+empresa`, 8000
-        );
+        // --- DuckDuckGo Search (1 consolidated search to avoid rate limits) ---
+        fetchPromises.ddgSearch = searchDDG(`${companyName} ${cleanDomain} CNPJ empresa`, 12000);
 
         // --- ReclameAqui (reputation & complaints) ---
         const raSlug = companyName.toLowerCase()
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
             .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         fetchPromises.reclameAqui = fetchPage(`https://www.reclameaqui.com.br/empresa/${raSlug}/`, 8000);
-        // Try alternate slug with domain
         const raDomainSlug = cleanDomain.split('.')[0].toLowerCase()
             .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
             .replace(/[^a-z0-9]+/g, '-');
@@ -229,34 +208,18 @@ export async function onRequestPost(context) {
             fetchPromises.reclameAqui2 = fetchPage(`https://www.reclameaqui.com.br/empresa/${raDomainSlug}/`, 8000);
         }
 
-        // --- Glassdoor / Indeed (employer reviews) ---
+        // --- Glassdoor ---
         fetchPromises.glassdoor = fetchPage(
             `https://www.glassdoor.com.br/Avalia%C3%A7%C3%B5es/${companyNameEncoded}-avalia%C3%A7%C3%B5es-E0.htm`, 6000
         );
 
-        // --- LinkedIn Company Page (via DuckDuckGo) ---
-        fetchPromises.linkedinSearch = fetchPage(
-            `https://html.duckduckgo.com/html/?q=site:linkedin.com/company+${companyNameEncoded}`, 6000
-        );
-
-        // --- Domain WHOIS / DNS info ---
+        // --- Domain DNS info (Google DNS API - always works) ---
         fetchPromises.dnsInfo = fetchJSON(`https://dns.google/resolve?name=${cleanDomain}&type=A`, 5000);
         fetchPromises.dnsInfo2 = fetchJSON(`https://dns.google/resolve?name=${cleanDomain}&type=MX`, 5000);
 
-        // --- CNPJ search by company name (multiple strategies via DuckDuckGo) ---
+        // --- CNPJ search (only 1 DDG request to avoid rate limiting) ---
         if (!extractedCnpj) {
-            // Strategy 1: DuckDuckGo search for CNPJ (WORKS from Workers!)
-            fetchPromises.cnpjSearch = fetchPage(
-                `https://html.duckduckgo.com/html/?q=CNPJ+"${companyNameEncoded}"`, 8000
-            );
-            // Strategy 2: DuckDuckGo with domain
-            fetchPromises.cnpjSearchDomain = fetchPage(
-                `https://html.duckduckgo.com/html/?q=CNPJ+${domainEncoded}`, 8000
-            );
-            // Strategy 3: ReceitaWS CNPJ search (works from Workers)
-            fetchPromises.cnpjReceitaWS = fetchPage(
-                `https://html.duckduckgo.com/html/?q=CNPJ+${companyNameEncoded}+site:receitaws.com.br+OR+site:cnpja.com`, 6000
-            );
+            fetchPromises.cnpjSearch = searchDDG(`CNPJ "${companyName}" ${cleanDomain}`, 12000);
         }
 
         // --- BuiltWith-style tech detection (via Wappalyzer-like headers) ---
@@ -1315,15 +1278,16 @@ export async function onRequestPost(context) {
             isEstimate: !extractedEmployees && !cnpjData,
             // Metadata
             sourcesQueried: [
-                'Website (30+ pages)',
+                'Website (30+ páginas internas)',
                 extractedCnpj ? 'Receita Federal (CNPJ)' : null,
-                'Google Search',
+                'DuckDuckGo Search',
                 reclameAquiData ? 'ReclameAqui' : null,
                 glassdoorData ? 'Glassdoor' : null,
-                'DNS/MX Records',
-                'Security Headers',
+                'DNS/MX Records (Google DNS)',
+                'Security Headers Analysis',
                 Object.keys(socialMedia).length > 0 ? 'Redes Sociais' : null,
                 'JSON-LD/Schema.org',
+                headerTech.length > 0 ? `Tech Stack (${headerTech.length} tecnologias)` : null,
             ].filter(Boolean),
         }), { status: 200, headers: cors });
 

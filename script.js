@@ -475,22 +475,20 @@ async function handleCompanyLookup(){
     // Corporate email — research the company silently
     await showTyping(400);
 
-    // Try to fetch site HTML from browser (bypasses Cloudflare challenges)
-    let clientHtml='';
     try{
-        const siteRes=await fetch(`https://${domain}`,{mode:'no-cors',signal:AbortSignal.timeout(6000)}).catch(()=>null);
-        // no-cors returns opaque response, try cors first
-        const corsRes=await fetch(`https://${domain}`,{signal:AbortSignal.timeout(8000)}).catch(()=>null);
-        if(corsRes&&corsRes.ok){
-            clientHtml=await corsRes.text().catch(()=>'');
-        }
-    }catch(e){/* CORS blocked, Worker will fetch server-side */}
+        // Try fetching the site HTML from the browser (bypasses Cloudflare challenges)
+        let clientHtml='';
+        try{
+            const siteRes=await fetch(`https://${domain}`,{mode:'no-cors'}).catch(()=>null);
+            // no-cors gives opaque response, try cors first
+            const corsRes=await fetch(`https://${domain}`,{mode:'cors',redirect:'follow',signal:AbortSignal.timeout(6000)}).catch(()=>null);
+            if(corsRes&&corsRes.ok) clientHtml=await corsRes.text().catch(()=>'');
+        }catch(e){/* browser fetch failed, worker will try */}
 
-    try{
         const res=await fetch('/api/lookup-company',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({domain, html:clientHtml.substring(0,100000), companyName:chatData.company||''})
+            body:JSON.stringify({domain, companyName:chatData.company||'', html:clientHtml})
         });
         const data=await res.json();
 
@@ -1073,75 +1071,72 @@ async function downloadAnalisePDF(){
     if(svcs.length===0) svcs.push({n:'Consultoria de Inovação',d:'Roadmap personalizado para transformação digital da sua empresa com IA.',items:['Diagnóstico completo','Roadmap de transformação','Priorização de iniciativas','Quick wins identificados','Acompanhamento trimestral']});
 
     const pdfHtml=`
-    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1A1A2A;width:720px;margin:0 auto;line-height:1.5">
+    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1A1A2A;width:700px;margin:0 auto;line-height:1.5">
 
         <!-- ===== PAGE 1: COVER ===== -->
-        <div style="background:${T};padding:60px 40px;color:#fff;text-align:center;min-height:280px;position:relative">
-            <div style="position:absolute;top:30px;right:40px;font-size:11px;opacity:.5">${docNum}</div>
+        <div style="background:linear-gradient(135deg,${T} 0%,${B} 100%);padding:60px 36px;color:#fff;text-align:center;min-height:280px;position:relative">
+            <div style="position:absolute;top:30px;right:36px;font-size:11px;opacity:.5">${docNum}</div>
             ${logoSrc?`<img src="${logoSrc}" style="height:55px;margin-bottom:24px">`:'<div style="height:55px;margin-bottom:24px"></div>'}
-            <h1 style="margin:0;font-size:28px;font-weight:800;letter-spacing:-.5px;color:#fff">ANÁLISE COMPLETA<br>&amp; PROPOSTA INTELIGENTE</h1>
+            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.5px;color:#fff">ANÁLISE COMPLETA<br>&amp; PROPOSTA INTELIGENTE</h1>
             <div style="width:60px;height:3px;background:rgba(255,255,255,.5);margin:16px auto"></div>
-            <h2 style="margin:12px 0 0;font-size:20px;font-weight:400;color:rgba(255,255,255,.9)">${company}</h2>
+            <h2 style="margin:12px 0 0;font-size:19px;font-weight:400;color:rgba(255,255,255,.9)">${company}</h2>
             <p style="margin:24px 0 0;font-size:13px;color:rgba(255,255,255,.6)">Preparado para ${name} · ${today}</p>
             <p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,.4)">Gerado por Guinux.IA — Inteligência Artificial</p>
         </div>
 
         <!-- ===== QUEM SOMOS ===== -->
-        <div style="padding:32px 40px 24px">
-            <table style="width:100%;border-collapse:collapse;margin-bottom:24px"><tr>
-                <td style="width:4px;background:${T};vertical-align:top"></td>
-                <td style="padding-left:16px">
-                    <h3 style="margin:0 0 8px;font-size:16px;color:${T}">Sobre a Guinux</h3>
-                    <p style="margin:0;font-size:12px;color:#444;line-height:1.7">
-                        Há mais de <strong>23 anos</strong> a Guinux transforma empresas com tecnologia, IA e inovação.
-                        <strong>Google Cloud Partner desde 2013</strong>, atendemos mais de <strong>50 empresas recorrentes</strong>
-                        e 200+ ao longo de nossa trajetória — incluindo a <strong>OAB Paraná</strong> (90 mil+ advogados),
-                        <strong>Leal Embalagens</strong>, <strong>CM Grupo</strong>, <strong>Vernalha Pereira</strong> e <strong>AIMS International</strong>.
-                    </p>
-                </td>
-            </tr></table>
+        <div style="padding:28px 36px 20px;page-break-inside:avoid">
+            <div style="border-left:4px solid ${T};padding-left:16px;margin-bottom:20px">
+                <h3 style="margin:0 0 8px;font-size:15px;color:${T}">Sobre a Guinux</h3>
+                <p style="margin:0;font-size:12px;color:#444;line-height:1.7">
+                    Há mais de <strong>23 anos</strong> a Guinux transforma empresas com tecnologia, IA e inovação.
+                    <strong>Google Cloud Partner desde 2013</strong>, atendemos mais de <strong>50 empresas recorrentes</strong>
+                    e 200+ ao longo de nossa trajetória — incluindo a <strong>OAB Paraná</strong> (90 mil+ advogados),
+                    <strong>Leal Embalagens</strong>, <strong>CM Grupo</strong>, <strong>Vernalha Pereira</strong> e <strong>AIMS International</strong>.
+                </p>
+            </div>
             <div style="margin-bottom:8px">
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🏢 23+ anos</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">☁️ Google Cloud Partner</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🛡️ Bitdefender Partner</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🌎 4× Google Next</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🎓 Technion Israel</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🏆 Prêmio Inovação PR</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🏢 23+ anos</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">☁️ Google Cloud Partner</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🛡️ Bitdefender Partner</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🌎 4× Google Next</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🎓 Technion Israel</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🏆 Prêmio Inovação PR</span>
             </div>
         </div>
 
-        <div style="height:1px;background:#e8e8e8;margin:0 40px"></div>
+        <div style="height:1px;background:#e8e8e8;margin:0 36px"></div>
 
         <!-- ===== PERFIL DA EMPRESA ===== -->
-        <div style="padding:24px 40px">
-            <h3 style="margin:0 0 16px;font-size:16px;color:${B}">📋 Perfil — ${company}</h3>
-            <table style="width:100%;border-collapse:separate;border-spacing:12px 0"><tr>
-                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+        <div style="padding:20px 36px;page-break-inside:avoid">
+            <h3 style="margin:0 0 14px;font-size:15px;color:${B}">📋 Perfil — ${company}</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:140px">
                     <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Contato</div>
-                    <div style="font-size:13px;font-weight:600">${name}</div>
+                    <div style="font-size:12px;font-weight:600">${name}</div>
                     <div style="font-size:11px;color:#666">${d.email||''}</div>
                     <div style="font-size:11px;color:#666">${d.phone||''}</div>
-                </td>
-                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+                </div>
+                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:120px">
                     <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Segmento</div>
-                    <div style="font-size:13px;font-weight:600">${segLabel||'Não identificado'}</div>
-                </td>
-                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+                    <div style="font-size:12px;font-weight:600">${segLabel||'Não identificado'}</div>
+                </div>
+                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:100px">
                     <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Colaboradores</div>
-                    <div style="font-size:13px;font-weight:600">~${employeeEst}</div>
-                </td>
-                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+                    <div style="font-size:12px;font-weight:600">~${employeeEst}</div>
+                </div>
+                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:120px">
                     <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Faturamento est.</div>
-                    <div style="font-size:13px;font-weight:600">${revenueEst}</div>
-                </td>
-            </tr></table>
+                    <div style="font-size:12px;font-weight:600">${revenueEst}</div>
+                </div>
+            </div>
         </div>
 
         <!-- ===== INTELIGÊNCIA COLETADA ===== -->
         ${(cnpjData||companyServices.length>0||techStack.length>0||companyDescription)?`
-        <div style="padding:0 40px 24px">
-            <h3 style="margin:0 0 12px;font-size:16px;color:${B}">🔍 Inteligência Coletada — ${company}</h3>
-            ${companyDescription?`<p style="margin:0 0 12px;font-size:12px;color:#555;line-height:1.6">${companyDescription.substring(0,300)}${companyDescription.length>300?'...':''}</p>`:''}
+        <div style="padding:0 36px 20px;page-break-inside:avoid">
+            <h3 style="margin:0 0 12px;font-size:15px;color:${B}">🔍 Inteligência Coletada — ${company}</h3>
+            ${companyDescription?`<p style="margin:0 0 12px;font-size:11px;color:#555;line-height:1.6">${companyDescription.substring(0,300)}${companyDescription.length>300?'...':''}</p>`:''}
             ${cnpjData?`
             <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px">
                 ${cnpjData.razao_social?`<tr><td style="padding:4px 8px;color:#888;width:35%">Razão Social</td><td style="padding:4px 8px;font-weight:600">${cnpjData.razao_social}</td></tr>`:''}
@@ -1169,145 +1164,143 @@ async function downloadAnalisePDF(){
                 ${autoOpps.slice(0,5).map(a=>`<p style="margin:2px 0;font-size:11px;color:#555">⚡ ${a}</p>`).join('')}
             </div>`:''}
         </div>
-        <div style="height:1px;background:#e8e8e8;margin:0 40px"></div>
+        <div style="height:1px;background:#e8e8e8;margin:0 36px"></div>
         `:''}
 
         <!-- ===== SCORES ===== -->
-        <div style="padding:${(cnpjData||companyServices.length>0)?'24px':'0'} 40px 24px">
-            <h3 style="margin:0 0 16px;font-size:16px;color:${B}">📊 Diagnóstico Digital</h3>
-            <table style="width:100%;border-collapse:separate;border-spacing:12px 0"><tr>
-                <td style="background:#fff;border:2px solid ${riskColor};border-radius:12px;padding:18px;text-align:center;width:33%">
-                    <div style="font-size:36px;font-weight:800;color:${riskColor};line-height:1">${risk.score}<span style="font-size:14px;color:#bbb">/10</span></div>
+        <div style="padding:${(cnpjData||companyServices.length>0)?'20px':'0'} 36px 20px;page-break-inside:avoid">
+            <h3 style="margin:0 0 14px;font-size:15px;color:${B}">📊 Diagnóstico Digital</h3>
+            <div style="display:flex;gap:10px">
+                <div style="flex:1;background:#fff;border:2px solid ${riskColor};border-radius:12px;padding:16px;text-align:center">
+                    <div style="font-size:32px;font-weight:800;color:${riskColor};line-height:1">${risk.score}<span style="font-size:13px;color:#bbb">/10</span></div>
                     <div style="font-size:10px;font-weight:700;color:${riskColor};text-transform:uppercase;margin-top:4px">RISCO ${riskLabel}</div>
-                </td>
-                <td style="background:#fff;border:2px solid ${matColor};border-radius:12px;padding:18px;text-align:center;width:33%">
-                    <div style="font-size:36px;font-weight:800;color:${matColor};line-height:1">${maturity.score}<span style="font-size:14px;color:#bbb">/10</span></div>
+                </div>
+                <div style="flex:1;background:#fff;border:2px solid ${matColor};border-radius:12px;padding:16px;text-align:center">
+                    <div style="font-size:32px;font-weight:800;color:${matColor};line-height:1">${maturity.score}<span style="font-size:13px;color:#bbb">/10</span></div>
                     <div style="font-size:10px;font-weight:700;color:${matColor};text-transform:uppercase;margin-top:4px">MATURIDADE ${matLabel}</div>
-                </td>
-                <td style="background:#fff;border:2px solid ${T};border-radius:12px;padding:18px;text-align:center;width:33%">
-                    <div style="font-size:36px;font-weight:800;color:${T};line-height:1">${pot.score}<span style="font-size:14px;color:#bbb">/10</span></div>
+                </div>
+                <div style="flex:1;background:#fff;border:2px solid ${T};border-radius:12px;padding:16px;text-align:center">
+                    <div style="font-size:32px;font-weight:800;color:${T};line-height:1">${pot.score}<span style="font-size:13px;color:#bbb">/10</span></div>
                     <div style="font-size:10px;font-weight:700;color:${T};text-transform:uppercase;margin-top:4px">POTENCIAL</div>
-                </td>
-            </tr></table>
+                </div>
+            </div>
         </div>
 
         <!-- Risk items -->
-        <div style="padding:0 40px 16px">
-            <div style="background:#fff;border-left:4px solid ${riskColor};padding:16px 18px;margin-bottom:12px">
-                <h4 style="margin:0 0 8px;font-size:13px;color:${riskColor}">⚠️ Pontos de Risco Identificados</h4>
-                ${risk.items.map(i=>`<p style="margin:2px 0;font-size:12px;color:#555">• ${i}</p>`).join('')}
+        <div style="padding:0 36px 16px">
+            <div style="background:#fff;border-left:4px solid ${riskColor};padding:14px 16px;margin-bottom:10px;page-break-inside:avoid">
+                <h4 style="margin:0 0 6px;font-size:12px;color:${riskColor}">⚠️ Pontos de Risco Identificados</h4>
+                ${risk.items.map(i=>`<p style="margin:2px 0;font-size:11px;color:#555">• ${i}</p>`).join('')}
             </div>
-            <div style="background:#fff;border-left:4px solid ${matColor};padding:16px 18px;margin-bottom:12px">
-                <h4 style="margin:0 0 8px;font-size:13px;color:${matColor}">📊 Maturidade Digital</h4>
-                ${maturity.items.map(i=>`<p style="margin:2px 0;font-size:12px;color:#555">• ${i}</p>`).join('')}
+            <div style="background:#fff;border-left:4px solid ${matColor};padding:14px 16px;margin-bottom:10px;page-break-inside:avoid">
+                <h4 style="margin:0 0 6px;font-size:12px;color:${matColor}">📊 Maturidade Digital</h4>
+                ${maturity.items.map(i=>`<p style="margin:2px 0;font-size:11px;color:#555">• ${i}</p>`).join('')}
             </div>
-            <div style="background:#fff;border-left:4px solid ${T};padding:16px 18px">
-                <h4 style="margin:0 0 8px;font-size:13px;color:${T}">🚀 Potencial de Melhoria</h4>
-                ${pot.items.map(i=>`<p style="margin:2px 0;font-size:12px;color:#555">• ${i}</p>`).join('')}
+            <div style="background:#fff;border-left:4px solid ${T};padding:14px 16px;page-break-inside:avoid">
+                <h4 style="margin:0 0 6px;font-size:12px;color:${T}">🚀 Potencial de Melhoria</h4>
+                ${pot.items.map(i=>`<p style="margin:2px 0;font-size:11px;color:#555">• ${i}</p>`).join('')}
             </div>
         </div>
 
         <!-- Automation highlight -->
         ${hoursSaved>0?`
-        <div style="padding:0 40px 24px">
-            <div style="background:#f0fafa;border:1px solid #c8e6e6;border-radius:12px;padding:20px;text-align:center">
+        <div style="padding:0 36px 20px;page-break-inside:avoid">
+            <div style="background:linear-gradient(135deg,#f0fafa 0%,#e8f0f8 100%);border:1px solid #c8e6e6;border-radius:12px;padding:18px;text-align:center">
                 <div style="font-size:11px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:1px">Potencial de Automação com IA</div>
-                <div style="font-size:40px;font-weight:800;color:${T};margin:8px 0">${hoursSaved}+</div>
-                <div style="font-size:13px;color:#666">horas/mês economizadas (≈ <strong>R$ ${(hoursSaved*45).toLocaleString('pt-BR')}/mês</strong> em produtividade)</div>
+                <div style="font-size:36px;font-weight:800;color:${T};margin:6px 0">${hoursSaved}+</div>
+                <div style="font-size:12px;color:#666">horas/mês economizadas (≈ <strong>R$ ${(hoursSaved*45).toLocaleString('pt-BR')}/mês</strong> em produtividade)</div>
             </div>
         </div>`:''}
 
         ${d.biggest_pain?`
-        <div style="padding:0 40px 24px">
-            <div style="background:#FFF8E1;border-left:4px solid #FF9800;padding:14px 18px">
-                <p style="margin:0;font-size:12px;color:#555"><strong>🎯 Sua principal dor:</strong> "<em>${d.biggest_pain}</em>"</p>
-                <p style="margin:6px 0 0;font-size:12px;color:#777">Isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</p>
+        <div style="padding:0 36px 20px;page-break-inside:avoid">
+            <div style="background:#FFF8E1;border-left:4px solid #FF9800;padding:12px 16px">
+                <p style="margin:0;font-size:11px;color:#555"><strong>🎯 Sua principal dor:</strong> "<em>${d.biggest_pain}</em>"</p>
+                <p style="margin:6px 0 0;font-size:11px;color:#777">Isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</p>
             </div>
         </div>`:''}
 
-        <div style="height:1px;background:#e8e8e8;margin:0 40px"></div>
+        <div style="height:1px;background:#e8e8e8;margin:0 36px"></div>
 
         <!-- ===== PROPOSTA DE SERVIÇOS ===== -->
-        <div style="padding:24px 40px">
-            <h3 style="margin:0 0 6px;font-size:18px;color:${B}">✨ Proposta de Serviços — ${company}</h3>
-            <p style="margin:0 0 20px;font-size:12px;color:#888">Serviços personalizados com base no diagnóstico acima</p>
+        <div style="padding:20px 36px">
+            <h3 style="margin:0 0 6px;font-size:17px;color:${B}">✨ Proposta de Serviços — ${company}</h3>
+            <p style="margin:0 0 16px;font-size:11px;color:#888">Serviços personalizados com base no diagnóstico acima</p>
 
             ${svcs.map((s,i)=>`
-            <div style="background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:20px;margin-bottom:14px">
-                <table style="width:100%;border-collapse:collapse;margin-bottom:10px"><tr>
-                    <td style="vertical-align:top">
+            <div style="background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:16px;margin-bottom:12px;page-break-inside:avoid">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                    <div>
                         <div style="font-size:10px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:.5px">Serviço ${String(i+1).padStart(2,'0')}</div>
-                        <h4 style="margin:2px 0 0;font-size:15px;color:#1A1A2A">${s.n}</h4>
-                    </td>
-                    <td style="text-align:right;vertical-align:top;width:120px">
-                        <span style="display:inline-block;background:${T};color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">Sob consulta</span>
-                    </td>
-                </tr></table>
-                <p style="margin:0 0 10px;font-size:12px;color:#555;line-height:1.6">${s.d}</p>
+                        <h4 style="margin:2px 0 0;font-size:14px;color:#1A1A2A">${s.n}</h4>
+                    </div>
+                    <span style="display:inline-block;background:linear-gradient(135deg,${T},${B});color:#fff;padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0">Sob consulta</span>
+                </div>
+                <p style="margin:0 0 8px;font-size:11px;color:#555;line-height:1.6">${s.d}</p>
                 <div>
-                    ${s.items.map(item=>`<span style="display:inline-block;background:#f7f8fa;color:#444;padding:3px 10px;border-radius:14px;font-size:10px;margin:3px 3px 3px 0">✓ ${item}</span>`).join('')}
+                    ${s.items.map(item=>`<span style="display:inline-block;background:#f7f8fa;color:#444;padding:3px 9px;border-radius:14px;font-size:10px;margin:2px 2px 2px 0">✓ ${item}</span>`).join('')}
                 </div>
             </div>`).join('')}
         </div>
 
         <!-- ROI -->
-        <div style="padding:0 40px 24px">
-            <div style="background:${T};border-radius:12px;padding:24px;color:#fff">
-                <h3 style="color:#fff;margin:0 0 16px;font-size:15px;text-align:center">📈 Estimativa de Impacto — 12 meses</h3>
-                <table style="width:100%;border-collapse:separate;border-spacing:8px 0"><tr>
-                    ${roi.slice(0,6).map(r=>`<td style="text-align:center;padding:10px;background:rgba(255,255,255,.15);border-radius:10px">
-                        <div style="font-size:20px;font-weight:800;color:#fff">${r.value}</div>
+        <div style="padding:0 36px 20px;page-break-inside:avoid">
+            <div style="background:linear-gradient(135deg,${T} 0%,${B} 100%);border-radius:12px;padding:20px;color:#fff">
+                <h3 style="color:#fff;margin:0 0 14px;font-size:14px;text-align:center">📈 Estimativa de Impacto — 12 meses</h3>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+                    ${roi.slice(0,6).map(r=>`<div style="text-align:center;padding:8px;background:rgba(255,255,255,.15);border-radius:10px;flex:1;min-width:90px">
+                        <div style="font-size:18px;font-weight:800;color:#fff">${r.value}</div>
                         <div style="font-size:9px;color:rgba(255,255,255,.7);margin-top:2px">${r.label}</div>
-                    </td>`).join('')}
-                </tr></table>
+                    </div>`).join('')}
+                </div>
             </div>
         </div>
 
         <!-- ===== INVESTIMENTO ===== -->
-        <div style="padding:0 40px 24px">
-            <div style="background:#f7f8fa;border:2px dashed #aaa;border-radius:12px;padding:24px;text-align:center">
-                <div style="font-size:10px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:8px">Investimento</div>
-                <div style="font-size:28px;font-weight:800;color:${T}">Sob Consulta</div>
-                <p style="margin:8px 0 0;font-size:12px;color:#888">O valor será personalizado após reunião com nosso time comercial, considerando o porte, necessidades e escopo de cada serviço.</p>
+        <div style="padding:0 36px 20px;page-break-inside:avoid">
+            <div style="background:#f7f8fa;border:2px dashed #bbb;border-radius:12px;padding:20px;text-align:center">
+                <div style="font-size:10px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:6px">Investimento</div>
+                <div style="font-size:26px;font-weight:800;color:${T}">Sob Consulta</div>
+                <p style="margin:6px 0 0;font-size:11px;color:#888">O valor será personalizado após reunião com nosso time comercial, considerando o porte, necessidades e escopo de cada serviço.</p>
             </div>
         </div>
 
         <!-- ===== PRÓXIMOS PASSOS ===== -->
-        <div style="padding:0 40px 24px">
-            <h3 style="margin:0 0 14px;font-size:15px;color:${B}">📌 Próximos Passos</h3>
-            <table style="width:100%;border-collapse:separate;border-spacing:12px 0"><tr>
-                <td style="text-align:center;padding:14px;background:#f7f8fa;border-radius:10px;width:33%">
-                    <div style="font-size:24px;margin-bottom:6px">1️⃣</div>
+        <div style="padding:0 36px 20px;page-break-inside:avoid">
+            <h3 style="margin:0 0 12px;font-size:14px;color:${B}">📌 Próximos Passos</h3>
+            <div style="display:flex;gap:10px">
+                <div style="text-align:center;padding:12px;background:#f7f8fa;border-radius:10px;flex:1">
+                    <div style="font-size:22px;margin-bottom:4px">1️⃣</div>
                     <div style="font-size:11px;font-weight:700;color:#333">Reunião de Alinhamento</div>
                     <div style="font-size:10px;color:#888;margin-top:2px">30min com nosso especialista</div>
-                </td>
-                <td style="text-align:center;padding:14px;background:#f7f8fa;border-radius:10px;width:33%">
-                    <div style="font-size:24px;margin-bottom:6px">2️⃣</div>
+                </div>
+                <div style="text-align:center;padding:12px;background:#f7f8fa;border-radius:10px;flex:1">
+                    <div style="font-size:22px;margin-bottom:4px">2️⃣</div>
                     <div style="font-size:11px;font-weight:700;color:#333">Proposta Formal</div>
                     <div style="font-size:10px;color:#888;margin-top:2px">Escopo, valor e SLA detalhados</div>
-                </td>
-                <td style="text-align:center;padding:14px;background:#f7f8fa;border-radius:10px;width:33%">
-                    <div style="font-size:24px;margin-bottom:6px">3️⃣</div>
+                </div>
+                <div style="text-align:center;padding:12px;background:#f7f8fa;border-radius:10px;flex:1">
+                    <div style="font-size:22px;margin-bottom:4px">3️⃣</div>
                     <div style="font-size:11px;font-weight:700;color:#333">Implementação</div>
                     <div style="font-size:10px;color:#888;margin-top:2px">Onboarding ágil e dedicado</div>
-                </td>
-            </tr></table>
+                </div>
+            </div>
         </div>
 
         <!-- ===== FOOTER ===== -->
-        <div style="background:#1A1A2A;padding:24px 40px;color:#fff;text-align:center">
-            ${logoSrc?`<img src="${logoSrc}" style="height:36px;margin-bottom:10px">`:''}
+        <div style="background:linear-gradient(135deg,#1A1A2A 0%,#2A2A3A 100%);padding:20px 36px;color:#fff;text-align:center">
+            ${logoSrc?`<img src="${logoSrc}" style="height:34px;margin-bottom:8px">`:''}
             <p style="margin:0;font-size:12px;color:rgba(255,255,255,.7)">Guinux — InteligêncIA em TI</p>
             <p style="margin:4px 0;font-size:11px;color:rgba(255,255,255,.5)">www.guinux.com.br · (41) 4063-9294 · contato@guinux.com.br</p>
             <p style="margin:4px 0;font-size:11px;color:rgba(255,255,255,.5)">Av. Paraná, 1755 — Curitiba, PR · Google Cloud Partner desde 2013</p>
-            <p style="margin:10px 0 0;font-size:10px;color:rgba(255,255,255,.3)">Documento confidencial gerado por Guinux.IA · ${docNum} · ${today}</p>
+            <p style="margin:8px 0 0;font-size:10px;color:rgba(255,255,255,.3)">Documento confidencial gerado por Guinux.IA · ${docNum} · ${today}</p>
         </div>
     </div>`;
 
     const container=document.createElement('div');
     container.innerHTML=pdfHtml;
     // Position ON-SCREEN but behind everything — html2canvas needs visible content
-    container.style.cssText='position:fixed;left:0;top:0;width:720px;background:#fff;z-index:-9999;opacity:0.01;pointer-events:none;overflow:visible;';
+    container.style.cssText='position:fixed;left:0;top:0;width:700px;background:#fff;z-index:-9999;opacity:0.01;pointer-events:none;overflow:visible;';
     document.body.appendChild(container);
 
     // Force all images inside container to have explicit dimensions
@@ -1343,9 +1336,9 @@ async function downloadAnalisePDF(){
                 useCORS:true,
                 allowTaint:false,
                 letterRendering:true,
-                width:720,
+                width:700,
                 height:container.scrollHeight,
-                windowWidth:720,
+                windowWidth:700,
                 windowHeight:container.scrollHeight,
                 backgroundColor:'#ffffff',
                 scrollX:0,
@@ -1364,7 +1357,7 @@ async function downloadAnalisePDF(){
                 }
             },
             jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-            pagebreak:{mode:['avoid-all','css','legacy']}
+            pagebreak:{mode:['css','legacy']}
         };
 
         await html2pdf().set(opt).from(container).save();
