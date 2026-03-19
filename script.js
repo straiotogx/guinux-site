@@ -2066,3 +2066,100 @@ function generateEmailHTML(type,d){
     </div>
     </body></html>`;
 }
+
+/* ═══════════════════════════════════════════════
+   SLIDE PANEL — Open external links in iframe
+   Visitor never leaves the page
+   ═══════════════════════════════════════════════ */
+function slidePanelAbrir(url, title) {
+    const overlay = document.getElementById('slidePanelOverlay');
+    const iframe = document.getElementById('slidePanelIframe');
+    const loader = document.getElementById('slidePanelLoader');
+    const titleEl = document.getElementById('slidePanelTitle');
+    const extLink = document.getElementById('slidePanelExternal');
+
+    titleEl.textContent = title || url;
+    extLink.href = url;
+    iframe.src = 'about:blank';
+    loader.classList.remove('hidden');
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Small delay so the slide animation shows the loader first
+    setTimeout(() => {
+        iframe.src = url;
+    }, 100);
+
+    iframe.onload = () => {
+        loader.classList.add('hidden');
+        // Try to get the page title from iframe (same-origin only)
+        try {
+            const iframeTitle = iframe.contentDocument?.title;
+            if (iframeTitle) titleEl.textContent = iframeTitle;
+        } catch (e) { /* cross-origin, keep original title */ }
+    };
+}
+
+function slidePanelFechar() {
+    const overlay = document.getElementById('slidePanelOverlay');
+    const iframe = document.getElementById('slidePanelIframe');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    // Clear iframe after transition
+    setTimeout(() => { iframe.src = 'about:blank'; }, 350);
+}
+
+// Close panel on overlay click (outside the panel)
+document.addEventListener('click', (e) => {
+    const overlay = document.getElementById('slidePanelOverlay');
+    if (e.target === overlay) slidePanelFechar();
+});
+
+// Close panel on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('slidePanelOverlay');
+        if (overlay.classList.contains('open')) slidePanelFechar();
+    }
+});
+
+// Intercept all external links — open in slide panel instead of navigating away
+// Exceptions: WhatsApp links (wa.me) open natively for app redirect
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    if (!href) return;
+
+    // Only intercept http/https external links
+    if (!href.startsWith('http://') && !href.startsWith('https://')) return;
+
+    // Skip same-domain links
+    try {
+        const linkUrl = new URL(href, window.location.origin);
+        if (linkUrl.hostname === window.location.hostname) return;
+        if (linkUrl.hostname === 'www.guinux.com.br' || linkUrl.hostname === 'guinux.com.br') return;
+    } catch (err) { return; }
+
+    // Skip WhatsApp links (need native app redirect)
+    if (href.includes('wa.me/') || href.includes('whatsapp.com')) return;
+
+    // Skip resource links (fonts, CDNs, etc.) — these are not clickable
+    if (href.includes('fonts.googleapis.com') || href.includes('fonts.gstatic.com') || href.includes('cdnjs.cloudflare.com')) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Derive a nice title from the link text or URL
+    let title = link.textContent?.trim();
+    if (!title || title.length < 3) {
+        title = link.getAttribute('aria-label') || link.getAttribute('title') || '';
+    }
+    if (!title || title.length < 3) {
+        try { title = new URL(href).hostname.replace('www.', ''); } catch (_) { title = href; }
+    }
+
+    slidePanelAbrir(href, title);
+});
