@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escopo do Projeto — Portal Digital OAB com IA Nova OABia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gx-gray: #6B6B6B;
+            --gx-dark-blue: #2B5A8C;
+            --gx-teal: #6BBED0;
+            --oab-dark: #0D1B2A;
+            --oab-blue: #2B5A8C;
+            --oab-accent: #6BBED0;
+            --oab-gold: #C9A227;
+            --oab-light: #F0F7FA;
+            --oab-green: #22C55E;
+            --oab-red: #EF4444;
+            --oab-purple: #8B5CF6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1a1a2e;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+            background: #fff;
+        }
+
+        /* ═══════════════════════════════════════════ PAGE 1 ═══════════════════════════════════════════ */
+
+        .page1-header {
+            background: linear-gradient(135deg, var(--oab-dark) 0%, var(--gx-dark-blue) 50%, #1a4a6e 100%);
+            padding: 28px 40px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .page1-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gx-teal), var(--gx-dark-blue), var(--gx-teal));
+        }
+
+        .header-left h1 {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .header-left h1 span {
+            color: var(--gx-teal);
+        }
+
+        .header-left p {
+            color: rgba(255,255,255,0.6);
+            font-size: 10px;
+            margin-top: 2px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            text-align: right;
+            color: rgba(255,255,255,0.7);
+            font-size: 9px;
+            line-height: 1.5;
+        }
+
+        .header-right strong { color: #fff; }
+
+        /* Hero */
+        .hero-section {
+            background: linear-gradient(160deg, var(--oab-dark) 0%, #162d4a 100%);
+            padding: 30px 40px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(107,190,208,0.2), transparent 70%);
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: 30%;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,162,39,0.1), transparent 70%);
+        }
+
+        .hero-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title .gold { color: var(--gx-teal); }
+        .hero-title .blue { color: var(--gx-dark-blue); }
+        .hero-title .teal { color: var(--gx-teal); }
+
+        .hero-subtitle {
+            font-size: 11.5px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+            max-width: 85%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-stat {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 10px 16px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .hero-stat .num {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--gx-teal);
+            display: block;
+        }
+
+        .hero-stat .label {
+            font-size: 8px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 2px;
+        }
+
+        /* Content area */
+        .content-area {
+            padding: 22px 40px 20px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--oab-blue);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 18px;
+            height: 3px;
+            background: var(--gx-dark-blue);
+            border-radius: 2px;
+        }
+
+        /* Module grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .module-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            position: relative;
+            overflow: hidden;
+            transition: all .2s;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+        }
+
+        .module-card.blue::before { background: var(--gx-dark-blue); }
+        .module-card.gold::before { background: var(--gx-teal); }
+        .module-card.green::before { background: var(--oab-green); }
+        .module-card.purple::before { background: var(--oab-purple); }
+        .module-card.dark::before { background: var(--oab-dark); }
+        .module-card.red::before { background: var(--oab-red); }
+        .module-card.teal::before { background: var(--gx-teal); }
+
+        .module-icon { display: none; }
+
+        .module-name {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--oab-dark);
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+
+        .module-desc {
+            font-size: 8.2px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        .module-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-top: 5px;
+        }
+
+        .module-tag {
+            font-size: 7px;
+            background: var(--oab-light);
+            color: var(--oab-blue);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        /* Investment bar */
+        .invest-bar {
+            background: linear-gradient(135deg, var(--oab-dark), var(--oab-blue));
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .invest-bar .left {
+            color: rgba(255,255,255,0.7);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .invest-bar .amount {
+            color: var(--gx-teal);
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .invest-bar .detail {
+            color: rgba(255,255,255,0.5);
+            font-size: 8px;
+            margin-top: 1px;
+        }
+
+        /* ═══════════════════════════════════════════ PAGE 2 ═══════════════════════════════════════════ */
+
+        .page2-header {
+            background: linear-gradient(135deg, var(--oab-dark), var(--oab-blue));
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page2-header h2 {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .page2-header h2 span { color: var(--gx-teal); }
+
+        .page2-header .badge {
+            background: rgba(107,190,208,0.15);
+            color: var(--gx-teal);
+            font-size: 8px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .p2-content {
+            padding: 20px 40px;
+        }
+
+        /* IA Section */
+        .ia-hero {
+            background: linear-gradient(135deg, #0f172a, #1e3a5f);
+            border-radius: 14px;
+            padding: 22px 24px;
+            margin-bottom: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ia-hero::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(107,190,208,0.25), transparent);
+        }
+
+        .ia-hero-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .ia-hero-title .purple { color: var(--gx-teal); }
+        .ia-hero-title .gold { color: #fff; text-decoration: underline; text-decoration-color: var(--gx-teal); text-underline-offset: 3px; }
+
+        .ia-hero-sub {
+            font-size: 9px;
+            color: rgba(255,255,255,0.65);
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .ia-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .ia-feat {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .ia-feat-icon { display: none; }
+
+        .ia-feat-name {
+            font-size: 8.5px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .ia-feat-desc {
+            font-size: 7.2px;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.4;
+        }
+
+        /* Two column modules */
+        .p2-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .p2-module {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .p2-module-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--oab-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .p2-module-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .p2-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .p2-list li {
+            font-size: 8px;
+            color: #475569;
+            padding: 3px 0;
+            padding-left: 12px;
+            position: relative;
+            line-height: 1.45;
+        }
+
+        .p2-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--oab-accent);
+            font-weight: 700;
+        }
+
+        /* Timeline */
+        .timeline-section {
+            margin-bottom: 16px;
+        }
+
+        .timeline {
+            display: flex;
+            gap: 0;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 40px;
+            right: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gx-dark-blue), var(--gx-teal), var(--oab-green));
+        }
+
+        .timeline-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin: 12px auto 8px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px var(--oab-accent);
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(1) .timeline-dot { background: var(--oab-accent); }
+        .timeline-item:nth-child(2) .timeline-dot { background: var(--oab-purple); box-shadow: 0 0 0 2px var(--oab-purple); }
+        .timeline-item:nth-child(3) .timeline-dot { background: var(--gx-teal); box-shadow: 0 0 0 2px var(--gx-teal); }
+        .timeline-item:nth-child(4) .timeline-dot { background: var(--oab-green); box-shadow: 0 0 0 2px var(--oab-green); }
+
+        .timeline-phase {
+            font-size: 8px;
+            font-weight: 800;
+            color: var(--oab-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-period {
+            font-size: 7px;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+
+        .timeline-detail {
+            font-size: 7px;
+            color: #64748b;
+            margin-top: 3px;
+            line-height: 1.35;
+        }
+
+        /* ROI Section */
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .roi-card {
+            background: var(--oab-light);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .roi-card .roi-num {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--oab-accent);
+        }
+
+        .roi-card .roi-label {
+            font-size: 7px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .roi-card.gold .roi-num { color: var(--gx-dark-blue); }
+        .roi-card.green .roi-num { color: var(--oab-green); }
+        .roi-card.purple .roi-num { color: var(--oab-purple); }
+
+        /* Footer */
+        .page-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--oab-dark);
+            padding: 12px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-footer .left {
+            color: rgba(255,255,255,0.5);
+            font-size: 7.5px;
+        }
+
+        .page-footer .right {
+            color: rgba(255,255,255,0.35);
+            font-size: 7px;
+        }
+
+        /* Differentials strip */
+        .diff-strip {
+            background: linear-gradient(135deg, var(--oab-dark), #1a3550);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+        }
+
+        .diff-strip-title {
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--gx-teal);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .diff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .diff-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .diff-item-icon {
+            font-size: 10px;
+            flex-shrink: 0;
+            margin-top: 2px;
+            color: var(--gx-teal);
+            font-weight: 800;
+        }
+
+        .diff-item-text {
+            font-size: 7.5px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.4;
+        }
+
+        .diff-item-text strong {
+            color: #fff;
+            display: block;
+            font-size: 8px;
+            margin-bottom: 1px;
+        }
+
+        /* Print */
+        @media print {
+            body { margin: 0; }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                page-break-after: always;
+            }
+        }
+
+        @media screen {
+            body {
+                background: #94a3b8;
+                padding: 30px 0;
+            }
+            .page {
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                margin-bottom: 40px;
+            }
+        }
+
+        /* Full-width module */
+        .module-full {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ PÁGINA 1 ═══════════════════════ -->
+<div class="page">
+
+    <div class="page1-header">
+        <div class="header-left">
+            <h1>Portal Digital <span>OAB Paraná</span></h1>
+            <p>Proposta de escopo do projeto</p>
+        </div>
+        <div class="header-right">
+            <img src="logogx-ia.png" alt="Guinux" style="height:36px;filter:grayscale(1) brightness(3);opacity:0.9;">
+        </div>
+    </div>
+
+    <div class="hero-section">
+        <div class="hero-title">
+            O Portal que vai <span class="gold">transformar</span> a<br>advocacia no Paraná com <span class="teal">IA proprietária</span>
+        </div>
+        <div class="hero-subtitle">
+            Plataforma completa que integra área logada do advogado, Escola Superior de Advocacia (ESA),
+            Caixa de Assistência (CAA), OAB Prev, hipersegmentação inteligente, CMS próprio e a IA Nova OABia —
+            uma inteligência artificial proprietária treinada com a base de conhecimento da OAB,
+            que fará todo o pré-atendimento, triagem e orientação em cada página do ecossistema.
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="num">90mil+</span>
+                <span class="label">Advogados impactados</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">9</span>
+                <span class="label">Módulos integrados</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">1</span>
+                <span class="label">IA proprietária</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">24/7</span>
+                <span class="label">Atendimento IA</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">360°</span>
+                <span class="label">Visão do advogado</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+
+        <div class="section-title">Módulos e Entregáveis do Projeto</div>
+
+        <div class="modules-grid">
+
+            <!-- M1: Área Logada -->
+            <div class="module-card blue">
+                <div class="module-name">1. Área Logada do Advogado</div>
+                <div class="module-desc">
+                    Painel 360° do advogado: situação cadastral, processos disciplinares, histórico e documentos.
+                    Novo visual para pagamentos de anuidade e negociação (motor atual mantido, nova experiência visual).
+                    Requerimentos e certidões otimizados a partir do trabalho já realizado pela Célula da Inovação.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">Dashboard pessoal</span>
+                    <span class="module-tag">Anuidades (novo visual)</span>
+                    <span class="module-tag">Negociação</span>
+                    <span class="module-tag">Certidões (Célula Inovação)</span>
+                    <span class="module-tag">Requerimentos</span>
+                    <span class="module-tag">Alertas IA</span>
+                </div>
+            </div>
+
+            <!-- M2: Economizômetro -->
+            <div class="module-card gold">
+                <div class="module-name">2. Economizômetro</div>
+                <div class="module-desc">
+                    Calculadora inteligente que mostra ao advogado, em tempo real, quanto economizou
+                    utilizando os serviços da CAA e OAB. Gamificação com rankings, selos e metas,
+                    incentivando uso dos benefícios. IA sugere serviços não explorados.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">Cálculo em tempo real</span>
+                    <span class="module-tag">Gamificação</span>
+                    <span class="module-tag">Rankings</span>
+                    <span class="module-tag">Sugestões IA</span>
+                </div>
+            </div>
+
+            <!-- M3: Crédito ESA -->
+            <div class="module-card green">
+                <div class="module-name">3. Integração ESA & Educação Continuada</div>
+                <div class="module-desc">
+                    Integração com os sistemas da ESA via API (fornecida pelo fornecedor da ESA):
+                    catálogo de cursos integrado ao portal, inscrições online, gestão de créditos obrigatórios,
+                    certificados digitais, trilhas personalizadas por IA e acompanhamento de horas complementares.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">API fornecedor ESA</span>
+                    <span class="module-tag">Cursos carregados diretamente no Portal</span>
+                    <span class="module-tag">Inscrição dentro do Portal</span>
+                    <span class="module-tag">Anuidade vira crédito</span>
+                </div>
+            </div>
+
+            <!-- M4: Hipersegmentação -->
+            <div class="module-card purple">
+                <div class="module-name">4. Hipersegmentação Inteligente</div>
+                <div class="module-desc">
+                    Motor de segmentação que personaliza toda a experiência: conteúdo, ofertas,
+                    comunicações e serviços baseados no perfil, área de atuação, tempo de inscrição,
+                    localização e comportamento do advogado no portal.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">Perfil dinâmico</span>
+                    <span class="module-tag">Comunicação segmentada</span>
+                    <span class="module-tag">Ofertas personalizadas</span>
+                    <span class="module-tag">Behavioral tracking</span>
+                </div>
+            </div>
+
+            <!-- M5: CAA + OAB Prev -->
+            <div class="module-card dark">
+                <div class="module-name">5. Integração CAA, OAB Prev & Alloyal</div>
+                <div class="module-desc">
+                    Unificação completa entre Caixa de Assistência, OAB Prev e APP Alloyal em uma experiência
+                    única: saúde, previdência, convênios, clube de vantagens, reembolsos, agendamentos e simuladores
+                    — tudo acessível com login único e pré-atendimento por IA.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">Saúde</span>
+                    <span class="module-tag">Previdência</span>
+                    <span class="module-tag">Convênios</span>
+                    <span class="module-tag">APP Alloyal</span>
+                    <span class="module-tag">Simuladores</span>
+                    <span class="module-tag">Reembolsos</span>
+                    <span class="module-tag">Login único</span>
+                </div>
+            </div>
+
+            <!-- M6: Site Público -->
+            <div class="module-card red">
+                <div class="module-name">6. Site Público Institucional</div>
+                <div class="module-desc">
+                    Portal público redesenhado com navegação intuitiva, busca inteligente, notícias,
+                    agenda de eventos, consulta pública de advogados, transparência institucional,
+                    ouvidoria digital e acesso a serviços para o cidadão.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">Institucional</span>
+                    <span class="module-tag">Notícias</span>
+                    <span class="module-tag">Consulta pública</span>
+                    <span class="module-tag">Transparência</span>
+                    <span class="module-tag">Eventos</span>
+                    <span class="module-tag">Ouvidoria</span>
+                </div>
+            </div>
+
+            <!-- M7: CMS Próprio -->
+            <div class="module-card teal module-full">
+                <div class="module-name">7. CMS Próprio — Gestão de Conteúdo</div>
+                <div class="module-desc">
+                    Sistema de gerenciamento de conteúdo proprietário para que a equipe da OAB publique e gerencie notícias, banners,
+                    eventos, páginas institucionais, documentos, comunicados e conteúdo segmentado — sem depender de equipe técnica.
+                    Controle total de publicação com aprovação, agendamento, versionamento e integração nativa com a IA Nova OABia.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">Editor visual</span>
+                    <span class="module-tag">Gestão de notícias</span>
+                    <span class="module-tag">Banners & destaques</span>
+                    <span class="module-tag">Eventos</span>
+                    <span class="module-tag">Documentos</span>
+                    <span class="module-tag">Aprovação & agendamento</span>
+                    <span class="module-tag">Integração IA</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="invest-bar">
+            <div class="left">
+                Investimento total do projeto
+                <div class="detail">Desenvolvimento, IA, treinamento e entrega completa em dezembro/2026</div>
+            </div>
+            <div style="text-align:right">
+                <div class="amount">R$ 990.000</div>
+                <div class="detail" style="color:rgba(255,255,255,0.5)">Possibilidade de parcelamento em fases</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-footer">
+        <div class="left">Guinux Inteligênc<span style="color:#7DC8D8">IA</span> — 23+ anos — guinux.com.br</div>
+        <div class="right">Página 1 de 2 — Documento confidencial</div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════ PÁGINA 2 ═══════════════════════ -->
+<div class="page">
+
+    <div class="page2-header">
+        <h2>IA <span>Nova OABia</span> — O Cérebro do Portal</h2>
+        <div class="badge">Inteligência Artificial Proprietária</div>
+    </div>
+
+    <div class="p2-content">
+
+        <div class="ia-hero">
+            <div class="ia-hero-title">
+                <span class="purple">Nova OABia</span> — a IA que <span class="gold">conhece</span> a OAB
+            </div>
+            <div class="ia-hero-sub">
+                Inteligência artificial proprietária treinada com toda a base de conhecimento da OAB Paraná —
+                regulamentos, resoluções, provimentos, jurisprudência ética, tabela de honorários, benefícios CAA,
+                grade ESA e fluxos operacionais. Presente em todas as páginas do ecossistema como assistente inteligente.
+            </div>
+            <div class="ia-features">
+                <div class="ia-feat">
+                    <div class="ia-feat-name">Base de Conhecimento</div>
+                    <div class="ia-feat-desc">Treinamento com regulamentos, provimentos, código de ética, tabela de honorários, normas e todo acervo OAB</div>
+                </div>
+                <div class="ia-feat">
+                    <div class="ia-feat-name">Pré-Atendimento Total</div>
+                    <div class="ia-feat-desc">Triagem inteligente em todas as páginas: tira dúvidas, orienta processos, agenda atendimentos e resolve demandas</div>
+                </div>
+                <div class="ia-feat">
+                    <div class="ia-feat-name">Integração Universal</div>
+                    <div class="ia-feat-desc">Presente na área logada, site público, ESA, CAA, OAB Prev — contexto diferente em cada módulo</div>
+                </div>
+                <div class="ia-feat">
+                    <div class="ia-feat-name">Análise Preditiva</div>
+                    <div class="ia-feat-desc">Identifica padrões, antecipa necessidades, sugere cursos ESA e prevê demandas da classe</div>
+                </div>
+                <div class="ia-feat">
+                    <div class="ia-feat-name">Segurança & LGPD</div>
+                    <div class="ia-feat-desc">Dados criptografados, respostas auditáveis, conformidade total com LGPD e sigilo profissional</div>
+                </div>
+                <div class="ia-feat">
+                    <div class="ia-feat-name">Evolução Contínua</div>
+                    <div class="ia-feat-desc">Modelo que aprende com interações, feedback dos advogados e novas normas publicadas</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p2-two-col">
+            <div class="p2-module">
+                <div class="p2-module-title">
+                    <span class="dot" style="background:var(--oab-purple)"></span>
+                    8. Dashboards Executivos com IA
+                </div>
+                <ul class="p2-list">
+                    <li>Painel da Presidência: KPIs em tempo real da OAB/PR</li>
+                    <li>Dashboard CAA: sinistralidade, uso de benefícios, projeções</li>
+                    <li>Analytics ESA: matrículas, evasão, satisfação, créditos</li>
+                    <li>Mapa da Advocacia: distribuição geográfica e por área</li>
+                    <li>Indicadores financeiros: anuidades, inadimplência, receitas</li>
+                    <li>Relatórios automáticos gerados por IA com insights</li>
+                </ul>
+            </div>
+            <div class="p2-module">
+                <div class="p2-module-title">
+                    <span class="dot" style="background:var(--oab-accent)"></span>
+                    9. Automação & Processos Digitais
+                </div>
+                <ul class="p2-list">
+                    <li>Fluxo digital de inscrição e transferência de advogados</li>
+                    <li>Certidões e requerimentos: acoplados ao trabalho da Célula da Inovação</li>
+                    <li>Agendamento inteligente de atendimentos</li>
+                    <li>Protocolo digital com acompanhamento em tempo real</li>
+                    <li>Notificações inteligentes (e-mail, push, WhatsApp)</li>
+                    <li>Integração com sistemas legados via APIs seguras</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="diff-strip">
+            <div class="diff-strip-title">Diferenciais competitivos deste projeto</div>
+            <div class="diff-grid">
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Parceiro estratégico comprovado</strong>
+                        Conhecimento profundo da operação, dos sistemas legados e das dores reais da advocacia paranaense.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M16.604 2.72a1.248 1.248 0 0 0-2.332 0L8.658 16.568a.64.64 0 0 1-.6.417H3.664a1.248 1.248 0 1 0 0 2.496h4.394c1.456 0 2.748-.94 3.196-2.328L14.438 6.88l1.416 4.736a.64.64 0 0 0 .612.449h4.21a1.248 1.248 0 1 0 0-2.496h-3.024L16.604 2.72Z" fill="#D97757"/></svg></span>
+                    <div class="diff-item-text">
+                        <strong>IA proprietária powered by Claude</strong>
+                        Nova OABia construída sobre Claude (Anthropic) — a IA mais segura e avançada do mercado. Treinada com dados reais da OAB, não genérica.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Integração total inédita</strong>
+                        CAA + OAB Prev + ESA + Portal em plataforma única — nunca feito antes em uma seccional.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Google Cloud Partner</strong>
+                        Infraestrutura Google Cloud com SLA enterprise, escalabilidade e segurança de nível global.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Mobile-first & PWA</strong>
+                        Experiência otimizada para celular com app instalável. Advogado acessa tudo do escritório ou do fórum.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Cronograma de Entregas</div>
+        <div class="timeline-section">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">1a Entrega</div>
+                    <div class="timeline-period">Maio 2026</div>
+                    <div class="timeline-detail">Portal público, CMS básico, 1a versão IA integrada (limitada), requerimentos e certidões</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase" style="color:var(--gx-teal);font-weight:800;">Fase 2 — Mês do Advogado</div>
+                    <div class="timeline-period">Jun–Ago 2026</div>
+                    <div class="timeline-detail"><strong style="color:var(--gx-teal);">Entrega alinhada ao Mês do Advogado (agosto).</strong> Área logada, ESA integrada, Economizômetro, hipersegmentação e IA expandida</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">Fase 3 — Integração</div>
+                    <div class="timeline-period">Set–Out 2026</div>
+                    <div class="timeline-detail">CAA + OAB Prev + Alloyal, dashboards, automação, anuidades (novo visual) e crédito ESA</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">Entrega Final</div>
+                    <div class="timeline-period">Dez 2026</div>
+                    <div class="timeline-detail">IA completa, PWA mobile, analytics avançados e entrega total do projeto</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Impacto Projetado em 12 Meses</div>
+        <div class="roi-grid">
+            <div class="roi-card" style="border-left:4px solid var(--gx-teal);background:linear-gradient(135deg,#0d2137,#1a3a5a);color:#fff;">
+                <div class="roi-num" style="font-size:28px;color:var(--gx-teal);">-70%</div>
+                <div class="roi-label" style="color:rgba(255,255,255,0.85);font-size:8px;">Redução de<br>atendimentos manuais</div>
+            </div>
+            <div class="roi-card gold">
+                <div class="roi-num">90mil+</div>
+                <div class="roi-label">Advogados com<br>acesso unificado</div>
+            </div>
+            <div class="roi-card green">
+                <div class="roi-num">24/7</div>
+                <div class="roi-label">Atendimento IA<br>sem fila de espera</div>
+            </div>
+            <div class="roi-card purple">
+                <div class="roi-num">+40%</div>
+                <div class="roi-label">Adesão esperada<br>a serviços CAA/ESA</div>
+            </div>
+            <div class="roi-card" style="border-left:3px solid var(--gx-dark);">
+                <div class="roi-num">R$1M</div>
+                <div class="roi-label">Nova receita/ano<br>com patrocínios</div>
+            </div>
+        </div>
+
+        <div style="margin-top:12px;padding:16px 20px;background:linear-gradient(135deg,#0d2137,var(--gx-dark),#1a3a5a);border-radius:8px;color:#fff;text-align:center;font-size:9px;line-height:1.6;letter-spacing:0.3px;border:1px solid rgba(125,200,216,0.3);box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <div style="font-size:14px;font-weight:800;color:var(--gx-teal);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">A oportunidade de fazer história</div>
+            <div style="font-size:9.5px;color:rgba(255,255,255,0.9);max-width:500px;margin:0 auto;">A atual diretoria tem a chance de entregar a maior transformação digital já feita para os advogados do Paraná — um legado tecnológico que impactará 90 mil profissionais por gerações.</div>
+        </div>
+
+    </div>
+
+    <div class="page-footer">
+        <div class="left">Guinux Inteligênc<span style="color:#7DC8D8">IA</span> — 23+ anos — guinux.com.br</div>
+        <div class="right">Página 2 de 2 — Documento confidencial</div>
+    </div>
+
+</div>
+
+</body>
+</html>

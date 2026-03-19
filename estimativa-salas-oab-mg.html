@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimativa Orçamentária — Salas Inteligentes OAB MG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gx-gray: #6B6B6B;
+            --gx-dark-blue: #2B5A8C;
+            --gx-teal: #6BBED0;
+            --oab-dark: #0D1B2A;
+            --oab-blue: #2B5A8C;
+            --oab-accent: #6BBED0;
+            --oab-gold: #C9A227;
+            --oab-light: #F0F7FA;
+            --oab-green: #22C55E;
+            --oab-red: #EF4444;
+            --oab-purple: #8B5CF6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1a1a2e;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+            background: #fff;
+        }
+
+        /* ═══════════════════════════════════════════ HEADER ═══════════════════════════════════════════ */
+
+        .page1-header {
+            background: linear-gradient(135deg, var(--oab-dark) 0%, var(--gx-dark-blue) 50%, #1a4a6e 100%);
+            padding: 28px 40px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .page1-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gx-teal), var(--gx-dark-blue), var(--gx-teal));
+        }
+
+        .header-left h1 {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .header-left h1 span {
+            color: var(--gx-teal);
+        }
+
+        .header-left p {
+            color: rgba(255,255,255,0.6);
+            font-size: 10px;
+            margin-top: 2px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            text-align: right;
+            color: rgba(255,255,255,0.7);
+            font-size: 9px;
+            line-height: 1.5;
+        }
+
+        .header-right strong { color: #fff; }
+
+        /* Hero */
+        .hero-section {
+            background: linear-gradient(160deg, var(--oab-dark) 0%, #162d4a 100%);
+            padding: 26px 40px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(107,190,208,0.2), transparent 70%);
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: 30%;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,162,39,0.1), transparent 70%);
+        }
+
+        .hero-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-title .teal { color: var(--gx-teal); }
+        .hero-title .gold { color: var(--oab-gold); }
+
+        .hero-subtitle {
+            font-size: 11px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+            max-width: 90%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 14px;
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-stat {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 9px 14px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .hero-stat .num {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--gx-teal);
+            display: block;
+        }
+
+        .hero-stat .label {
+            font-size: 7.5px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 2px;
+        }
+
+        /* Content area */
+        .content-area {
+            padding: 18px 40px 16px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--oab-blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 18px;
+            height: 3px;
+            background: var(--gx-dark-blue);
+            border-radius: 2px;
+        }
+
+        /* Module grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            margin-bottom: 14px;
+        }
+
+        .module-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 11px 13px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+        }
+
+        .module-card.blue::before { background: var(--gx-dark-blue); }
+        .module-card.gold::before { background: var(--oab-gold); }
+        .module-card.green::before { background: var(--oab-green); }
+        .module-card.purple::before { background: var(--oab-purple); }
+        .module-card.dark::before { background: var(--oab-dark); }
+        .module-card.red::before { background: var(--oab-red); }
+        .module-card.teal::before { background: var(--gx-teal); }
+
+        .module-name {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--oab-dark);
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+
+        .module-desc {
+            font-size: 8px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        .module-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-top: 4px;
+        }
+
+        .module-tag {
+            font-size: 7px;
+            background: var(--oab-light);
+            color: var(--oab-blue);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .module-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Investment bar */
+        .invest-bar {
+            background: linear-gradient(135deg, var(--oab-dark), var(--oab-blue));
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .invest-bar .left {
+            color: rgba(255,255,255,0.7);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .invest-bar .amount {
+            color: var(--gx-teal);
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .invest-bar .detail {
+            color: rgba(255,255,255,0.5);
+            font-size: 8px;
+            margin-top: 1px;
+        }
+
+        /* ═══════════════════════════════════════════ PAGE 2 ═══════════════════════════════════════════ */
+
+        .page2-header {
+            background: linear-gradient(135deg, var(--oab-dark), var(--oab-blue));
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page2-header h2 {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .page2-header h2 span { color: var(--gx-teal); }
+
+        .page2-header .badge {
+            background: rgba(107,190,208,0.15);
+            color: var(--gx-teal);
+            font-size: 8px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .p2-content {
+            padding: 18px 40px;
+        }
+
+        /* Cost table */
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+            font-size: 8.5px;
+        }
+
+        .cost-table thead th {
+            background: var(--oab-dark);
+            color: #fff;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .cost-table thead th:last-child,
+        .cost-table thead th:nth-child(3) {
+            text-align: right;
+        }
+
+        .cost-table tbody td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        .cost-table tbody td:last-child,
+        .cost-table tbody td:nth-child(3) {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .cost-table tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .cost-table tbody tr.highlight {
+            background: var(--oab-light);
+        }
+
+        .cost-table tfoot td {
+            padding: 10px;
+            font-weight: 800;
+            font-size: 10px;
+            border-top: 2px solid var(--oab-dark);
+            color: var(--oab-dark);
+        }
+
+        .cost-table tfoot td:last-child {
+            text-align: right;
+            color: var(--gx-dark-blue);
+        }
+
+        /* Timeline horizontal */
+        .timeline-section {
+            margin-bottom: 14px;
+        }
+
+        .timeline {
+            display: flex;
+            gap: 0;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 40px;
+            right: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gx-dark-blue), var(--gx-teal), var(--oab-green));
+        }
+
+        .timeline-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin: 12px auto 8px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px var(--oab-accent);
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(1) .timeline-dot { background: var(--oab-accent); }
+        .timeline-item:nth-child(2) .timeline-dot { background: var(--gx-dark-blue); box-shadow: 0 0 0 2px var(--gx-dark-blue); }
+        .timeline-item:nth-child(3) .timeline-dot { background: var(--oab-purple); box-shadow: 0 0 0 2px var(--oab-purple); }
+        .timeline-item:nth-child(4) .timeline-dot { background: var(--gx-teal); box-shadow: 0 0 0 2px var(--gx-teal); }
+        .timeline-item:nth-child(5) .timeline-dot { background: var(--oab-green); box-shadow: 0 0 0 2px var(--oab-green); }
+
+        .timeline-phase {
+            font-size: 7.5px;
+            font-weight: 800;
+            color: var(--oab-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-period {
+            font-size: 7px;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+
+        .timeline-detail {
+            font-size: 6.5px;
+            color: #64748b;
+            margin-top: 3px;
+            line-height: 1.35;
+        }
+
+        /* ROI Section */
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .roi-card {
+            background: var(--oab-light);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .roi-card .roi-num {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--oab-accent);
+        }
+
+        .roi-card .roi-label {
+            font-size: 7px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .roi-card.gold .roi-num { color: var(--gx-dark-blue); }
+        .roi-card.green .roi-num { color: var(--oab-green); }
+        .roi-card.purple .roi-num { color: var(--oab-purple); }
+
+        /* Differentials strip */
+        .diff-strip {
+            background: linear-gradient(135deg, var(--oab-dark), #1a3550);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+        }
+
+        .diff-strip-title {
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--gx-teal);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .diff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .diff-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .diff-item-icon {
+            font-size: 10px;
+            flex-shrink: 0;
+            margin-top: 2px;
+            color: var(--gx-teal);
+            font-weight: 800;
+        }
+
+        .diff-item-text {
+            font-size: 7.5px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.4;
+        }
+
+        .diff-item-text strong {
+            color: #fff;
+            display: block;
+            font-size: 8px;
+            margin-bottom: 1px;
+        }
+
+        /* Two column modules */
+        .p2-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .p2-module {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .p2-module-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--oab-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .p2-module-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .p2-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .p2-list li {
+            font-size: 8px;
+            color: #475569;
+            padding: 3px 0;
+            padding-left: 12px;
+            position: relative;
+            line-height: 1.45;
+        }
+
+        .p2-list li::before {
+            content: '\2192';
+            position: absolute;
+            left: 0;
+            color: var(--oab-accent);
+            font-weight: 700;
+        }
+
+        /* Footer */
+        .page-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--oab-dark);
+            padding: 12px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-footer .left {
+            color: rgba(255,255,255,0.5);
+            font-size: 7.5px;
+        }
+
+        .page-footer .right {
+            color: rgba(255,255,255,0.35);
+            font-size: 7px;
+        }
+
+        /* ═══════════════════════════════════════════ PAGE 3 ═══════════════════════════════════════════ */
+
+        .sala-list-section {
+            margin-bottom: 12px;
+        }
+
+        .sala-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 2px;
+            font-size: 6.5px;
+        }
+
+        .sala-grid-header {
+            background: var(--oab-dark);
+            color: #fff;
+            padding: 4px 6px;
+            font-weight: 700;
+            font-size: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sala-item {
+            padding: 2.5px 6px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-size: 6.2px;
+            line-height: 1.3;
+        }
+
+        .sala-item:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .batch-label {
+            background: var(--oab-light);
+            border-left: 3px solid var(--gx-teal);
+            padding: 4px 8px;
+            font-size: 7.5px;
+            font-weight: 700;
+            color: var(--gx-dark-blue);
+            margin-bottom: 4px;
+            margin-top: 8px;
+        }
+
+        .batch-label span {
+            font-weight: 400;
+            color: #64748b;
+            font-size: 6.5px;
+        }
+
+        /* Small table for batch list */
+        .batch-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 6.5px;
+            margin-bottom: 6px;
+        }
+
+        .batch-table th {
+            background: var(--oab-dark);
+            color: #fff;
+            padding: 4px 6px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .batch-table th:nth-child(3),
+        .batch-table th:nth-child(4) {
+            text-align: center;
+        }
+
+        .batch-table td {
+            padding: 2.5px 6px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        .batch-table td:nth-child(3),
+        .batch-table td:nth-child(4) {
+            text-align: center;
+        }
+
+        .batch-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .batch-table tfoot td {
+            font-weight: 700;
+            border-top: 2px solid var(--oab-dark);
+            padding: 5px 6px;
+            font-size: 7px;
+        }
+
+        /* Print */
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+        @media print {
+            body { margin: 0; }
+            .page {
+                margin: 0;
+                box-shadow: none;
+                page-break-after: always;
+            }
+        }
+
+        @media screen {
+            body {
+                background: #94a3b8;
+                padding: 30px 0;
+            }
+            .page {
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                margin-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ PAGINA 1 — VISAO GERAL ═══════════════════════ -->
+<div class="page">
+
+    <div class="page1-header">
+        <div class="header-left">
+            <h1>Salas Inteligentes <span>OAB Minas Gerais</span></h1>
+            <p style="display:flex;align-items:center;gap:10px;">Estimativa orçamentária <span style="background:rgba(239,68,68,0.2);color:#ff6b6b;font-weight:800;padding:3px 12px;border-radius:5px;border:1.5px solid rgba(239,68,68,0.5);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;animation:pulse 2s infinite;">⚠ Simulação — Não é uma proposta válida</span></p>
+        </div>
+        <div class="header-right">
+            <img src="logogx-ia.png" alt="Guinux" style="height:36px;filter:grayscale(1) brightness(3);opacity:0.9;">
+        </div>
+    </div>
+
+    <div class="hero-section">
+        <div class="hero-title">
+            <span class="teal">252 Salas Inteligentes</span> para<br>modernizar a advocacia em <span class="gold">Minas Gerais</span>
+        </div>
+        <div class="hero-subtitle">
+            Projeto de automação das 252 subseções da OAB MG com salas inteligentes que substituem
+            a necessidade de funcionários presenciais — equipadas com 2 câmeras UniFi, DVR, nobreak,
+            biometria ControlID, Wi-Fi 7 de alta qualidade e suporte técnico remoto permanente pela Guinux.
+            Economia projetada de R$ 1,3M/mês com payback em menos de 7 meses.
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="num">252</span>
+                <span class="label">Salas em todo MG</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">15</span>
+                <span class="label">Salas/mês implantadas</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">17</span>
+                <span class="label">Meses de rollout</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">UniFi</span>
+                <span class="label">Câmeras & DVR</span>
+            </div>
+            <div class="hero-stat">
+                <span class="num">ControlID</span>
+                <span class="label">Biometria</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area">
+
+        <div class="section-title">Composição da Sala Inteligente</div>
+
+        <div class="modules-grid">
+
+            <div class="module-card red">
+                <div class="module-name">1. Eliminação de 252 Funcionários — ROI Imediato</div>
+                <div class="module-desc">
+                    A Sala Inteligente substitui a necessidade de funcionário presencial em cada subseção.
+                    Custo atual: 252 funcionários x R$ 6.000 = R$ 1.512.000/mês (R$ 18,1M/ano).
+                    Com a automação, esse custo é eliminado e substituído por manutenção tecnológica de R$ 214.200/mês.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">252 funcionários eliminados</span>
+                    <span class="module-tag">Economia: R$ 1.297.800/mês</span>
+                    <span class="module-tag">Payback: ~7 meses</span>
+                    <span class="module-tag">ROI 1o ano: R$ 6,8M</span>
+                </div>
+            </div>
+
+            <div class="module-card teal">
+                <div class="module-name">2. Kit Tecnológico — UniFi, Biometria, Wi-Fi 7 & Nobreak (~R$ 15.000/sala)</div>
+                <div class="module-desc">
+                    Kit completo por sala: 2 câmeras UniFi Protect, DVR/NVR UniFi com gravação contínua e acesso remoto,
+                    Wi-Fi 7 UniFi de alta qualidade, leitor biométrico ControlID para controle de acesso e nobreak
+                    para garantir funcionamento ininterrupto. Compra direta da OAB MG com os fabricantes.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">2 Câmeras UniFi Protect</span>
+                    <span class="module-tag">DVR/NVR UniFi</span>
+                    <span class="module-tag">Wi-Fi 7 UniFi</span>
+                    <span class="module-tag">Biometria ControlID</span>
+                    <span class="module-tag">Nobreak</span>
+                    <span class="module-tag">~R$ 15.000/sala</span>
+                    <span class="module-tag">Compra direta fabricante</span>
+                </div>
+            </div>
+
+            <div class="module-card purple">
+                <div class="module-name">3. Instalação, Configuração & Implantação — Guinux</div>
+                <div class="module-desc">
+                    A Guinux é responsável por toda a instalação física, configuração de rede, setup de câmeras UniFi,
+                    integração da biometria ControlID, testes de funcionamento e entrega da sala operacional.
+                    Custos de cabeamento, racks e acabamentos de rede são absorvidos pela Guinux — inclusos no valor da instalação.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">R$ 20.000/sala</span>
+                    <span class="module-tag">Instalação física</span>
+                    <span class="module-tag">Cabeamento incluso</span>
+                    <span class="module-tag">Racks & acabamentos</span>
+                    <span class="module-tag">Configuração de rede</span>
+                    <span class="module-tag">Treinamento</span>
+                    <span class="module-tag">Testes & entrega</span>
+                </div>
+            </div>
+
+            <div class="module-card dark module-full">
+                <div class="module-name">4. Manutenção Tecnológica, Suporte & Funcionamento Contínuo — Guinux</div>
+                <div class="module-desc">
+                    Após a entrega de cada sala, a Guinux assume a manutenção tecnológica mensal: monitoramento remoto dos equipamentos,
+                    suporte técnico ao advogado, atualização de firmware, gestão de incidentes, garantia de funcionamento
+                    e SLA de atendimento. Valor mensal por sala operacional.
+                </div>
+                <div class="module-items">
+                    <span class="module-tag">R$ 850/sala/mês</span>
+                    <span class="module-tag">Monitoramento remoto</span>
+                    <span class="module-tag">Suporte técnico</span>
+                    <span class="module-tag">Atualização firmware</span>
+                    <span class="module-tag">SLA de atendimento</span>
+                    <span class="module-tag">Gestão de incidentes</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="invest-bar" style="flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+                <div class="left">
+                    <span style="font-size:11px;font-weight:900;letter-spacing:0.5px;">EQUIPAMENTOS — <span style="color:var(--oab-gold);text-transform:uppercase;background:rgba(201,162,39,0.15);padding:2px 8px;border-radius:4px;border:1px solid rgba(201,162,39,0.4);">Compra Direta com Fabricante</span></span> (252 kits)
+                    <div class="detail">2 câmeras UniFi + DVR/NVR + Wi-Fi 7 + biometria ControlID + nobreak — por sala</div>
+                </div>
+                <div style="text-align:right">
+                    <div class="amount" style="font-size:20px;">~R$ 3.780.000</div>
+                    <div class="detail" style="color:rgba(255,255,255,0.5)">252 salas x ~R$ 15.000</div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:10px;display:flex;justify-content:space-between;align-items:center;width:100%;">
+                <div class="left">
+                    Guinux — Instalação, configuração & implantação (252 salas)
+                    <div class="detail">Instalação física, cabeamento, racks, acabamentos, config. rede, testes e entrega — custos absorvidos pela Guinux</div>
+                </div>
+                <div style="text-align:right">
+                    <div class="amount" style="font-size:20px;">R$ 5.040.000</div>
+                    <div class="detail" style="color:rgba(255,255,255,0.5)">252 salas x R$ 20.000 — em 17 meses</div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:10px;display:flex;justify-content:space-between;align-items:center;width:100%;background:rgba(107,190,208,0.1);margin:0 -20px;padding:10px 20px;width:calc(100% + 40px);">
+                <div>
+                    <div style="color:var(--gx-teal);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;">Investimento Total do Projeto</div>
+                    <div style="color:rgba(255,255,255,0.6);font-size:8px;margin-top:2px;">Equipamentos + Instalação Guinux | Payback em ~7 meses com economia de funcionários</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="amount">R$ 8.820.000</div>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:10px;display:flex;justify-content:space-between;align-items:center;width:100%;background:rgba(201,162,39,0.1);margin:0 -20px;padding:10px 20px;border-radius:0 0 12px 12px;width:calc(100% + 40px);">
+                <div>
+                    <div style="color:var(--oab-gold);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;">Manutenção Mensal — Guinux (pós-implantação por fase)</div>
+                    <div style="color:rgba(255,255,255,0.6);font-size:8px;margin-top:2px;">Cobrado por fases: somente salas já entregues e operacionais. Monitoramento remoto, suporte técnico, firmware, SLA e gestão de incidentes.</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="color:var(--oab-gold);font-size:18px;font-weight:900;">R$ 214.200/mês</div>
+                    <div class="detail" style="color:rgba(255,255,255,0.5)">252 salas x R$ 850</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="page-footer">
+        <div class="left">Guinux Inteligênc<span style="color:#7DC8D8">IA</span> — 23+ anos — guinux.com.br</div>
+        <div class="right">Página 1 de 4 — Documento confidencial</div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════ PAGINA 2 — CUSTOS DETALHADOS ═══════════════════════ -->
+<div class="page">
+
+    <div class="page2-header">
+        <h2>Custos Detalhados & <span>Cronograma</span></h2>
+        <div class="badge">Estimativa Orçamentária Completa</div>
+    </div>
+
+    <div class="p2-content">
+
+        <div class="section-title">Custos por Sala — Composição Unitária</div>
+
+        <table class="cost-table" style="margin-bottom:16px;">
+            <thead>
+                <tr>
+                    <th style="width:40%">Item</th>
+                    <th>Responsável</th>
+                    <th>Valor Unitário</th>
+                    <th style="text-align:center">Tipo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong style="color:var(--oab-red);">Funcionário de Sala (ELIMINADO)</strong><br><span style="font-size:7px;color:#94a3b8;">Substituído pela Sala Inteligente</span></td>
+                    <td style="color:var(--oab-red);font-weight:700;">Eliminado</td>
+                    <td style="text-decoration:line-through;color:#94a3b8;">R$ 6.000/mês</td>
+                    <td style="text-align:center;color:var(--oab-green);font-weight:700;">Economia</td>
+                </tr>
+                <tr>
+                    <td><strong>Kit Tecnológico</strong> (2 câmeras UniFi, DVR/NVR, Wi-Fi 7, biometria ControlID, nobreak)</td>
+                    <td>OAB MG (compra direta fabricante)</td>
+                    <td>~R$ 15.000/sala</td>
+                    <td style="text-align:center">Investimento</td>
+                </tr>
+                <tr class="highlight">
+                    <td><strong>Instalação & Configuração</strong></td>
+                    <td style="color:var(--gx-dark-blue);font-weight:700;">Guinux</td>
+                    <td style="color:var(--gx-dark-blue);font-weight:700;">R$ 20.000/sala</td>
+                    <td style="text-align:center">Único</td>
+                </tr>
+                <tr class="highlight">
+                    <td><strong>Manutenção & Suporte Técnico</strong></td>
+                    <td style="color:var(--gx-dark-blue);font-weight:700;">Guinux</td>
+                    <td style="color:var(--gx-dark-blue);font-weight:700;">R$ 850/sala/mês</td>
+                    <td style="text-align:center">Recorrente</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-title">Visão Consolidada — Custos Guinux (252 Salas)</div>
+
+        <table class="cost-table" style="margin-bottom:16px;">
+            <thead>
+                <tr>
+                    <th style="width:45%">Serviço Guinux</th>
+                    <th>Qtd</th>
+                    <th>Unitário</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Instalação & Configuração</strong><br><span style="font-size:7px;color:#94a3b8;">Instalação, cabeamento, racks, acabamentos, config. rede, setup câmeras, biometria — custos absorvidos pela Guinux</span></td>
+                    <td>252 salas</td>
+                    <td>R$ 20.000</td>
+                    <td><strong>R$ 5.040.000</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Manutenção Mensal</strong> (com todas as 252 operando)<br><span style="font-size:7px;color:#94a3b8;">Monitoramento, suporte, firmware, SLA, gestão de incidentes</span></td>
+                    <td>252 salas</td>
+                    <td>R$ 850/mês</td>
+                    <td><strong>R$ 214.200/mês</strong></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3">Manutenção Anual (252 salas operando)</td>
+                    <td>R$ 2.570.400/ano</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="section-title">ROI — Retorno sobre o Investimento</div>
+
+        <table class="cost-table" style="margin-bottom:16px;">
+            <thead>
+                <tr>
+                    <th style="width:55%">Análise de ROI</th>
+                    <th>Valor</th>
+                    <th>Período</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background:rgba(239,68,68,0.05);">
+                    <td><strong style="color:var(--oab-red);">Custo atual — 252 funcionários</strong><br><span style="font-size:7px;color:#94a3b8;">252 funcionários x R$ 6.000/mês — custo que será eliminado</span></td>
+                    <td style="color:var(--oab-red);font-weight:700;">R$ 1.512.000/mês</td>
+                    <td>R$ 18.144.000/ano</td>
+                </tr>
+                <tr>
+                    <td><strong>Investimento total — Equipamentos</strong><br><span style="font-size:7px;color:#94a3b8;">252 kits (2 câmeras UniFi + DVR + Wi-Fi 7 + biometria ControlID + nobreak) — compra direta fabricante</span></td>
+                    <td style="font-weight:700;">~R$ 3.780.000</td>
+                    <td>Único</td>
+                </tr>
+                <tr>
+                    <td><strong>Investimento total — Instalação Guinux</strong><br><span style="font-size:7px;color:#94a3b8;">Instalação, cabeamento, racks, acabamentos, configuração, testes — custos absorvidos pela Guinux — 252 salas</span></td>
+                    <td style="font-weight:700;">R$ 5.040.000</td>
+                    <td>Único (17 meses)</td>
+                </tr>
+                <tr style="background:rgba(34,197,94,0.05);">
+                    <td><strong>Custo novo — Manutenção Guinux</strong><br><span style="font-size:7px;color:#94a3b8;">Monitoramento remoto, suporte, firmware, SLA — 252 salas</span></td>
+                    <td style="font-weight:700;">R$ 214.200/mês</td>
+                    <td>R$ 2.570.400/ano</td>
+                </tr>
+                <tr style="background:rgba(34,197,94,0.08);">
+                    <td><strong style="color:var(--oab-green);">Economia mensal líquida</strong><br><span style="font-size:7px;color:#94a3b8;">R$ 1.512.000 (funcionários eliminados) - R$ 214.200 (manutenção)</span></td>
+                    <td style="color:var(--oab-green);font-weight:800;font-size:10px;">R$ 1.297.800/mês</td>
+                    <td style="color:var(--oab-green);font-weight:700;">R$ 15.573.600/ano</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><strong>Investimento total</strong></td>
+                    <td colspan="2" style="text-align:right;"><strong>R$ 8.820.000</strong> (equipamentos + instalação)</td>
+                </tr>
+                <tr>
+                    <td><strong style="color:var(--oab-green);">Payback do investimento</strong></td>
+                    <td colspan="2" style="text-align:right;color:var(--oab-green);font-size:11px;"><strong>~6,8 meses</strong> após implantação completa</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="section-title">Cronograma de Implantação — 15 Salas/Mês</div>
+        <div class="timeline-section">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">Lotes 1–3</div>
+                    <div class="timeline-period">Meses 1–3</div>
+                    <div class="timeline-detail">45 salas entregues<br>Início pelas capitais regionais<br>e maiores subseções</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">Lotes 4–8</div>
+                    <div class="timeline-period">Meses 4–8</div>
+                    <div class="timeline-detail">75 salas entregues<br>120 acumuladas<br>Expansão regional</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">Lotes 9–13</div>
+                    <div class="timeline-period">Meses 9–13</div>
+                    <div class="timeline-detail">75 salas entregues<br>195 acumuladas<br>Interior profundo</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">Lotes 14–17</div>
+                    <div class="timeline-period">Meses 14–17</div>
+                    <div class="timeline-detail">57 salas entregues<br>252 acumuladas<br>Conclusão total</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-phase">Operação Plena</div>
+                    <div class="timeline-period">Mês 18+</div>
+                    <div class="timeline-detail">252 salas operando<br>Manutenção contínua<br>Suporte Guinux</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="roi-grid" style="grid-template-columns:repeat(5,1fr);">
+            <div class="roi-card" style="border-left:4px solid var(--oab-red);background:linear-gradient(135deg,#0d2137,#1a3a5a);color:#fff;">
+                <div class="roi-num" style="font-size:20px;color:var(--oab-red);">-R$1,5M</div>
+                <div class="roi-label" style="color:rgba(255,255,255,0.85);font-size:7px;">Funcionários<br>eliminados/mês</div>
+            </div>
+            <div class="roi-card" style="border-left:4px solid var(--oab-green);">
+                <div class="roi-num" style="font-size:20px;color:var(--oab-green);">+R$1,3M</div>
+                <div class="roi-label">Economia líquida<br>mensal</div>
+            </div>
+            <div class="roi-card" style="border-left:4px solid var(--gx-teal);">
+                <div class="roi-num" style="font-size:20px;color:var(--gx-teal);">~5</div>
+                <div class="roi-label">Meses para<br>payback total</div>
+            </div>
+            <div class="roi-card gold">
+                <div class="roi-num" style="font-size:20px;">R$15,9M</div>
+                <div class="roi-label">Economia no<br>primeiro ano</div>
+            </div>
+            <div class="roi-card purple">
+                <div class="roi-num" style="font-size:20px;">252x</div>
+                <div class="roi-label">Retorno sobre<br>investimento</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="page-footer">
+        <div class="left">Guinux Inteligênc<span style="color:#7DC8D8">IA</span> — 23+ anos — guinux.com.br</div>
+        <div class="right">Página 2 de 4 — Documento confidencial</div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════ PAGINA 3 — FLUXO FINANCEIRO MENSAL ═══════════════════════ -->
+<div class="page">
+
+    <div class="page2-header">
+        <h2>Fluxo Financeiro <span>Mensal — Guinux</span></h2>
+        <div class="badge">Rollout 15 Salas/Mês</div>
+    </div>
+
+    <div class="p2-content">
+
+        <div class="section-title">Evolução Mensal — Instalação + Manutenção Guinux</div>
+
+        <table class="cost-table" style="margin-bottom:10px;font-size:7.5px;">
+            <thead>
+                <tr>
+                    <th>Mês</th>
+                    <th style="text-align:center">Salas Novas</th>
+                    <th style="text-align:center">Salas Acum.</th>
+                    <th style="text-align:right">Instalação</th>
+                    <th style="text-align:right">Manutenção</th>
+                    <th style="text-align:right">Total Mês</th>
+                    <th style="text-align:right">Acumulado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Mês 1</strong></td><td style="text-align:center">15</td><td style="text-align:center">15</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 12.750</td><td style="text-align:right">R$ 312.750</td><td style="text-align:right">R$ 312.750</td></tr>
+                <tr><td><strong>Mês 2</strong></td><td style="text-align:center">15</td><td style="text-align:center">30</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 25.500</td><td style="text-align:right">R$ 325.500</td><td style="text-align:right">R$ 638.250</td></tr>
+                <tr><td><strong>Mês 3</strong></td><td style="text-align:center">15</td><td style="text-align:center">45</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 38.250</td><td style="text-align:right">R$ 338.250</td><td style="text-align:right">R$ 976.500</td></tr>
+                <tr><td><strong>Mês 4</strong></td><td style="text-align:center">15</td><td style="text-align:center">60</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 51.000</td><td style="text-align:right">R$ 351.000</td><td style="text-align:right">R$ 1.327.500</td></tr>
+                <tr><td><strong>Mês 5</strong></td><td style="text-align:center">15</td><td style="text-align:center">75</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 63.750</td><td style="text-align:right">R$ 363.750</td><td style="text-align:right">R$ 1.691.250</td></tr>
+                <tr><td><strong>Mês 6</strong></td><td style="text-align:center">15</td><td style="text-align:center">90</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 76.500</td><td style="text-align:right">R$ 376.500</td><td style="text-align:right">R$ 2.067.750</td></tr>
+                <tr><td><strong>Mês 7</strong></td><td style="text-align:center">15</td><td style="text-align:center">105</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 89.250</td><td style="text-align:right">R$ 389.250</td><td style="text-align:right">R$ 2.457.000</td></tr>
+                <tr><td><strong>Mês 8</strong></td><td style="text-align:center">15</td><td style="text-align:center">120</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 102.000</td><td style="text-align:right">R$ 402.000</td><td style="text-align:right">R$ 2.859.000</td></tr>
+                <tr><td><strong>Mês 9</strong></td><td style="text-align:center">15</td><td style="text-align:center">135</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 114.750</td><td style="text-align:right">R$ 414.750</td><td style="text-align:right">R$ 3.273.750</td></tr>
+                <tr><td><strong>Mês 10</strong></td><td style="text-align:center">15</td><td style="text-align:center">150</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 127.500</td><td style="text-align:right">R$ 427.500</td><td style="text-align:right">R$ 3.701.250</td></tr>
+                <tr><td><strong>Mês 11</strong></td><td style="text-align:center">15</td><td style="text-align:center">165</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 140.250</td><td style="text-align:right">R$ 440.250</td><td style="text-align:right">R$ 4.141.500</td></tr>
+                <tr><td><strong>Mês 12</strong></td><td style="text-align:center">15</td><td style="text-align:center">180</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 153.000</td><td style="text-align:right">R$ 453.000</td><td style="text-align:right">R$ 4.594.500</td></tr>
+                <tr><td><strong>Mês 13</strong></td><td style="text-align:center">15</td><td style="text-align:center">195</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 165.750</td><td style="text-align:right">R$ 465.750</td><td style="text-align:right">R$ 5.060.250</td></tr>
+                <tr><td><strong>Mês 14</strong></td><td style="text-align:center">15</td><td style="text-align:center">210</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 178.500</td><td style="text-align:right">R$ 478.500</td><td style="text-align:right">R$ 5.538.750</td></tr>
+                <tr><td><strong>Mês 15</strong></td><td style="text-align:center">15</td><td style="text-align:center">225</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 191.250</td><td style="text-align:right">R$ 491.250</td><td style="text-align:right">R$ 6.030.000</td></tr>
+                <tr><td><strong>Mês 16</strong></td><td style="text-align:center">15</td><td style="text-align:center">240</td><td style="text-align:right">R$ 300.000</td><td style="text-align:right">R$ 204.000</td><td style="text-align:right">R$ 504.000</td><td style="text-align:right">R$ 6.534.000</td></tr>
+                <tr><td><strong>Mês 17</strong></td><td style="text-align:center">12</td><td style="text-align:center">252</td><td style="text-align:right">R$ 240.000</td><td style="text-align:right">R$ 214.200</td><td style="text-align:right">R$ 454.200</td><td style="text-align:right">R$ 6.988.200</td></tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Total Rollout (17 meses)</strong></td>
+                    <td style="text-align:right">R$ 5.040.000</td>
+                    <td style="text-align:right">R$ 1.948.200</td>
+                    <td style="text-align:right" colspan="2"><strong style="color:var(--gx-dark-blue);font-size:9px;">R$ 6.988.200</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div style="background:linear-gradient(135deg,#0d2137,#1a3a5a);border-radius:10px;padding:14px 16px;">
+                <div style="font-size:8px;color:var(--gx-teal);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Resumo Guinux — Fase de Rollout (17 meses)</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="color:rgba(255,255,255,0.7);font-size:8px;">Instalação total</span>
+                    <span style="color:#fff;font-weight:700;font-size:10px;">R$ 5.040.000</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="color:rgba(255,255,255,0.7);font-size:8px;">Manutenção acumulada no período</span>
+                    <span style="color:#fff;font-weight:700;font-size:10px;">R$ 1.948.200</span>
+                </div>
+                <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:6px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="color:var(--gx-teal);font-weight:800;font-size:9px;">TOTAL ROLLOUT</span>
+                    <span style="color:var(--gx-teal);font-weight:900;font-size:14px;">R$ 6.988.200</span>
+                </div>
+            </div>
+            <div style="background:linear-gradient(135deg,#0d2137,#1a3a5a);border-radius:10px;padding:14px 16px;">
+                <div style="font-size:8px;color:var(--oab-green);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">ROI — Economia com Salas Inteligentes</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="color:rgba(255,255,255,0.7);font-size:8px;">Funcionários eliminados (252 x R$ 6.000)</span>
+                    <span style="color:var(--oab-red);font-weight:700;font-size:10px;text-decoration:line-through;">R$ 1.512.000/mês</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="color:rgba(255,255,255,0.7);font-size:8px;">Novo custo: Manutenção Guinux</span>
+                    <span style="color:#fff;font-weight:700;font-size:10px;">R$ 214.200/mês</span>
+                </div>
+                <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:6px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="color:var(--oab-green);font-weight:800;font-size:9px;">ECONOMIA LÍQUIDA MENSAL</span>
+                    <span style="color:var(--oab-green);font-weight:900;font-size:14px;">R$ 1.297.800</span>
+                </div>
+                <div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="color:rgba(255,255,255,0.5);font-size:7px;">Payback: ~6,8 meses | Economia 1o ano: R$ 15,6M</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="diff-strip">
+            <div class="diff-strip-title">Diferenciais do Projeto Salas Inteligentes</div>
+            <div class="diff-grid">
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>UniFi Protect — Padrão Enterprise</strong>
+                        Câmeras e NVR de alto desempenho com gerenciamento centralizado e acesso remoto nativo.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>ControlID — Biometria Nacional</strong>
+                        Equipamentos robustos de controle de acesso com suporte local e integração facilitada.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Guinux — Parceiro Tecnológico</strong>
+                        23+ anos de experiência, equipe especializada em infraestrutura e suporte técnico remoto.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Compra Direta — Sem Intermediários</strong>
+                        OAB MG negocia equipamentos diretamente com fabricantes, garantindo melhor custo-benefício.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Escala Gradual — 15 Salas/Mês</strong>
+                        Rollout planejado que permite validação, ajustes e escalabilidade controlada.
+                    </div>
+                </div>
+                <div class="diff-item">
+                    <span class="diff-item-icon">&mdash;</span>
+                    <div class="diff-item-text">
+                        <strong>Cobertura Total — 252 Subseções</strong>
+                        Todas as subseções de MG atendidas, do interior profundo às capitais regionais.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:4px;padding:14px 20px;background:linear-gradient(135deg,#0d2137,var(--gx-dark),#1a3a5a);border-radius:8px;color:#fff;text-align:center;font-size:9px;line-height:1.6;letter-spacing:0.3px;border:1px solid rgba(125,200,216,0.3);box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <div style="font-size:13px;font-weight:800;color:var(--gx-teal);margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">Automação que se paga em menos de 5 meses</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.9);max-width:500px;margin:0 auto;">252 salas inteligentes substituem 252 funcionários, gerando economia líquida de R$ 1,3M/mês. Investimento total de R$ 8,8M com retorno em menos de 7 meses — e economia de R$ 15,6M já no primeiro ano.</div>
+        </div>
+
+    </div>
+
+    <div class="page-footer">
+        <div class="left">Guinux Inteligênc<span style="color:#7DC8D8">IA</span> — 23+ anos — guinux.com.br</div>
+        <div class="right">Página 3 de 4 — Documento confidencial</div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════ PAGINA 4 — LISTA DE SUBSECOES ═══════════════════════ -->
+<div class="page">
+
+    <div class="page2-header">
+        <h2>Lista Completa das <span>252 Subseções</span></h2>
+        <div class="badge">Salas Inteligentes OAB MG</div>
+    </div>
+
+    <div class="p2-content" style="padding:12px 30px;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:3px;font-size:6.2px;">
+            <!-- Column headers -->
+            <div style="background:var(--oab-dark);color:#fff;padding:4px 6px;font-weight:700;font-size:6px;text-transform:uppercase;letter-spacing:0.5px;">Subseção</div>
+            <div style="background:var(--oab-dark);color:#fff;padding:4px 6px;font-weight:700;font-size:6px;text-transform:uppercase;letter-spacing:0.5px;">Subseção</div>
+            <div style="background:var(--oab-dark);color:#fff;padding:4px 6px;font-weight:700;font-size:6px;text-transform:uppercase;letter-spacing:0.5px;">Subseção</div>
+            <div style="background:var(--oab-dark);color:#fff;padding:4px 6px;font-weight:700;font-size:6px;text-transform:uppercase;letter-spacing:0.5px;">Subseção</div>
+
+            <!-- All 252 subsections in 4 columns -->
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Abaeté</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Abre Campo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Açucena</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Águas Formosas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Aimorés</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Aiuruoca</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Além Paraíba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Alfenas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Almenara</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Alpinópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Alvinópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Andradas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Andrelândia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Araçuaí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Araguari</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Araxá</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Arcos</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Areado</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Arinos</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Baependi</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Bambuí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Barão de Cocais</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Barbacena</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Barreiro</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Barro Preto</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Barroso</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Betim</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Bicas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Boa Esperança</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Bocaiúva</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Bom Despacho</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Bom Sucesso</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Bonfim</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Bonfinópolis de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Borda da Mata</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Botelhos</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Brasília de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Brazópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Brumadinho</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Bueno Brandão</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Buenópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Buritis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Cabo Verde</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Cachoeira de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Caeté</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Caldas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Camanducaia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Cambuí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Cambuquira</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Campanha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Campestre</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Campina Verde</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Campo Belo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Campos Altos</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Campos Gerais</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Canápolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Candeias</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Capelinha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Carandaí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Carangola</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Caratinga</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Carlos Chagas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Carmo do Cajuru</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Carmo do Paranaíba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Carmo do Rio Claro</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Carmópolis de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Cássia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Cataguases</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Caxambu</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Cláudio</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Conceição das Alagoas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Conc. do Mato Dentro</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Conc. do Rio Verde</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Congonhas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Conselheiro Lafaiete</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Conselheiro Pena</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Contagem</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Coração de Jesus</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Corinto</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Coromandel</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Coronel Fabriciano</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Cruzília</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Curvelo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Diamantina</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Divinópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Dores do Indaiá</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Elói Mendes</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Esmeraldas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Espinosa</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Extrema</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Formiga</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Francisco Sá</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Frutal</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Gov. Valadares</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Grão Mogol</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Guanhães</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Guapé</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Guaranésia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Guaxupé</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Ibiá</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ibiraci</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ibirité</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Inhapim</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ipanema</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Ipatinga</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Itabira</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Itabirito</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Itaguara</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Itajubá</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Itamarandiba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Itambacuri</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Itamonte</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Itanhandu</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Itanhomi</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Itapagipe</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Itapecerica</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Itaúna</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ituiutaba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Itumirim</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Iturama</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Jacinto</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Jacutinga</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Jaíba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Janaúba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Januária</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Jequeri</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Jequitinhonha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">João Monlevade</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">João Pinheiro</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Juiz de Fora</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Lagoa da Prata</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Lagoa Santa</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Lajinha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Lambari</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Lavras</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Leopoldina</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Lima Duarte</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Luz</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Machado</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Manga</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Manhuaçu</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Manhumirim</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Mantena</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Mar de Espanha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Mariana</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Mateus Leme</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Matozinhos</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Medina</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Minas Novas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Montalvânia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Monte Alegre de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Monte Azul</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Monte Carmelo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Monte Santo de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Monte Sião</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Montes Claros</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Muriaé</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Muzambinho</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Nanuque</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Natércia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Nepomuceno</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Nova Lima</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Nova Ponte</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Nova Resende</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Nova Serrana</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Novo Cruzeiro</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Oliveira</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ouro Branco</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Ouro Fino</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Ouro Preto</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Pará de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Paracatu</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Paraguaçu</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Paraisópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Paraopeba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Passa Quatro</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Passos</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Patos de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Patrocínio</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Peçanha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Pedra Azul</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Pedro Leopoldo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Perdões</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Pirapetinga</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Pirapora</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Pitangui</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Piumhi</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Poço Fundo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Poços de Caldas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Pompéu</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ponte Nova</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Porteirinha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Pouso Alegre</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Prata</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Pratápolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Presidente Olegário</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Raul Soares</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Resplendor</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ribeirão das Neves</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Rio Casca</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Rio Novo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Rio Pardo de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Rio Pomba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Sabará</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Sabinópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Sacramento</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Salinas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Santa Bárbara</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Santa Luzia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Santa Maria do Suaçuí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Santa Rita de Caldas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Santa Rita do Sapucaí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Santa Vitória</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Sto. Antônio do Monte</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Santos Dumont</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">São Francisco</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">S. Gonçalo do Sapucaí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">São Gotardo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">São João da Ponte</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">São João del-Rei</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">São João do Paraíso</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">São João Nepomuceno</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">São Lourenço</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">São Roque de Minas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">S. Sebastião do Paraíso</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Serro</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Sete Lagoas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Silvianópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Taiobeiras</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Tarumirim</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Teófilo Otoni</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Timóteo</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Três Corações</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Três Marias</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Três Pontas</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Tupaciguara</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Turmalina</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Ubá</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Uberaba</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Uberlândia</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Unaí</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Varginha</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Várzea da Palma</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Vazante</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Venda Nova</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Vespasiano</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Viçosa</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">Virginópolis</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;">Visc. do Rio Branco</div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;"></div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;"></div>
+            <div style="padding:2px 6px;border-bottom:1px solid #f1f5f9;"></div>
+        </div>
+
+        <div style="margin-top:12px;padding:10px 16px;background:var(--oab-light);border-radius:8px;border-left:3px solid var(--gx-teal);font-size:7.5px;color:#475569;line-height:1.5;">
+            <strong style="color:var(--oab-dark);">Nota:</strong> A lista acima contempla todas as 252 subseções da OAB MG extraídas do cadastro oficial.
+            Foram removidas duplicatas (ex: Guapé aparecia 3x, Itanhomi 2x no cadastro original).
+            Os endereços completos estão disponíveis no arquivo de referência fornecido pela OAB MG.
+            A ordem de implantação será definida em conjunto com a diretoria da OAB MG.
+        </div>
+
+    </div>
+
+    <div class="page-footer">
+        <div class="left">Guinux Inteligênc<span style="color:#7DC8D8">IA</span> — 23+ anos — guinux.com.br</div>
+        <div class="right">Página 4 de 4 — Documento confidencial</div>
+    </div>
+
+</div>
+
+</body>
+</html>

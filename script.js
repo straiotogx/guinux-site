@@ -137,7 +137,7 @@ function closeChat(){
 // Legacy alias
 function startFlow(flowId){openChat(flowId)}
 
-/* ========= WELCOME MENU (pre-loaded options) ========= */
+/* ========= WELCOME MENU ========= */
 async function showWelcomeMenu(){
     await showTyping(400);
     addBotMsg('Olá! Sou a <strong>Guinux.IA</strong> — Como posso te ajudar?');
@@ -145,19 +145,11 @@ async function showWelcomeMenu(){
 
     const cardsHtml=`
     <div class="welcome-cards">
-        <button class="welcome-card" onclick="switchFlow('diagnostico')">
+        <button class="welcome-card" onclick="switchFlow('analise')">
             <div class="welcome-card-icon">🔍</div>
             <div class="welcome-card-content">
-                <strong>Diagnóstico Gratuito</strong>
-                <span>Análise de risco, potencial e maturidade digital com IA</span>
-            </div>
-            <div class="welcome-card-arrow">→</div>
-        </button>
-        <button class="welcome-card" onclick="switchFlow('cotacao')">
-            <div class="welcome-card-icon">💰</div>
-            <div class="welcome-card-content">
-                <strong>Cotação Personalizada</strong>
-                <span>Proposta sob medida para seu porte e necessidade</span>
+                <strong>Análise & Proposta Inteligente</strong>
+                <span>Diagnóstico + cotação sob medida — pesquisamos sua empresa com IA</span>
             </div>
             <div class="welcome-card-arrow">→</div>
         </button>
@@ -191,11 +183,11 @@ function switchFlow(flowId){
 /* ========= FAQ FLOW ========= */
 const FAQ_DATA=[
     {q:'O que a Guinux faz?',a:'A Guinux é uma empresa de tecnologia com mais de 23 anos de experiência. Oferecemos 4 pilares: <strong>Gestão de TI Completa</strong> (outsourcing), <strong>Google Workspace com IA Gemini</strong>, <strong>IA Aplicada & Desenvolvimento</strong> (portais, dashboards, automação) e <strong>CTO as a Service</strong>. Somos Google Cloud Partner desde 2013.'},
-    {q:'Quanto custa os serviços?',a:'Os valores dependem do porte da sua empresa e dos serviços necessários. Para empresas pequenas (até 25 colaboradores), temos planos a partir de valores acessíveis. O melhor caminho é <strong>fazer uma cotação personalizada</strong> — leva menos de 2 minutos!'},
-    {q:'Vocês atendem fora de Curitiba?',a:'Sim! Atendemos empresas em todo o Brasil de forma remota. Para empresas em Curitiba e região, também oferecemos atendimento presencial. Nossos clientes vão de startups locais a organizações com mais de 90 mil usuários como a OAB Paraná.'},
-    {q:'Como funciona o suporte?',a:'Nosso Help Desk opera com SLA garantido, monitoramento proativo 24/7 e equipe dedicada. Você tem um canal direto com a nossa equipe — sem filas, sem burocracia. Relatórios transparentes de acompanhamento são enviados periodicamente.'},
-    {q:'O que é CTO as a Service?',a:'É ter um líder de tecnologia experiente na sua empresa sem o custo de um C-level fixo. Definimos estratégia, roadmap de inovação, governança e compliance. Nosso CEO, Guilherme Straioto, atua como CTO da OAB Paraná neste modelo.'},
-    {q:'Vocês trabalham com IA?',a:'Sim! IA é um dos nossos pilares principais. Desenvolvemos <strong>portais com IA integrada</strong>, dashboards inteligentes, automação de processos (RPA + AI), chatbots corporativos e monitoramento de produtividade. Trabalhamos com <strong>Gemini e Claude AI</strong>.'},
+    {q:'Quanto custa os serviços?',a:'Os valores dependem do porte da sua empresa e dos serviços necessários. O melhor caminho é fazer uma <strong>Análise & Proposta Inteligente</strong> — nossa IA pesquisa sua empresa e gera uma proposta personalizada em tempo real!'},
+    {q:'Vocês atendem fora de Curitiba?',a:'Sim! Atendemos empresas em todo o Brasil de forma remota. Para Curitiba e região, também oferecemos atendimento presencial. Nossos clientes vão de startups a organizações com mais de 90 mil usuários como a OAB Paraná.'},
+    {q:'Como funciona o suporte?',a:'Nosso Help Desk opera com SLA garantido, monitoramento proativo 24/7 e equipe dedicada. Canal direto, sem filas, sem burocracia. Relatórios transparentes periódicos.'},
+    {q:'O que é CTO as a Service?',a:'Liderança tecnológica experiente na sua empresa sem custo de C-level fixo. Estratégia, roadmap de inovação, governança e compliance. Nosso CEO, Guilherme Straioto, atua como CTO da OAB Paraná neste modelo.'},
+    {q:'Vocês trabalham com IA?',a:'Sim! IA é um dos nossos pilares principais. Desenvolvemos <strong>portais com IA integrada</strong>, dashboards inteligentes, automação de processos (RPA + AI), chatbots corporativos e monitoramento de produtividade com <strong>Gemini e Claude AI</strong>.'},
 ];
 
 const FLOW_FAQ=[
@@ -203,47 +195,37 @@ const FLOW_FAQ=[
     {id:'faq_choice',type:'faq_pills'},
 ];
 
-/* ========= COTAÇÃO FLOW ========= */
-const FLOW_COTACAO=[
-    {id:'greeting',type:'auto',msgs:['Vamos montar uma proposta personalizada para sua empresa!','São perguntas rápidas — leva menos de 2 minutos.']},
-    {id:'name',type:'text',msgs:['Qual é o seu nome?'],ph:'Digite seu nome...'},
-    {id:'email',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual seu e-mail para enviarmos a proposta?`],ph:'seu@email.com.br'},
-    {id:'company',type:'text',msgs:['Qual o nome da sua empresa?'],ph:'Nome da empresa...'},
-    {id:'employees',type:'pills',msgs:['Quantas pessoas trabalham na empresa?'],opts:[{l:'1–10',v:'1-10',tier:'micro'},{l:'10–25',v:'10-25',tier:'pequena'},{l:'25–50',v:'25-50',tier:'media'},{l:'50–100',v:'50-100',tier:'media_grande'},{l:'100+',v:'100+',tier:'grande'}]},
-    {id:'segment',type:'pills',msgs:['Qual o segmento?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Outro',v:'outro'}]},
-    {id:'needs',type:'multi',msgs:['Quais são suas necessidades? (selecione todas que se aplicam)'],opts:[{l:'Suporte e gestão de TI',v:'suporte'},{l:'Google Workspace / E-mail',v:'google'},{l:'Implementar IA na empresa',v:'ia'},{l:'Portal Corporativo com IA',v:'portal'},{l:'Liderança tecnológica (CTO)',v:'cto'},{l:'Automação de processos',v:'automacao'}]},
-    {id:'repetitive_tasks',type:'pills',msgs:d=>[`Na ${esc(d.company)}, existem tarefas repetitivas que consomem tempo da equipe?`],opts:[{l:'Sim, muitas!',v:'many'},{l:'Algumas',v:'some'},{l:'Poucas',v:'few'},{l:'Não sei identificar',v:'unknown'}]},
-    {id:'pain',type:'pills',msgs:['Qual o maior desafio hoje?'],opts:[{l:'TI instável / cai muito',v:'instavel'},{l:'Sem controle ou visibilidade',v:'sem_controle'},{l:'Gastos altos com TI',v:'custo'},{l:'Equipe improdutiva',v:'produtividade'},{l:'Segurança e LGPD',v:'seguranca'},{l:'Falta de inovação',v:'inovacao'}]},
-    {id:'urgency',type:'pills',msgs:['Qual a urgência?'],opts:[{l:'Imediata — preciso já',v:'imediata'},{l:'Próximos 30 dias',v:'30dias'},{l:'Estou pesquisando',v:'pesquisa'}]},
-    {id:'cotacao_result',type:'cotacao_end'},
-];
-
-/* ========= DIAGNÓSTICO FLOW (Impressionante) ========= */
-const FLOW_DIAGNOSTICO=[
-    {id:'greeting',type:'auto',msgs:['Vou realizar uma análise completa da maturidade digital da sua empresa.','São perguntas rápidas — e o resultado vai te surpreender.']},
-    {id:'name',type:'text',msgs:['Para começar, qual é o seu nome?'],ph:'Seu nome...'},
-    {id:'email',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Qual seu e-mail? Vou enviar o diagnóstico completo.`],ph:'seu@email.com.br'},
-    {id:'company',type:'text',msgs:['Qual o nome da empresa?'],ph:'Nome da empresa...'},
-    {id:'employees',type:'pills',msgs:['Quantos colaboradores a empresa tem?'],opts:[{l:'1–10',v:'1-10'},{l:'10–25',v:'10-25'},{l:'25–50',v:'25-50'},{l:'50–100',v:'50-100'},{l:'100–500',v:'100-500'},{l:'500+',v:'500+'}]},
-    {id:'segment',type:'pills',msgs:['Qual o segmento da empresa?'],opts:[{l:'Advocacia / Jurídico',v:'juridico'},{l:'Imobiliário / Construção',v:'imobiliario'},{l:'Indústria',v:'industria'},{l:'Serviços / Consultoria',v:'servicos'},{l:'Saúde',v:'saude'},{l:'Varejo / Comércio',v:'varejo'},{l:'Tecnologia',v:'tecnologia'},{l:'Educação',v:'educacao'},{l:'Outro',v:'outro'}]},
-    {id:'it_status',type:'pills',msgs:['Como é a TI da empresa hoje?'],opts:[{l:'Não temos equipe de TI',v:'none'},{l:'TI interna própria',v:'internal'},{l:'Terceirizada (insatisfeito)',v:'outsourced'},{l:'Modelo híbrido',v:'hybrid'}]},
+/* ========= ANÁLISE UNIFICADA (Diagnóstico + Cotação) ========= */
+const FLOW_ANALISE=[
+    {id:'greeting',type:'auto',msgs:['Vou fazer uma análise completa da sua empresa com IA.','Preciso de poucas informações — e o resultado vai te impressionar.']},
+    {id:'name',type:'text',msgs:['Qual é o seu nome?'],ph:'Seu nome...'},
+    {id:'email',type:'text',msgs:d=>[`Prazer, ${esc(d.name.split(' ')[0])}! Informe seu <strong>e-mail corporativo</strong> — vou pesquisar sobre sua empresa.`],ph:'seu@empresa.com.br'},
+    {id:'phone',type:'text',msgs:d=>[`Qual seu <strong>telefone</strong> com DDD? (WhatsApp de preferência)`],ph:'(41) 99999-9999'},
+    {id:'company_lookup',type:'company_lookup'},
+    {id:'needs',type:'multi',msgs:d=>[`O que mais interessa para a <strong>${esc(d.company)}</strong>? (selecione todos)`],opts:[
+        {l:'Gestão de TI / Suporte',v:'suporte'},
+        {l:'Google Workspace com IA',v:'google'},
+        {l:'Portais corporativos com IA',v:'portal'},
+        {l:'IA personalizada para a empresa',v:'ia'},
+        {l:'Dashboards com IA',v:'dashboards'},
+        {l:'Automação inteligente',v:'automacao'},
+        {l:'Monitoramento de produtividade',v:'monitoramento'},
+        {l:'Otimização de equipe com IA',v:'rh_ia'},
+        {l:'CTO / Liderança tech',v:'cto'}
+    ]},
+    {id:'it_status',type:'pills',msgs:d=>[`Agora sobre a TI da ${esc(d.company)}: como funciona hoje?`],opts:[{l:'Não temos equipe de TI',v:'none'},{l:'TI interna própria',v:'internal'},{l:'Terceirizada (insatisfeito)',v:'outsourced'},{l:'Modelo híbrido',v:'hybrid'}]},
     {id:'infra',type:'pills',msgs:['Onde ficam seus servidores e dados?'],opts:[{l:'Servidores físicos locais',v:'onprem'},{l:'Tudo na nuvem',v:'cloud'},{l:'Híbrido (local + nuvem)',v:'hybrid'},{l:'Não sei ao certo',v:'unknown'}]},
     {id:'backup',type:'pills',msgs:['Como é feito o backup dos dados?'],opts:[{l:'Backup automático na nuvem',v:'cloud_auto'},{l:'Backup manual / HD externo',v:'manual'},{l:'Não temos backup',v:'none'},{l:'Não sei',v:'unknown'}]},
-    {id:'security',type:'pills',msgs:['A empresa tem antivírus corporativo e políticas de segurança?'],opts:[{l:'Sim, tudo configurado',v:'full'},{l:'Tem antivírus, mas sem políticas',v:'partial'},{l:'Cada um usa o seu',v:'individual'},{l:'Não temos nada',v:'none'}]},
-    {id:'repetitive_tasks',type:'pills',msgs:d=>[`Entendi. Agora sobre produtividade: na ${esc(d.company)}, existem tarefas manuais e repetitivas?`],opts:[{l:'Sim, muitas! Gasta muito tempo',v:'many'},{l:'Algumas poderiam ser automatizadas',v:'some'},{l:'Poucas ou nenhuma',v:'few'},{l:'Não sei identificar',v:'unknown'}]},
+    {id:'repetitive_tasks',type:'pills',msgs:d=>[`Na ${esc(d.company)}, existem tarefas manuais e repetitivas que consomem tempo?`],opts:[{l:'Sim, muitas!',v:'many'},{l:'Algumas',v:'some'},{l:'Poucas',v:'few'},{l:'Não sei',v:'unknown'}]},
     {id:'repetitive_examples',type:'pills',msgs:d=>{
-        if(d.repetitive_tasks==='many'||d.repetitive_tasks==='some') return['Quais tipos de tarefas mais se repetem?'];
+        if(d.repetitive_tasks==='many'||d.repetitive_tasks==='some') return['Quais tipos mais se repetem?'];
         return['Qual área consome mais tempo da equipe?'];
-    },opts:[{l:'Envio de relatórios / planilhas',v:'reports'},{l:'Atendimento / respostas ao cliente',v:'support'},{l:'Processos de aprovação',v:'approvals'},{l:'Entrada de dados / cadastros',v:'data_entry'},{l:'Financeiro / contas a pagar',v:'finance'},{l:'Controle de documentos',v:'docs'}]},
-    {id:'automation_interest',type:'pills',msgs:d=>{
-        const segHints={juridico:'análise de contratos e petições',imobiliario:'gestão de contratos e atendimento',industria:'controle de produção e qualidade',servicos:'propostas e follow-up de clientes',saude:'prontuários e agendamentos',varejo:'estoque e atendimento',tecnologia:'deploy e monitoramento',educacao:'comunicação e matrículas'};
-        const hint=segHints[d.segment]||'processos internos';
-        return[`No seu segmento, IA já automatiza ${hint}. Isso é algo que interessa?`];
-    },opts:[{l:'Muito! Quero implementar',v:'high'},{l:'Interessante, quero saber mais',v:'medium'},{l:'Talvez no futuro',v:'low'}]},
-    {id:'ai_usage',type:'pills',msgs:['A empresa já usa Inteligência Artificial hoje?'],opts:[{l:'Não utilizamos nada',v:'none'},{l:'Uso individual, sem padrão',v:'scattered'},{l:'Usamos ChatGPT / Gemini',v:'basic'},{l:'Já temos IA integrada',v:'optimize'}]},
-    {id:'tools',type:'multi',msgs:['Quais ferramentas a empresa usa? (selecione todas)'],opts:[{l:'Google Workspace',v:'google'},{l:'Microsoft 365',v:'microsoft'},{l:'ERP / Sistema de gestão',v:'erp'},{l:'CRM',v:'crm'},{l:'Ferramentas de IA',v:'ai_tools'},{l:'Nenhuma dessas',v:'none'}]},
-    {id:'satisfaction',type:'stars',msgs:['De 1 a 5, qual sua satisfação com a TI atual?']},
-    {id:'biggest_pain',type:'text',msgs:['Última pergunta: qual o maior problema de TI ou tecnologia que te incomoda hoje?'],ph:'Ex: "a internet cai toda hora", "perco tempo com planilhas"...',optional:true},
+    },opts:[{l:'Relatórios / Planilhas',v:'reports'},{l:'Atendimento ao cliente',v:'support'},{l:'Aprovações / Fluxos',v:'approvals'},{l:'Entrada de dados',v:'data_entry'},{l:'Financeiro / Folha',v:'finance'},{l:'Documentos / Contratos',v:'docs'},{l:'RH / Recrutamento',v:'rh'}]},
+    {id:'ai_usage',type:'pills',msgs:['A empresa usa Inteligência Artificial hoje?'],opts:[{l:'Não utilizamos',v:'none'},{l:'ChatGPT / Gemini individual',v:'basic'},{l:'Uso sem padrão',v:'scattered'},{l:'Já temos IA integrada',v:'optimize'}]},
+    {id:'tools',type:'multi',msgs:['Quais ferramentas usam? (selecione todas)'],opts:[{l:'Google Workspace',v:'google'},{l:'Microsoft 365',v:'microsoft'},{l:'ERP',v:'erp'},{l:'CRM',v:'crm'},{l:'IA (ChatGPT, Gemini, etc)',v:'ai_tools'},{l:'Nenhuma dessas',v:'none'}]},
+    {id:'satisfaction',type:'stars',msgs:['De 1 a 5, satisfação com a TI atual?']},
+    {id:'biggest_pain',type:'text',msgs:['Última: qual o maior problema de TI que te incomoda hoje?'],ph:'Ex: "internet cai", "perco tempo com planilhas"...',optional:true},
+    {id:'analise_result',type:'analise_end'},
 ];
 
 /* ========= CHAT ENGINE ========= */
@@ -251,16 +233,13 @@ let chatData={},chatStep=0,chatMsgs,chatInput,currentFlow='welcome';
 
 function getFlowSteps(){
     if(currentFlow==='faq') return FLOW_FAQ;
-    if(currentFlow==='cotacao') return FLOW_COTACAO;
-    return FLOW_DIAGNOSTICO;
+    if(currentFlow==='analise') return FLOW_ANALISE;
+    return FLOW_ANALISE; // fallback
 }
 
 async function processStep(){
     const steps=getFlowSteps();
-    if(chatStep>=steps.length){
-        if(currentFlow==='diagnostico') await generateDiagnosis();
-        return;
-    }
+    if(chatStep>=steps.length) return;
     const q=steps[chatStep];
 
     // Special types
@@ -269,8 +248,12 @@ async function processStep(){
         renderFaqPills();
         return;
     }
-    if(q.type==='cotacao_end'){
-        await generateCotacao();
+    if(q.type==='analise_end'){
+        await generateAnalise();
+        return;
+    }
+    if(q.type==='company_lookup'){
+        await handleCompanyLookup();
         return;
     }
 
@@ -322,7 +305,7 @@ function addRawMsg(html){
     scrollChat();
 }
 
-function scrollChat(){chatMsgs.scrollTop=chatMsgs.scrollHeight}
+function scrollChat(){requestAnimationFrame(()=>{chatMsgs.scrollTop=chatMsgs.scrollHeight;const last=chatMsgs.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'end'})})}
 
 /* ========= FAQ RENDERER ========= */
 function renderFaqPills(){
@@ -355,14 +338,11 @@ function renderFaqFollowUp(){
     const moreBtn=document.createElement('button');
     moreBtn.className='ci-pill';moreBtn.textContent='Ver mais perguntas';
     moreBtn.addEventListener('click',()=>{chatInput.innerHTML='';renderFaqPills()});
-    const cotBtn=document.createElement('button');
-    cotBtn.className='ci-pill';cotBtn.style.borderColor='var(--teal)';cotBtn.style.color='var(--teal)';
-    cotBtn.textContent='Fazer cotação →';
-    cotBtn.addEventListener('click',()=>switchFlow('cotacao'));
-    const diagBtn=document.createElement('button');
-    diagBtn.className='ci-pill';diagBtn.textContent='Fazer diagnóstico →';
-    diagBtn.addEventListener('click',()=>switchFlow('diagnostico'));
-    wrap.appendChild(moreBtn);wrap.appendChild(cotBtn);wrap.appendChild(diagBtn);
+    const analiseBtn=document.createElement('button');
+    analiseBtn.className='ci-pill';analiseBtn.style.borderColor='var(--teal)';analiseBtn.style.color='var(--teal)';
+    analiseBtn.textContent='Análise & Proposta Inteligente →';
+    analiseBtn.addEventListener('click',()=>switchFlow('analise'));
+    wrap.appendChild(moreBtn);wrap.appendChild(analiseBtn);
     chatInput.appendChild(wrap);
 }
 
@@ -396,7 +376,7 @@ function renderInput(q){
         }else{
             chatInput.appendChild(wrap);
         }
-        setTimeout(()=>inp.focus(),100);
+        setTimeout(()=>{inp.focus();scrollChat()},100);
     }
     else if(q.type==='pills'){
         const wrap=document.createElement('div');
@@ -461,7 +441,921 @@ function renderInput(q){
     }
 }
 
-/* ========= COTAÇÃO GENERATOR ========= */
+/* ========= COMPANY LOOKUP ========= */
+async function handleCompanyLookup(){
+    const email=chatData.email||'';
+    const domain=email.split('@')[1]||'';
+    if(!domain||domain.includes('gmail')||domain.includes('hotmail')||domain.includes('yahoo')||domain.includes('outlook')){
+        // Personal email — ask company name manually
+        await showTyping(500);
+        addBotMsg('Parece ser um e-mail pessoal. Sem problemas! Me diga o nome da sua empresa:');
+        chatInput.innerHTML='';
+        const wrap=document.createElement('div');wrap.className='ci-text';
+        const inp=document.createElement('input');inp.type='text';inp.placeholder='Nome da empresa...';inp.autocomplete='off';
+        const btn=document.createElement('button');btn.className='ci-send';
+        btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+        const submit=()=>{
+            const v=inp.value.trim();if(!v)return;
+            addUserMsg(v);
+            chatData.company=v;
+            chatData.employees='25-50';
+            chatData.segment='outro';
+            chatData.companyResearch={hasWebsite:false,segment:'outro',segmentLabel:'',sizeEstimate:'media',employeeEstimate:'25-50',revenueEstimate:'R$ 2M – R$ 10M/ano'};
+            chatStep++;chatInput.innerHTML='';
+            setTimeout(()=>processStep(),400);
+        };
+        btn.addEventListener('click',submit);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+        wrap.appendChild(inp);wrap.appendChild(btn);
+        chatInput.appendChild(wrap);
+        setTimeout(()=>inp.focus(),100);
+        return;
+    }
+
+    // Corporate email — research the company silently
+    await showTyping(400);
+
+    try{
+        const res=await fetch('/api/lookup-company',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({domain})
+        });
+        const data=await res.json();
+
+        if(data.success&&data.companyName){
+            chatData.company=data.companyName;
+            chatData.companyResearch=data;
+
+            await showTyping(600);
+            // Show company info card with estimate label
+            const srcLabel=data.isEstimate?'estimativa baseada em dados públicos':data.cnpjData?'dados da Receita Federal + site':'dados extraídos do site';
+            let cardHtml=`<div class="company-lookup-card">`;
+            cardHtml+=`<div class="clc-header"><span class="clc-icon">🏢</span><strong>${esc(data.companyName)}</strong></div>`;
+            cardHtml+=`<div class="clc-details">`;
+            if(data.cnpjData&&data.cnpjData.razao_social) cardHtml+=`<span class="clc-tag">📄 ${esc(data.cnpjData.razao_social)}</span>`;
+            if(data.cnpjData&&data.cnpjData.cnpj) cardHtml+=`<span class="clc-tag">🔢 CNPJ: ${esc(data.cnpjData.cnpj)}</span>`;
+            if(data.segmentLabel) cardHtml+=`<span class="clc-tag">📌 ${esc(data.segmentLabel)}</span>`;
+            if(data.cnpjData&&data.cnpjData.atividade_principal) cardHtml+=`<span class="clc-tag">🏭 ${esc(data.cnpjData.atividade_principal.substring(0,80))}</span>`;
+            cardHtml+=`<span class="clc-tag">👥 ~${esc(data.employeeEstimate)} colaboradores</span>`;
+            cardHtml+=`<span class="clc-tag">💰 ${esc(data.revenueEstimate)}</span>`;
+            if(data.cnpjData&&data.cnpjData.capital_social){const cap=parseFloat(data.cnpjData.capital_social);if(cap>=1000) cardHtml+=`<span class="clc-tag">💼 Capital: R$ ${cap>=1000000?(cap/1000000).toFixed(1)+'M':Math.round(cap/1000)+'K'}</span>`;}
+            if(data.foundingYear) cardHtml+=`<span class="clc-tag">📅 Desde ${data.foundingYear} (~${2026-data.foundingYear} anos)</span>`;
+            if(data.cnpjData&&data.cnpjData.municipio) cardHtml+=`<span class="clc-tag">📍 ${esc(data.cnpjData.municipio)}${data.cnpjData.uf?'-'+data.cnpjData.uf:''}</span>`;
+            if(data.cnpjData&&data.cnpjData.situacao) cardHtml+=`<span class="clc-tag">${data.cnpjData.situacao==='ATIVA'?'✅':'⚠️'} ${esc(data.cnpjData.situacao)}</span>`;
+            if(data.cnpjData&&data.cnpjData.porte) cardHtml+=`<span class="clc-tag">📊 Porte: ${esc(data.cnpjData.porte)}</span>`;
+            if(data.socialMedia&&Object.keys(data.socialMedia).length>0){
+                const smIcons={linkedin:'🔗',instagram:'📷',facebook:'👥',youtube:'🎬',twitter:'🐦',github:'💻',tiktok:'🎵'};
+                Object.keys(data.socialMedia).forEach(sm=>{cardHtml+=`<span class="clc-tag">${smIcons[sm]||'🌐'} ${sm.charAt(0).toUpperCase()+sm.slice(1)}</span>`});
+            }
+            if(data.clients&&data.clients.length>0) cardHtml+=`<span class="clc-tag">🤝 ${data.clients.length} clientes/parceiros detectados</span>`;
+            if(data.headerTech&&data.headerTech.length>0) cardHtml+=`<span class="clc-tag">💻 ${data.headerTech.length} tecnologias no site</span>`;
+            if(data.insights&&data.insights.length>0){
+                data.insights.filter(ins=>!ins.includes('CNPJ')&&!ins.includes('Capital')&&!ins.includes('ATIVA')&&!ins.includes('Presença digital')&&!ins.includes('tecnologias')).forEach(ins=>{cardHtml+=`<span class="clc-tag">ℹ️ ${esc(ins)}</span>`});
+            }
+            if(data.companyDescription) cardHtml+=`<p class="clc-desc">${esc(data.companyDescription.substring(0,250))}${data.companyDescription.length>250?'...':''}</p>`;
+            else if(data.description) cardHtml+=`<p class="clc-desc">${esc(data.description.substring(0,180))}${data.description.length>180?'...':''}</p>`;
+            cardHtml+=`<p class="clc-source">📊 Fonte: ${srcLabel}</p>`;
+            cardHtml+=`</div></div>`;
+            addRawMsg(cardHtml);
+
+            await showTyping(400);
+            addBotMsg(`Esses dados estão corretos? ${data.isEstimate?'<em>(são estimativas — corrija se souber os dados reais)</em>':''}`);
+
+            // Confirm / Correct Employee Count / Correct Name buttons
+            chatInput.innerHTML='';
+            const wrap=document.createElement('div');wrap.className='ci-pills';wrap.style.flexDirection='column';
+
+            const confirmBtn=document.createElement('button');
+            confirmBtn.className='ci-pill';confirmBtn.textContent=`✅ Sim, está correto`;
+            confirmBtn.addEventListener('click',()=>{
+                addUserMsg('Dados corretos!');
+                chatData.employees=data.employeeEstimate;
+                chatData.segment=data.segment;
+                chatStep++;chatInput.innerHTML='';
+                setTimeout(()=>processStep(),400);
+            });
+
+            const correctDataBtn=document.createElement('button');
+            correctDataBtn.className='ci-pill';correctDataBtn.textContent='✏️ Corrigir dados (funcionários / faturamento)';
+            correctDataBtn.addEventListener('click',()=>{
+                chatInput.innerHTML='';
+                // Show correction form
+                const formWrap=document.createElement('div');formWrap.className='clc-correct-form';
+
+                const nameRow=document.createElement('div');nameRow.className='clc-form-row';
+                const nameLabel=document.createElement('label');nameLabel.textContent='Nome da empresa:';
+                const nameInp=document.createElement('input');nameInp.type='text';nameInp.value=data.companyName;nameInp.placeholder='Nome da empresa';
+                nameRow.appendChild(nameLabel);nameRow.appendChild(nameInp);
+
+                const empRow=document.createElement('div');empRow.className='clc-form-row';
+                const empLabel=document.createElement('label');empLabel.textContent='Nº de colaboradores:';
+                const empInp=document.createElement('input');empInp.type='text';empInp.value=data.extractedEmployees||'';empInp.placeholder='Ex: 300';
+                empRow.appendChild(empLabel);empRow.appendChild(empInp);
+
+                const revRow=document.createElement('div');revRow.className='clc-form-row';
+                const revLabel=document.createElement('label');revLabel.textContent='Faturamento anual (R$):';
+                const revInp=document.createElement('input');revInp.type='text';revInp.value='';revInp.placeholder='Ex: 90 milhões, 5M, 500K';
+                revRow.appendChild(revLabel);revRow.appendChild(revInp);
+
+                const submitBtn=document.createElement('button');submitBtn.className='ci-confirm';submitBtn.textContent='Confirmar dados →';submitBtn.style.display='block';submitBtn.style.marginTop='.5rem';
+                submitBtn.addEventListener('click',()=>{
+                    const cName=nameInp.value.trim()||data.companyName;
+                    const cEmp=empInp.value.trim();
+                    const cRev=revInp.value.trim();
+
+                    // Parse employee count
+                    let empEst=data.employeeEstimate;
+                    if(cEmp){
+                        const num=parseInt(cEmp.replace(/[^\d]/g,''));
+                        if(num>0){
+                            chatData.companyResearch.extractedEmployees=num;
+                            if(num<15) empEst='~'+num;
+                            else if(num<30) empEst='15-30';
+                            else if(num<60) empEst='30-60';
+                            else if(num<100) empEst='60-100';
+                            else if(num<200) empEst='100-200';
+                            else if(num<500) empEst='200-500';
+                            else if(num<1000) empEst='500-1.000';
+                            else empEst=Math.round(num/1000)+'K+';
+                            chatData.companyResearch.employeeEstimate=empEst;
+                            // Update size estimate
+                            if(num<15) chatData.companyResearch.sizeEstimate='micro';
+                            else if(num<50) chatData.companyResearch.sizeEstimate='pequena';
+                            else if(num<150) chatData.companyResearch.sizeEstimate='media';
+                            else if(num<500) chatData.companyResearch.sizeEstimate='media_grande';
+                            else chatData.companyResearch.sizeEstimate='grande';
+                        }
+                    }
+
+                    // Parse revenue
+                    if(cRev){
+                        let revText=cRev.toLowerCase();
+                        let revNum=parseFloat(revText.replace(/[^\d.,]/g,'').replace(',','.'));
+                        if(revText.match(/bilh|bi\b|b\b/i)) revText='R$ '+(revNum>=1?revNum.toFixed(1)+'B':'R$ '+Math.round(revNum*1000)+'M')+'/ano';
+                        else if(revText.match(/milh|mi\b|m\b/i)) revText='R$ '+Math.round(revNum)+'M/ano';
+                        else if(revText.match(/mil|k\b/i)) revText='R$ '+Math.round(revNum)+'K/ano';
+                        else if(revNum>1000000) revText='R$ '+Math.round(revNum/1000000)+'M/ano';
+                        else if(revNum>1000) revText='R$ '+Math.round(revNum/1000)+'K/ano';
+                        else revText='R$ '+cRev+'/ano';
+                        chatData.companyResearch.revenueEstimate=revText;
+                    }
+
+                    addUserMsg(`${cName} — ${empEst} colab. — ${chatData.companyResearch.revenueEstimate}`);
+                    chatData.company=cName;
+                    chatData.employees=empEst;
+                    chatData.segment=data.segment;
+                    chatStep++;chatInput.innerHTML='';
+                    setTimeout(()=>processStep(),400);
+                });
+
+                formWrap.appendChild(nameRow);formWrap.appendChild(empRow);formWrap.appendChild(revRow);formWrap.appendChild(submitBtn);
+                chatInput.appendChild(formWrap);
+                setTimeout(()=>nameInp.focus(),100);
+            });
+
+            wrap.appendChild(confirmBtn);wrap.appendChild(correctDataBtn);
+            chatInput.appendChild(wrap);
+        } else {
+            throw new Error('No data');
+        }
+    }catch(err){
+        // Lookup failed — ask manually
+        await showTyping(400);
+        addBotMsg('Não consegui encontrar dados automáticos. Me diga o nome da sua empresa:');
+        chatInput.innerHTML='';
+        const wrap=document.createElement('div');wrap.className='ci-text';
+        const inp=document.createElement('input');inp.type='text';inp.placeholder='Nome da empresa...';inp.autocomplete='off';
+        const btn=document.createElement('button');btn.className='ci-send';
+        btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+        const submit=()=>{
+            const v=inp.value.trim();if(!v)return;
+            addUserMsg(v);
+            chatData.company=v;
+            chatData.employees='50-150';
+            chatData.segment='outro';
+            chatData.companyResearch={hasWebsite:false,segment:'outro',segmentLabel:'',sizeEstimate:'media',employeeEstimate:'50-150',revenueEstimate:'R$ 10M – R$ 30M/ano'};
+            chatStep++;chatInput.innerHTML='';
+            setTimeout(()=>processStep(),400);
+        };
+        btn.addEventListener('click',submit);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+        wrap.appendChild(inp);wrap.appendChild(btn);
+        chatInput.appendChild(wrap);
+        setTimeout(()=>inp.focus(),100);
+    }
+}
+
+/* ========= ANÁLISE UNIFICADA GENERATOR ========= */
+async function generateAnalise(){
+    chatInput.innerHTML='';chatInput.classList.remove('active');
+    const d=chatData;
+    const name=esc((d.name||'').split(' ')[0])||'Cliente';
+    const company=esc(d.company||'sua empresa');
+    const cr=d.companyResearch||{};
+
+    // Dramatic AI analysis sequence
+    await showTyping(600);
+    addBotMsg(`${name}, iniciando análise profunda da ${company} com IA...`);
+    await showTyping(1200);
+    if(cr.cnpjData){
+        addBotMsg(`🔍 Dados da Receita Federal obtidos — cruzando com informações do site e mercado...`);
+    } else {
+        addBotMsg(`🔍 Cruzando dados do site, segmento e mercado...`);
+    }
+    await showTyping(1500);
+    const segL=cr.segmentLabel||'seu segmento';
+    if(cr.cnpjData&&cr.cnpjData.atividade_principal){
+        addBotMsg(`🏭 Atividade principal: <strong>${esc(cr.cnpjData.atividade_principal.substring(0,80))}</strong>`);
+        await showTyping(800);
+    }
+    const compSvcs=(cr.companyServices||[]).slice(0,3);
+    if(compSvcs.length>0){
+        addBotMsg(`📋 Serviços identificados: <strong>${compSvcs.join(', ')}</strong>`);
+        await showTyping(1000);
+    }
+    if(cr.headerTech&&cr.headerTech.length>0){
+        addBotMsg(`💻 ${cr.headerTech.length} tecnologias detectadas no site: <strong>${cr.headerTech.slice(0,4).map(t=>typeof t==='string'?t:t.name).join(', ')}${cr.headerTech.length>4?'...':''}</strong>`);
+        await showTyping(800);
+    }
+    if(cr.socialMedia&&Object.keys(cr.socialMedia).length>0){
+        addBotMsg(`🌐 Presença digital: <strong>${Object.keys(cr.socialMedia).map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(', ')}</strong>`);
+        await showTyping(600);
+    }
+    addBotMsg(`🧠 Calculando riscos, maturidade digital e potencial de automação para ${segL}...`);
+    await showTyping(1800);
+    const autoOps=(cr.automationOpportunities||[]).slice(0,2);
+    if(autoOps.length>0){
+        addBotMsg(`⚡ Oportunidades de automação detectadas: <strong>${autoOps.join(' · ')}</strong>`);
+        await showTyping(1200);
+    }
+    const dataSources=[];
+    if(cr.cnpjData) dataSources.push('Receita Federal');
+    dataSources.push('site da empresa');
+    if(cr.foundingYear) dataSources.push(`${2026-cr.foundingYear} anos de história`);
+    addBotMsg(`📊 Gerando proposta personalizada com base em ${dataSources.join(', ')}...`);
+    await showTyping(1400);
+    addBotMsg('✅ <strong>Análise concluída!</strong> Veja o resultado:');
+    await new Promise(r=>setTimeout(r,500));
+
+    // Calculations
+    const risk=calcRisk(d);
+    const pot=calcPotential(d);
+    const maturity=calcMaturity(d);
+    const segment=cr.segment||'outro';
+    const segmentLabel=cr.segmentLabel||'';
+    const sizeEstimate=cr.sizeEstimate||'media';
+    const employeeEstimate=cr.employeeEstimate||'25-50';
+    const revenueEstimate=cr.revenueEstimate||'R$ 2M – R$ 10M/ano';
+    const repTasks=d.repetitive_tasks||'unknown';
+    const repExamples=d.repetitive_examples||'';
+    const companyServices=cr.companyServices||[];
+    const rawTech=cr.techStack||[];
+    const techStack=rawTech.map(t=>typeof t==='string'?t:t.name||t).filter(Boolean);
+    const operationalKw=cr.operationalKeywords||[];
+    const rawDigital=cr.digitalMaturitySignals||[];
+    const digitalSignals=rawDigital.map(s=>typeof s==='string'?s:s.signal||s).filter(Boolean);
+    const rawAutoOpps=cr.automationOpportunities||[];
+    const autoOpps=rawAutoOpps.map(a=>typeof a==='string'?a:a.opportunity||a).filter(Boolean);
+
+    // ====== INTELLIGENT HOURS CALCULATION ======
+    // Parse actual employee count from estimate range
+    const empParseMap={'~5':5,'5-15':10,'15-30':22,'15-50':35,'25-50':40,'30-60':45,'50-100':75,'50-150':100,'60-100':80,'100-200':150,'100+':200,'150-500':300,'200-500':350,'500-1.000':700,'500+':700};
+    let empCount=30;
+    Object.keys(empParseMap).forEach(k=>{if(employeeEstimate.includes(k)||employeeEstimate===k) empCount=empParseMap[k]});
+    if(cr.extractedEmployees) empCount=cr.extractedEmployees;
+
+    // Base hours per employee per month that can be automated
+    let baseHoursPerEmp=1.5; // conservative default
+    // Adjust based on task repetitiveness
+    if(repTasks==='many') baseHoursPerEmp=3.5;
+    else if(repTasks==='some') baseHoursPerEmp=2.2;
+    else if(repTasks==='few') baseHoursPerEmp=1.0;
+
+    // Adjust based on current IT/AI maturity (less mature = more room)
+    if(d.it_status==='none') baseHoursPerEmp*=1.4;
+    else if(d.it_status==='outsourced') baseHoursPerEmp*=1.2;
+    if(d.ai_usage==='none') baseHoursPerEmp*=1.3;
+    else if(d.ai_usage==='basic'||d.ai_usage==='scattered') baseHoursPerEmp*=1.15;
+
+    // Segment multiplier (some segments have more automatable processes)
+    const segHoursMult={juridico:1.4,contabil:1.5,financeiro:1.3,industria:1.2,saude:1.2,varejo:1.1,servicos:1.3,educacao:1.1,logistica:1.3,imobiliario:1.2};
+    baseHoursPerEmp*=(segHoursMult[segment]||1.0);
+
+    // Boost for specific repetitive examples
+    const repBoost={reports:0.5,finance:0.6,data_entry:0.7,approvals:0.4,docs:0.5,support:0.3};
+    baseHoursPerEmp+=(repBoost[repExamples]||0);
+
+    // Boost based on detected automation opportunities from website
+    if(autoOpps.length>=3) baseHoursPerEmp*=1.2;
+    else if(autoOpps.length>=1) baseHoursPerEmp*=1.1;
+
+    const hoursSaved=Math.max(15,Math.round(empCount*baseHoursPerEmp));
+    const hourlyRate=segment==='juridico'?85:segment==='financeiro'?75:segment==='contabil'?65:segment==='tecnologia'?70:50;
+    const moneySaved=Math.round(hoursSaved*hourlyRate);
+
+    // ====== SMART SERVICE RECOMMENDATIONS (context-aware) ======
+    const needs=Array.isArray(d.needs)?d.needs:(d.needs?[d.needs]:['suporte']);
+    const recDetails=[];
+
+    // Build context-aware "why" messages using company data
+    const hasTech=techStack.length>0;
+    const compSvcStr=companyServices.length>0?companyServices.slice(0,3).join(', '):'';
+
+    if(needs.includes('suporte')||d.it_status==='none'||d.it_status==='outsourced'){
+        let why='Help Desk dedicado com SLA, monitoramento proativo 24/7, segurança corporativa e backup gerenciado.';
+        if(d.it_status==='none') why=`A ${company} não tem equipe de TI dedicada — isso é um risco crítico. Propomos Help Desk dedicado com SLA, monitoramento 24/7 e gestão completa da infraestrutura.`;
+        else if(d.it_status==='outsourced') why=`Detectamos insatisfação com TI terceirizada atual. Nossa gestão completa inclui Help Desk com SLA de 15min, monitoramento proativo e relatórios transparentes mensais.`;
+        recDetails.push({svc:'Gestão de TI Completa',why,icon:'🛡️'});
+    }
+    if(needs.includes('google')||(d.tools&&!d.tools.includes('google')&&!d.tools.includes('microsoft'))){
+        let why='E-mail corporativo, Drive, Meet e Gemini AI integrado — migração segura e treinamento personalizado.';
+        if(hasTech&&techStack.some(t=>t.toLowerCase().includes('microsoft'))) why=`Detectamos uso de ferramentas Microsoft. A migração para Google Workspace + Gemini AI pode reduzir custos de licenciamento em até 30% e integrar IA nativa em todos os processos.`;
+        recDetails.push({svc:'Google Workspace com IA Gemini',why,icon:'📧'});
+    }
+    if(needs.includes('ia')||needs.includes('automacao')||repTasks==='many'||d.ai_usage==='none'){
+        let why=`Eliminação de tarefas repetitivas com IA: dashboards inteligentes, chatbots e automação de processos.`;
+        if(autoOpps.length>0) why=`Para a ${company}, identificamos oportunidades concretas: ${autoOpps.slice(0,3).join('; ')}. Estimamos economia de <strong>${hoursSaved}+ horas/mês</strong>.`;
+        else if(compSvcStr) why=`Baseado nos serviços da ${company} (${compSvcStr}), podemos automatizar processos internos com IA — potencial de <strong>${hoursSaved}+ horas/mês</strong> economizadas.`;
+        recDetails.push({svc:'IA Aplicada & Automação',why,icon:'🤖'});
+    }
+    if(needs.includes('portal')){
+        let why='Portal corporativo com IA nativa — financeiro, folha, projetos, processos acessíveis em interface inteligente que entende, responde e aprende com sua operação.';
+        if(segment==='juridico') why='Portal jurídico com IA: gestão de processos, prazos, documentos e produtividade por advogado — converse com seus dados como conversa com uma pessoa.';
+        else if(segment==='saude') why='Portal clínico com IA: agendamentos, prontuários, faturamento e comunicação com pacientes — tudo em interface inteligente.';
+        else if(segment==='industria') why='Portal industrial com IA: produção, manutenção preditiva, OEE e qualidade em tempo real — dados que falam com você.';
+        recDetails.push({svc:'Portal Corporativo com IA',why,icon:'🌐'});
+    }
+    if(needs.includes('dashboards')){
+        recDetails.push({svc:'Dashboards Inteligentes com IA',why:`Painéis que analisam dados da ${company} e geram insights acionáveis automaticamente. Decisões baseadas em dados em tempo real, não em intuição.`,icon:'📊'});
+    }
+    if(needs.includes('monitoramento')){
+        recDetails.push({svc:'Monitoramento de Produtividade com IA',why:`Métricas em tempo real sobre performance de equipes e processos da ${company}. Identificação de gargalos e oportunidades com IA — visibilidade total.`,icon:'📈'});
+    }
+    if(needs.includes('rh_ia')){
+        recDetails.push({svc:'Otimização de Equipe com IA',why:`IA eliminando tarefas repetitivas na ${company} — sua equipe foca no estratégico. Faça mais com menos: redução de custos operacionais de até 40%.`,icon:'👥'});
+    }
+    if(needs.includes('cto')||sizeEstimate==='media_grande'||sizeEstimate==='grande'){
+        let why=`Liderança tecnológica sem custo de C-level fixo. Estratégia digital, roadmap de inovação e governança de TI.`;
+        if(empCount>=100) why=`Com ~${empCount} colaboradores, a ${company} precisa de governança de TI robusta. CTO as a Service traz liderança tech experiente, roadmap de inovação e compliance (LGPD) sem custo de executivo fixo.`;
+        recDetails.push({svc:'CTO as a Service',why,icon:'🎯'});
+    }
+    if(d.backup==='none'||d.backup==='manual'){
+        let why='Backup automático na nuvem com recuperação rápida. Proteção contra ransomware e perda de dados.';
+        if(d.backup==='none') why=`⚠️ RISCO CRÍTICO: sem backup, a ${company} pode perder TODOS os dados em um ataque ransomware. Implementamos backup automático na nuvem com recuperação em minutos.`;
+        recDetails.push({svc:'Backup & Disaster Recovery',why,icon:'💾'});
+    }
+    recDetails.push({svc:'Segurança Corporativa + LGPD',why:'Bitdefender GravityZone gerenciado, políticas de acesso, firewall gerenciado e adequação LGPD.',icon:'🔒'});
+    if(recDetails.length===0){
+        recDetails.push({svc:'Consultoria de Inovação',why:'Roadmap personalizado para transformação digital da sua empresa.',icon:'🚀'});
+    }
+
+    // Segment insights
+    const segInsights={
+        juridico:'Escritórios de advocacia que adotam IA aumentam produtividade em até 40% na análise documental. A OAB Paraná, nosso cliente, é referência nessa transformação.',
+        imobiliario:'O setor imobiliário está entre os que mais se beneficiam de portais com IA. Atendimento 24/7, gestão de contratos e follow-up automático.',
+        industria:'Indústrias com TI bem estruturada reduzem paradas não planejadas em até 60%. Nosso cliente Leal Embalagens é case aprovado pelo Google.',
+        saude:'Na saúde, segurança de dados e LGPD não são opcionais — são obrigação legal. IA em prontuários e agendamentos transforma a operação.',
+        servicos:'Empresas de serviços que implementam IA ganham velocidade e escala sem aumentar equipe. A automação de propostas é game-changer.',
+        varejo:'No varejo, IA em atendimento e logística pode aumentar conversão em até 25%. Automação de estoque gera economia imediata.',
+        tecnologia:'Mesmo empresas de tech se beneficiam de outsourcing de TI para focar no core business.',
+        educacao:'Na educação, IA transforma comunicação com alunos, matrículas e gestão acadêmica.',
+        contabil:'Escritórios contábeis que automatizam processos com IA ganham escala sem contratar.',
+        agro:'O agro digital com IA otimiza gestão, logística e processos administrativos.',
+    };
+
+    // Automation examples
+    const autoExamples={
+        reports:'Relatórios e planilhas podem ser gerados automaticamente por IA, economizando horas semanais',
+        support:'Chatbots com IA podem responder até 70% das perguntas frequentes dos clientes 24/7',
+        approvals:'Fluxos de aprovação digital eliminam gargalos — aprovações que levavam dias viram minutos',
+        data_entry:'Entrada de dados automatizada com IA — extração de informações de documentos e e-mails',
+        finance:'Conciliação financeira e contas a pagar/receber automatizadas reduzem erros e tempo em 80%',
+        docs:'Gestão inteligente de documentos com IA — busca, classificação e versionamento automáticos'
+    };
+
+    // Segment-specific auto hints
+    const segAutoHints={
+        juridico:'IA pode analisar contratos, gerar petições e classificar documentos automaticamente',
+        imobiliario:'Atendimento 24/7 com chatbot IA, gestão de contratos e follow-up automático',
+        industria:'Monitoramento de produção, controle de qualidade e manutenção preditiva com IA',
+        servicos:'Automação de propostas, contratos, follow-up e relatórios de projeto',
+        saude:'Triagem inteligente, agendamento otimizado e gestão de prontuários com IA',
+        varejo:'Precificação dinâmica, previsão de demanda e atendimento inteligente',
+        tecnologia:'CI/CD automatizado, monitoramento inteligente e gestão de incidentes com IA',
+        educacao:'Comunicação personalizada, gestão de matrículas e análise de desempenho com IA',
+        contabil:'Automação de lançamentos, conciliação e geração de relatórios fiscais com IA',
+        agro:'Gestão de safra, logística e controle financeiro automatizados com IA'
+    };
+
+    // Build the impressive card
+    let html=`<div class="diagnosis diag-premium">`;
+
+    // Header
+    html+=`<div class="diag-header-bar">`;
+    html+=`<div class="diag-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5L22 10l-7.5 2.5L12 20l-2.5-7.5L2 10l7.5-2.5L12 0z"/></svg> ANÁLISE COMPLETA — ${company.toUpperCase()}</div>`;
+    html+=`</div>`;
+
+    // Company profile card (enriched with CNPJ data)
+    const cnpjInfo=cr.cnpjData||null;
+    const socialInfo=cr.socialMedia||{};
+    const clientsInfo=cr.clients||[];
+    html+=`<div class="diag-company-profile">`;
+    html+=`<div class="diag-company-badge"><strong>${company}</strong>`;
+    if(cnpjInfo&&cnpjInfo.razao_social&&cnpjInfo.razao_social!==company) html+=`<span>📄 ${esc(cnpjInfo.razao_social)}</span>`;
+    if(cnpjInfo&&cnpjInfo.cnpj) html+=`<span>🔢 CNPJ: ${esc(cnpjInfo.cnpj)}</span>`;
+    if(segmentLabel) html+=`<span>📌 ${esc(segmentLabel)}</span>`;
+    if(cnpjInfo&&cnpjInfo.atividade_principal) html+=`<span>🏭 ${esc(cnpjInfo.atividade_principal.substring(0,80))}</span>`;
+    html+=`<span>👥 ~${esc(employeeEstimate)} colaboradores</span>`;
+    html+=`<span>💰 Faturamento estimado: ${esc(revenueEstimate)}</span>`;
+    if(cnpjInfo&&cnpjInfo.capital_social){const cap=parseFloat(cnpjInfo.capital_social);if(cap>=1000) html+=`<span>💼 Capital social: R$ ${cap>=1000000?(cap/1000000).toFixed(1)+'M':Math.round(cap/1000)+'K'}</span>`;}
+    if(cr.foundingYear) html+=`<span>📅 Desde ${cr.foundingYear} (~${2026-cr.foundingYear} anos no mercado)</span>`;
+    if(cnpjInfo&&cnpjInfo.municipio) html+=`<span>📍 ${esc(cnpjInfo.municipio)}${cnpjInfo.uf?'-'+cnpjInfo.uf:''}</span>`;
+    if(cnpjInfo&&cnpjInfo.porte) html+=`<span>📊 Porte: ${esc(cnpjInfo.porte)}</span>`;
+    if(Object.keys(socialInfo).length>0) html+=`<span>🌐 Presença digital: ${Object.keys(socialInfo).map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(', ')}</span>`;
+    if(clientsInfo.length>0) html+=`<span>🤝 Clientes detectados: ${clientsInfo.slice(0,5).map(c=>esc(c)).join(', ')}</span>`;
+    html+=`</div></div>`;
+
+    // ====== COMPANY INTELLIGENCE SECTION (NEW) ======
+    if(companyServices.length>0||techStack.length>0||operationalKw.length>0){
+        html+=`<div class="diag-section"><h4>🔍 Inteligência Coletada da ${company}</h4>`;
+        if(companyServices.length>0){
+            html+=`<div class="diag-intel-row"><strong>Serviços/Produtos detectados:</strong></div>`;
+            html+=`<div class="diag-tags">`;
+            companyServices.forEach(s=>{html+=`<span class="diag-tag-blue">${esc(s)}</span>`});
+            html+=`</div>`;
+        }
+        if(techStack.length>0){
+            html+=`<div class="diag-intel-row"><strong>Tecnologias identificadas:</strong></div>`;
+            html+=`<div class="diag-tags">`;
+            techStack.forEach(t=>{html+=`<span class="diag-tag-gray">${esc(t)}</span>`});
+            html+=`</div>`;
+        }
+        if(operationalKw.length>0){
+            html+=`<div class="diag-intel-row"><strong>Processos operacionais:</strong></div>`;
+            html+=`<div class="diag-tags">`;
+            operationalKw.slice(0,8).forEach(k=>{html+=`<span class="diag-tag-teal">${esc(k)}</span>`});
+            html+=`</div>`;
+        }
+        if(digitalSignals.length>0){
+            html+=`<div class="diag-intel-row"><strong>Sinais de maturidade digital:</strong></div>`;
+            html+=`<ul class="diag-items potential">${digitalSignals.slice(0,4).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
+        }
+        html+=`</div>`;
+    }
+
+    // 3 score gauges
+    const riskClass=risk.score>=7?'risk-high':risk.score>=4?'risk-mid':'risk-low';
+    const riskLabel=risk.score>=7?'ALTO':risk.score>=4?'MÉDIO':'BAIXO';
+    const riskEmoji=risk.score>=7?'🔴':risk.score>=4?'🟡':'🟢';
+    const matLabel=maturity.score>=7?'AVANÇADA':maturity.score>=4?'INTERMEDIÁRIA':'INICIAL';
+    const matClass=maturity.score>=7?'pot-high':maturity.score>=4?'risk-mid':'risk-high';
+
+    html+=`<div class="diag-scores">`;
+    html+=`<div class="diag-score-card"><div class="diag-score-number ${riskClass}">${risk.score}<span>/10</span></div><div class="diag-score-label">${riskEmoji} Risco ${riskLabel}</div></div>`;
+    html+=`<div class="diag-score-card"><div class="diag-score-number ${matClass}">${maturity.score}<span>/10</span></div><div class="diag-score-label">📊 Maturidade ${matLabel}</div></div>`;
+    html+=`<div class="diag-score-card"><div class="diag-score-number pot-high">${pot.score}<span>/10</span></div><div class="diag-score-label">🚀 Potencial</div></div>`;
+    html+=`</div>`;
+
+    // Segment insight
+    if(segInsights[segment]){
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">💡</span><span>${segInsights[segment]}</span></div>`;
+    }
+
+    // Risk analysis
+    html+=`<div class="diag-section"><h4>⚠️ Análise de Risco</h4>`;
+    html+=`<div class="diag-bar"><div class="diag-bar-fill ${riskClass}" style="width:${risk.score*10}%"></div></div>`;
+    html+=`<ul class="diag-items risk">${risk.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+
+    // Maturity
+    html+=`<div class="diag-section"><h4>📊 Maturidade Digital</h4>`;
+    html+=`<div class="diag-bar"><div class="diag-bar-fill ${matClass}" style="width:${maturity.score*10}%"></div></div>`;
+    html+=`<ul class="diag-items potential">${maturity.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+
+    // ====== AUTOMATION & AI SECTION (ENRICHED) ======
+    html+=`<div class="diag-section"><h4>🤖 Análise de Automação & IA — ${company}</h4>`;
+
+    // Big highlight number
+    html+=`<div class="diag-auto-highlight">`;
+    html+=`<div class="diag-auto-number">${hoursSaved}+</div>`;
+    html+=`<div class="diag-auto-label">horas/mês automatizáveis</div>`;
+    html+=`<div class="diag-auto-sub">≈ <strong>R$ ${moneySaved.toLocaleString('pt-BR')}/mês</strong> em produtividade recuperada (R$ ${(moneySaved*12).toLocaleString('pt-BR')}/ano)</div>`;
+    html+=`</div>`;
+
+    // How we calculated
+    html+=`<div class="diag-insight"><span class="diag-insight-icon">🧮</span><span><strong>Como calculamos:</strong> ${empCount} colaboradores × ${baseHoursPerEmp.toFixed(1)}h automatizáveis/mês (baseado em: volume de tarefas ${repTasks==='many'?'alto':repTasks==='some'?'moderado':'baixo'}, maturidade digital ${matLabel.toLowerCase()}, segmento ${segmentLabel||'geral'})</span></div>`;
+
+    // Specific automation opportunities from website research
+    if(autoOpps.length>0){
+        html+=`<div class="diag-intel-row"><strong>⚡ Oportunidades específicas para a ${company}:</strong></div>`;
+        html+=`<ul class="diag-items potential">${autoOpps.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>`;
+    }
+
+    // Generic automation items
+    const autoItems=[];
+    if(repTasks==='many') autoItems.push('Alto volume de tarefas repetitivas identificado — automação com IA é prioridade #1');
+    else if(repTasks==='some') autoItems.push('Tarefas repetitivas identificadas — bom potencial de otimização com IA');
+    if(d.ai_usage==='none') autoItems.push('Sem IA na operação hoje — implementar agora coloca a empresa na frente de 85% dos concorrentes');
+    else if(d.ai_usage==='scattered') autoItems.push('IA sem governança detectada — centralizar uso evita vazamento de dados e multiplica resultados em 3x');
+    else if(d.ai_usage==='basic') autoItems.push('Uso básico de IA (ChatGPT/Gemini individual) — integrar no fluxo de trabalho com APIs amplifica resultados');
+    if(autoExamples[repExamples]) autoItems.push(autoExamples[repExamples]);
+    if(segAutoHints[segment]) autoItems.push(`<strong>Específico para ${segmentLabel||'seu segmento'}:</strong> ${segAutoHints[segment]}`);
+    if(autoItems.length>0) html+=`<ul class="diag-items potential">${autoItems.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+    html+=`</div>`;
+
+    // Potential
+    html+=`<div class="diag-section"><h4>🚀 Potencial de Melhoria</h4>`;
+    html+=`<div class="diag-bar"><div class="diag-bar-fill pot-high" style="width:${pot.score*10}%"></div></div>`;
+    html+=`<ul class="diag-items potential">${pot.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+
+    // ====== RECOMMENDED SERVICES (ENRICHED) ======
+    html+=`<div class="diag-section"><h4>✨ Proposta de Serviços para a ${company}</h4>`;
+    html+=`<p class="diag-section-sub">Serviços selecionados pela IA com base no diagnóstico, segmento e perfil da empresa:</p>`;
+    recDetails.forEach((s,i)=>{
+        html+=`<div class="diag-svc-card"><span class="diag-svc-icon">${s.icon}</span><div><strong>${s.svc}</strong> <span class="diag-svc-badge">Sob consulta</span><span>${s.why}</span></div></div>`;
+    });
+    html+=`</div>`;
+
+    // ROI estimate
+    const roi=calcROI(d,risk);
+    roi.push({value:`↑ ${hoursSaved}h`,label:'Horas/mês economizadas'});
+    roi.push({value:`R$ ${Math.round(moneySaved*12/1000)}K`,label:'Economia anual estimada'});
+    html+=`<div class="diag-roi"><div class="diag-roi-title">📈 Estimativa de Impacto (12 meses)</div><div class="diag-roi-grid">`;
+    roi.slice(0,8).forEach(r=>{
+        html+=`<div class="diag-roi-item"><div class="diag-roi-value">${r.value}</div><div class="diag-roi-label">${r.label}</div></div>`;
+    });
+    html+=`</div></div>`;
+
+    // Biggest pain echo (enriched)
+    if(d.biggest_pain){
+        html+=`<div class="diag-insight"><span class="diag-insight-icon">🎯</span><span>Sobre "<em>${esc(d.biggest_pain)}</em>" — analisamos mais de 200 empresas com desafios similares. A combinação de ${recDetails.length>1?recDetails.slice(0,2).map(s=>s.svc).join(' + '):recDetails[0]?.svc||'nossos serviços'} resolve isso com resultados visíveis em 15-30 dias.</span></div>`;
+    }
+
+    // Guinux credibility
+    html+=`<div class="diag-insight"><span class="diag-insight-icon">🏆</span><span><strong>Por que a Guinux?</strong> 23+ anos no mercado · Google Cloud Partner desde 2013 · Bitdefender Partner · 50+ empresas atendidas · CTO da OAB Paraná (90 mil+ advogados) · 4× Google Cloud Next · Imersão no Technion, Israel.</span></div>`;
+
+    // CTA
+    const waMsg=encodeURIComponent(`Olá! Sou ${d.name} da ${d.company} (~${employeeEstimate} colab., ${segmentLabel||segment}).\n\nFiz a Análise Completa no site:\n📊 Risco: ${riskLabel} (${risk.score}/10)\n📊 Maturidade: ${matLabel} (${maturity.score}/10)\n📊 Potencial: ${pot.score}/10\n⚡ Horas automatizáveis: ${hoursSaved}+/mês (≈ R$ ${moneySaved.toLocaleString('pt-BR')}/mês)\n💰 Faturamento estimado: ${revenueEstimate}\n\nInteresse em: ${recDetails.map(s=>s.svc).join(', ')}.${d.biggest_pain?'\n\nDesafio: '+d.biggest_pain:''}`);
+    html+=`<div class="diag-cta">`;
+    html+=`<a href="https://wa.me/554140639294?text=${waMsg}" class="btn-main" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Falar com especialista agora</a>`;
+    html+=`<button class="btn-ghost" onclick="downloadAnalisePDF()">📄 Baixar em PDF</button>`;
+    html+=`</div></div>`;
+
+    addRawMsg(html);
+    expandAndAnimate();
+
+    // Silent notification to Guinux about this simulation
+    notifySimulation(d, {risk:riskLabel, riskScore:risk.score, matLabel, matScore:maturity.score, potScore:pot.score, hoursSaved, revenueEstimate, employeeEstimate, services:recDetails.map(s=>s.svc).join(', ')});
+}
+
+/* ========= DOWNLOAD PDF — EXECUTIVE ========= */
+async function downloadAnalisePDF(){
+    const d=chatData;
+    const name=d.name||'Cliente';
+    const company=d.company||'Empresa';
+    const cr=d.companyResearch||{};
+    const risk=calcRisk(d);
+    const maturity=calcMaturity(d);
+    const pot=calcPotential(d);
+    const riskLabel=risk.score>=7?'ALTO':risk.score>=4?'MÉDIO':'BAIXO';
+    const matLabel=maturity.score>=7?'AVANÇADA':maturity.score>=4?'INTERMEDIÁRIA':'INICIAL';
+    const riskColor=risk.score>=7?'#DC3545':risk.score>=4?'#F0AD4E':'#28A745';
+    const matColor=maturity.score>=7?'#28A745':maturity.score>=4?'#F0AD4E':'#DC3545';
+    const T='#1A7A7A';const B='#2B5A8C';
+    const employeeEst=cr.employeeEstimate||'25-50';
+    const revenueEst=cr.revenueEstimate||'R$ 2M – R$ 10M/ano';
+    const segLabel=cr.segmentLabel||'';
+    const empMap={'10-25':20,'25-50':40,'50-100':80,'100+':200};
+    const empCount=empMap[employeeEst]||30;
+    const taskMult=(d.repetitive_tasks==='many')?0.15:(d.repetitive_tasks==='some')?0.08:0.04;
+    const hoursSaved=Math.round(empCount*taskMult*4);
+    const roi=calcROI(d,risk);
+    const needs=Array.isArray(d.needs)?d.needs:(d.needs?[d.needs]:['suporte']);
+    const today=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    const docNum='GX-'+Date.now().toString(36).toUpperCase();
+
+    // Extra research data for PDF
+    const companyServices=(cr.companyServices||[]).slice(0,5);
+    const techStack=(cr.techStack||[]).map(t=>typeof t==='string'?t:t.name||t).filter(Boolean);
+    const autoOpps=(cr.automationOpportunities||[]).map(a=>typeof a==='string'?a:a.opportunity||a).filter(Boolean);
+    const cnpjData=cr.cnpjData||null;
+    const socialMedia=cr.socialMedia||{};
+    const companyDescription=cr.companyDescription||cr.description||'';
+
+    // Pre-load logo as data URI to avoid CORS/tainted canvas issues
+    let logoSrc='';
+    try{
+        const logoRes=await fetch('https://www.guinux.com.br/logogx-ia.png');
+        const logoBlob=await logoRes.blob();
+        logoSrc=await new Promise(resolve=>{const r=new FileReader();r.onloadend=()=>resolve(r.result);r.readAsDataURL(logoBlob);});
+    }catch(e){console.warn('Logo fetch for PDF failed:',e);}
+
+    const svcs=[];
+    if(needs.includes('suporte')||d.it_status==='none'||d.it_status==='outsourced') svcs.push({n:'Gestão de TI Completa',d:'Outsourcing inteligente: Help Desk dedicado com SLA, monitoramento proativo 24/7, gestão de infraestrutura, segurança corporativa e backup gerenciado.',items:['Help Desk com SLA garantido','Monitoramento proativo 24/7','Gestão de servidores e rede','Backup automático na nuvem','Relatórios transparentes periódicos']});
+    if(needs.includes('google')) svcs.push({n:'Google Workspace com IA Gemini',d:'Produtividade máxima com Google Workspace + Gemini AI integrado. Migração segura, treinamento para equipes e suporte enterprise dedicado.',items:['Migração completa e segura','Gemini AI integrado','Treinamento personalizado','Suporte enterprise','Otimização contínua']});
+    if(needs.includes('ia')||needs.includes('automacao')||d.repetitive_tasks==='many') svcs.push({n:'IA Aplicada & Automação',d:'Eliminação de tarefas repetitivas, dashboards inteligentes com IA, chatbots corporativos e automação de processos (RPA + AI).',items:['Chatbots inteligentes','Automação de processos (RPA+AI)','Integração com APIs e sistemas','IA personalizada para seu negócio','Redução de custos operacionais']});
+    if(needs.includes('portal')) svcs.push({n:'Portal Corporativo com IA',d:'Portal de alta tecnologia com IA nativa — financeiro, folha, projetos e processos em interface inteligente que entende, responde e aprende com sua operação.',items:['Interface inteligente com IA nativa','Módulos financeiro, RH, projetos','Converse com seus dados como com uma pessoa','Relatórios e insights gerados por IA','UX focada no usuário']});
+    if(needs.includes('dashboards')) svcs.push({n:'Dashboards Inteligentes com IA',d:'Painéis que analisam dados e geram insights acionáveis automaticamente. Decisões baseadas em dados em tempo real.',items:['KPIs em tempo real','Alertas inteligentes','Análise preditiva com IA','Integração com múltiplas fontes','Acesso mobile']});
+    if(needs.includes('monitoramento')) svcs.push({n:'Monitoramento de Produtividade',d:'Métricas em tempo real sobre performance de equipes e processos. Identificação de gargalos e oportunidades com IA.',items:['Métricas por equipe e processo','Identificação de gargalos','Benchmarks do segmento','Relatórios automáticos','Alertas de desvio']});
+    if(needs.includes('rh_ia')) svcs.push({n:'Otimização de Equipe com IA',d:'IA eliminando tarefas repetitivas — sua equipe foca no estratégico. Faça mais com menos: redução de custos operacionais de até 40%.',items:['Automação de tarefas repetitivas','Análise de produtividade por colaborador','Redistribuição inteligente de tarefas','Onboarding automatizado','ROI de equipe por área']});
+    if(needs.includes('cto')) svcs.push({n:'CTO as a Service',d:'Liderança tecnológica experiente sem custo de C-level fixo. Estratégia digital, roadmap de inovação e governança de TI.',items:['Estratégia digital personalizada','Roadmap de inovação','Governança e compliance (LGPD)','Avaliação de fornecedores','Mentoria para equipes']});
+    if(svcs.length===0) svcs.push({n:'Consultoria de Inovação',d:'Roadmap personalizado para transformação digital da sua empresa com IA.',items:['Diagnóstico completo','Roadmap de transformação','Priorização de iniciativas','Quick wins identificados','Acompanhamento trimestral']});
+
+    const pdfHtml=`
+    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1A1A2A;width:720px;margin:0 auto;line-height:1.5">
+
+        <!-- ===== PAGE 1: COVER ===== -->
+        <div style="background:${T};padding:60px 40px;color:#fff;text-align:center;min-height:280px;position:relative">
+            <div style="position:absolute;top:30px;right:40px;font-size:11px;opacity:.5">${docNum}</div>
+            ${logoSrc?`<img src="${logoSrc}" style="height:55px;margin-bottom:24px">`:'<div style="height:55px;margin-bottom:24px"></div>'}
+            <h1 style="margin:0;font-size:28px;font-weight:800;letter-spacing:-.5px;color:#fff">ANÁLISE COMPLETA<br>&amp; PROPOSTA INTELIGENTE</h1>
+            <div style="width:60px;height:3px;background:rgba(255,255,255,.5);margin:16px auto"></div>
+            <h2 style="margin:12px 0 0;font-size:20px;font-weight:400;color:rgba(255,255,255,.9)">${company}</h2>
+            <p style="margin:24px 0 0;font-size:13px;color:rgba(255,255,255,.6)">Preparado para ${name} · ${today}</p>
+            <p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,.4)">Gerado por Guinux.IA — Inteligência Artificial</p>
+        </div>
+
+        <!-- ===== QUEM SOMOS ===== -->
+        <div style="padding:32px 40px 24px">
+            <table style="width:100%;border-collapse:collapse;margin-bottom:24px"><tr>
+                <td style="width:4px;background:${T};vertical-align:top"></td>
+                <td style="padding-left:16px">
+                    <h3 style="margin:0 0 8px;font-size:16px;color:${T}">Sobre a Guinux</h3>
+                    <p style="margin:0;font-size:12px;color:#444;line-height:1.7">
+                        Há mais de <strong>23 anos</strong> a Guinux transforma empresas com tecnologia, IA e inovação.
+                        <strong>Google Cloud Partner desde 2013</strong>, atendemos mais de <strong>50 empresas recorrentes</strong>
+                        e 200+ ao longo de nossa trajetória — incluindo a <strong>OAB Paraná</strong> (90 mil+ advogados),
+                        <strong>Leal Embalagens</strong>, <strong>CM Grupo</strong>, <strong>Vernalha Pereira</strong> e <strong>AIMS International</strong>.
+                    </p>
+                </td>
+            </tr></table>
+            <div style="margin-bottom:8px">
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🏢 23+ anos</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">☁️ Google Cloud Partner</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🛡️ Bitdefender Partner</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🌎 4× Google Next</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🎓 Technion Israel</span>
+                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:3px 4px">🏆 Prêmio Inovação PR</span>
+            </div>
+        </div>
+
+        <div style="height:1px;background:#e8e8e8;margin:0 40px"></div>
+
+        <!-- ===== PERFIL DA EMPRESA ===== -->
+        <div style="padding:24px 40px">
+            <h3 style="margin:0 0 16px;font-size:16px;color:${B}">📋 Perfil — ${company}</h3>
+            <table style="width:100%;border-collapse:separate;border-spacing:12px 0"><tr>
+                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Contato</div>
+                    <div style="font-size:13px;font-weight:600">${name}</div>
+                    <div style="font-size:11px;color:#666">${d.email||''}</div>
+                    <div style="font-size:11px;color:#666">${d.phone||''}</div>
+                </td>
+                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Segmento</div>
+                    <div style="font-size:13px;font-weight:600">${segLabel||'Não identificado'}</div>
+                </td>
+                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Colaboradores</div>
+                    <div style="font-size:13px;font-weight:600">~${employeeEst}</div>
+                </td>
+                <td style="background:#f7f8fa;border-radius:10px;padding:14px;vertical-align:top;width:25%">
+                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Faturamento est.</div>
+                    <div style="font-size:13px;font-weight:600">${revenueEst}</div>
+                </td>
+            </tr></table>
+        </div>
+
+        <!-- ===== INTELIGÊNCIA COLETADA ===== -->
+        ${(cnpjData||companyServices.length>0||techStack.length>0||companyDescription)?`
+        <div style="padding:0 40px 24px">
+            <h3 style="margin:0 0 12px;font-size:16px;color:${B}">🔍 Inteligência Coletada — ${company}</h3>
+            ${companyDescription?`<p style="margin:0 0 12px;font-size:12px;color:#555;line-height:1.6">${companyDescription.substring(0,300)}${companyDescription.length>300?'...':''}</p>`:''}
+            ${cnpjData?`
+            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px">
+                ${cnpjData.razao_social?`<tr><td style="padding:4px 8px;color:#888;width:35%">Razão Social</td><td style="padding:4px 8px;font-weight:600">${cnpjData.razao_social}</td></tr>`:''}
+                ${cnpjData.cnpj?`<tr><td style="padding:4px 8px;color:#888">CNPJ</td><td style="padding:4px 8px">${cnpjData.cnpj}</td></tr>`:''}
+                ${cnpjData.natureza_juridica?`<tr><td style="padding:4px 8px;color:#888">Natureza Jurídica</td><td style="padding:4px 8px">${cnpjData.natureza_juridica}</td></tr>`:''}
+                ${cnpjData.porte?`<tr><td style="padding:4px 8px;color:#888">Porte</td><td style="padding:4px 8px">${cnpjData.porte}</td></tr>`:''}
+                ${cnpjData.capital_social?`<tr><td style="padding:4px 8px;color:#888">Capital Social</td><td style="padding:4px 8px">R$ ${Number(cnpjData.capital_social).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`:''}
+                ${cnpjData.atividade_principal?`<tr><td style="padding:4px 8px;color:#888">Atividade Principal</td><td style="padding:4px 8px">${cnpjData.atividade_principal}</td></tr>`:''}
+                ${cnpjData.municipio?`<tr><td style="padding:4px 8px;color:#888">Localização</td><td style="padding:4px 8px">${cnpjData.municipio}${cnpjData.uf?' - '+cnpjData.uf:''}</td></tr>`:''}
+                ${cnpjData.data_abertura?`<tr><td style="padding:4px 8px;color:#888">Abertura</td><td style="padding:4px 8px">${cnpjData.data_abertura}</td></tr>`:''}
+            </table>`:''}
+            ${companyServices.length>0?`
+            <div style="margin-bottom:8px">
+                <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Serviços/Produtos Identificados</div>
+                ${companyServices.map(s=>`<span style="display:inline-block;background:#e8f4f8;color:#1A7A7A;padding:3px 10px;border-radius:12px;font-size:10px;margin:2px 3px">${s}</span>`).join('')}
+            </div>`:''}
+            ${techStack.length>0?`
+            <div style="margin-bottom:8px">
+                <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Tecnologias Detectadas</div>
+                ${techStack.map(t=>`<span style="display:inline-block;background:#f0f0f0;color:#555;padding:3px 10px;border-radius:12px;font-size:10px;margin:2px 3px">${t}</span>`).join('')}
+            </div>`:''}
+            ${autoOpps.length>0?`
+            <div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Oportunidades de Automação com IA</div>
+                ${autoOpps.slice(0,5).map(a=>`<p style="margin:2px 0;font-size:11px;color:#555">⚡ ${a}</p>`).join('')}
+            </div>`:''}
+        </div>
+        <div style="height:1px;background:#e8e8e8;margin:0 40px"></div>
+        `:''}
+
+        <!-- ===== SCORES ===== -->
+        <div style="padding:${(cnpjData||companyServices.length>0)?'24px':'0'} 40px 24px">
+            <h3 style="margin:0 0 16px;font-size:16px;color:${B}">📊 Diagnóstico Digital</h3>
+            <table style="width:100%;border-collapse:separate;border-spacing:12px 0"><tr>
+                <td style="background:#fff;border:2px solid ${riskColor};border-radius:12px;padding:18px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${riskColor};line-height:1">${risk.score}<span style="font-size:14px;color:#bbb">/10</span></div>
+                    <div style="font-size:10px;font-weight:700;color:${riskColor};text-transform:uppercase;margin-top:4px">RISCO ${riskLabel}</div>
+                </td>
+                <td style="background:#fff;border:2px solid ${matColor};border-radius:12px;padding:18px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${matColor};line-height:1">${maturity.score}<span style="font-size:14px;color:#bbb">/10</span></div>
+                    <div style="font-size:10px;font-weight:700;color:${matColor};text-transform:uppercase;margin-top:4px">MATURIDADE ${matLabel}</div>
+                </td>
+                <td style="background:#fff;border:2px solid ${T};border-radius:12px;padding:18px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${T};line-height:1">${pot.score}<span style="font-size:14px;color:#bbb">/10</span></div>
+                    <div style="font-size:10px;font-weight:700;color:${T};text-transform:uppercase;margin-top:4px">POTENCIAL</div>
+                </td>
+            </tr></table>
+        </div>
+
+        <!-- Risk items -->
+        <div style="padding:0 40px 16px">
+            <div style="background:#fff;border-left:4px solid ${riskColor};padding:16px 18px;margin-bottom:12px">
+                <h4 style="margin:0 0 8px;font-size:13px;color:${riskColor}">⚠️ Pontos de Risco Identificados</h4>
+                ${risk.items.map(i=>`<p style="margin:2px 0;font-size:12px;color:#555">• ${i}</p>`).join('')}
+            </div>
+            <div style="background:#fff;border-left:4px solid ${matColor};padding:16px 18px;margin-bottom:12px">
+                <h4 style="margin:0 0 8px;font-size:13px;color:${matColor}">📊 Maturidade Digital</h4>
+                ${maturity.items.map(i=>`<p style="margin:2px 0;font-size:12px;color:#555">• ${i}</p>`).join('')}
+            </div>
+            <div style="background:#fff;border-left:4px solid ${T};padding:16px 18px">
+                <h4 style="margin:0 0 8px;font-size:13px;color:${T}">🚀 Potencial de Melhoria</h4>
+                ${pot.items.map(i=>`<p style="margin:2px 0;font-size:12px;color:#555">• ${i}</p>`).join('')}
+            </div>
+        </div>
+
+        <!-- Automation highlight -->
+        ${hoursSaved>0?`
+        <div style="padding:0 40px 24px">
+            <div style="background:#f0fafa;border:1px solid #c8e6e6;border-radius:12px;padding:20px;text-align:center">
+                <div style="font-size:11px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:1px">Potencial de Automação com IA</div>
+                <div style="font-size:40px;font-weight:800;color:${T};margin:8px 0">${hoursSaved}+</div>
+                <div style="font-size:13px;color:#666">horas/mês economizadas (≈ <strong>R$ ${(hoursSaved*45).toLocaleString('pt-BR')}/mês</strong> em produtividade)</div>
+            </div>
+        </div>`:''}
+
+        ${d.biggest_pain?`
+        <div style="padding:0 40px 24px">
+            <div style="background:#FFF8E1;border-left:4px solid #FF9800;padding:14px 18px">
+                <p style="margin:0;font-size:12px;color:#555"><strong>🎯 Sua principal dor:</strong> "<em>${d.biggest_pain}</em>"</p>
+                <p style="margin:6px 0 0;font-size:12px;color:#777">Isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</p>
+            </div>
+        </div>`:''}
+
+        <div style="height:1px;background:#e8e8e8;margin:0 40px"></div>
+
+        <!-- ===== PROPOSTA DE SERVIÇOS ===== -->
+        <div style="padding:24px 40px">
+            <h3 style="margin:0 0 6px;font-size:18px;color:${B}">✨ Proposta de Serviços — ${company}</h3>
+            <p style="margin:0 0 20px;font-size:12px;color:#888">Serviços personalizados com base no diagnóstico acima</p>
+
+            ${svcs.map((s,i)=>`
+            <div style="background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:20px;margin-bottom:14px">
+                <table style="width:100%;border-collapse:collapse;margin-bottom:10px"><tr>
+                    <td style="vertical-align:top">
+                        <div style="font-size:10px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:.5px">Serviço ${String(i+1).padStart(2,'0')}</div>
+                        <h4 style="margin:2px 0 0;font-size:15px;color:#1A1A2A">${s.n}</h4>
+                    </td>
+                    <td style="text-align:right;vertical-align:top;width:120px">
+                        <span style="display:inline-block;background:${T};color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">Sob consulta</span>
+                    </td>
+                </tr></table>
+                <p style="margin:0 0 10px;font-size:12px;color:#555;line-height:1.6">${s.d}</p>
+                <div>
+                    ${s.items.map(item=>`<span style="display:inline-block;background:#f7f8fa;color:#444;padding:3px 10px;border-radius:14px;font-size:10px;margin:3px 3px 3px 0">✓ ${item}</span>`).join('')}
+                </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- ROI -->
+        <div style="padding:0 40px 24px">
+            <div style="background:${T};border-radius:12px;padding:24px;color:#fff">
+                <h3 style="color:#fff;margin:0 0 16px;font-size:15px;text-align:center">📈 Estimativa de Impacto — 12 meses</h3>
+                <table style="width:100%;border-collapse:separate;border-spacing:8px 0"><tr>
+                    ${roi.slice(0,6).map(r=>`<td style="text-align:center;padding:10px;background:rgba(255,255,255,.15);border-radius:10px">
+                        <div style="font-size:20px;font-weight:800;color:#fff">${r.value}</div>
+                        <div style="font-size:9px;color:rgba(255,255,255,.7);margin-top:2px">${r.label}</div>
+                    </td>`).join('')}
+                </tr></table>
+            </div>
+        </div>
+
+        <!-- ===== INVESTIMENTO ===== -->
+        <div style="padding:0 40px 24px">
+            <div style="background:#f7f8fa;border:2px dashed #aaa;border-radius:12px;padding:24px;text-align:center">
+                <div style="font-size:10px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:8px">Investimento</div>
+                <div style="font-size:28px;font-weight:800;color:${T}">Sob Consulta</div>
+                <p style="margin:8px 0 0;font-size:12px;color:#888">O valor será personalizado após reunião com nosso time comercial, considerando o porte, necessidades e escopo de cada serviço.</p>
+            </div>
+        </div>
+
+        <!-- ===== PRÓXIMOS PASSOS ===== -->
+        <div style="padding:0 40px 24px">
+            <h3 style="margin:0 0 14px;font-size:15px;color:${B}">📌 Próximos Passos</h3>
+            <table style="width:100%;border-collapse:separate;border-spacing:12px 0"><tr>
+                <td style="text-align:center;padding:14px;background:#f7f8fa;border-radius:10px;width:33%">
+                    <div style="font-size:24px;margin-bottom:6px">1️⃣</div>
+                    <div style="font-size:11px;font-weight:700;color:#333">Reunião de Alinhamento</div>
+                    <div style="font-size:10px;color:#888;margin-top:2px">30min com nosso especialista</div>
+                </td>
+                <td style="text-align:center;padding:14px;background:#f7f8fa;border-radius:10px;width:33%">
+                    <div style="font-size:24px;margin-bottom:6px">2️⃣</div>
+                    <div style="font-size:11px;font-weight:700;color:#333">Proposta Formal</div>
+                    <div style="font-size:10px;color:#888;margin-top:2px">Escopo, valor e SLA detalhados</div>
+                </td>
+                <td style="text-align:center;padding:14px;background:#f7f8fa;border-radius:10px;width:33%">
+                    <div style="font-size:24px;margin-bottom:6px">3️⃣</div>
+                    <div style="font-size:11px;font-weight:700;color:#333">Implementação</div>
+                    <div style="font-size:10px;color:#888;margin-top:2px">Onboarding ágil e dedicado</div>
+                </td>
+            </tr></table>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div style="background:#1A1A2A;padding:24px 40px;color:#fff;text-align:center">
+            ${logoSrc?`<img src="${logoSrc}" style="height:36px;margin-bottom:10px">`:''}
+            <p style="margin:0;font-size:12px;color:rgba(255,255,255,.7)">Guinux — InteligêncIA em TI</p>
+            <p style="margin:4px 0;font-size:11px;color:rgba(255,255,255,.5)">www.guinux.com.br · (41) 4063-9294 · contato@guinux.com.br</p>
+            <p style="margin:4px 0;font-size:11px;color:rgba(255,255,255,.5)">Av. Paraná, 1755 — Curitiba, PR · Google Cloud Partner desde 2013</p>
+            <p style="margin:10px 0 0;font-size:10px;color:rgba(255,255,255,.3)">Documento confidencial gerado por Guinux.IA · ${docNum} · ${today}</p>
+        </div>
+    </div>`;
+
+    const container=document.createElement('div');
+    container.innerHTML=pdfHtml;
+    container.style.cssText='position:absolute;left:-9999px;top:0;width:720px;background:#fff;pointer-events:none;overflow:visible;';
+    document.body.appendChild(container);
+
+    // Wait for any remaining images to load and ensure rendering
+    const imgs=container.querySelectorAll('img');
+    const imgPromises=[...imgs].map(img=>new Promise(resolve=>{
+        if(img.complete&&img.naturalWidth>0) return resolve();
+        img.onload=resolve;
+        img.onerror=resolve;
+    }));
+
+    Promise.all(imgPromises).then(()=>{
+        // Delay to ensure full DOM rendering
+        return new Promise(r=>setTimeout(r,800));
+    }).then(()=>{
+        const opt={
+            margin:0,
+            filename:`Guinux_Proposta_${company.replace(/[^a-zA-Z0-9]/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+            image:{type:'jpeg',quality:0.98},
+            html2canvas:{scale:2,useCORS:true,letterRendering:true,width:720,windowWidth:720,backgroundColor:'#ffffff',scrollX:0,scrollY:0,x:0,y:0},
+            jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+            pagebreak:{mode:['avoid-all','css','legacy']}
+        };
+
+        return html2pdf().set(opt).from(container).save();
+    }).then(()=>{
+        document.body.removeChild(container);
+    }).catch(e=>{
+        console.error('PDF error:',e);
+        try{document.body.removeChild(container);}catch(ex){}
+    });
+}
+
+/* ========= SILENT NOTIFICATION (Email + Google Chat Webhook) ========= */
+async function notifySimulation(d, scores){
+    try{
+        await fetch('/api/notify',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                name:d.name||'',
+                email:d.email||'',
+                phone:d.phone||'',
+                company:d.company||'',
+                employees:scores.employeeEstimate||'',
+                revenue:scores.revenueEstimate||'',
+                risk:`${scores.risk} (${scores.riskScore}/10)`,
+                maturity:`${scores.matLabel} (${scores.matScore}/10)`,
+                potential:`${scores.potScore}/10`,
+                hoursSaved:scores.hoursSaved||0,
+                services:scores.services||'',
+                pain:d.biggest_pain||'',
+                segment:(d.companyResearch||{}).segmentLabel||''
+            })
+        });
+    }catch(e){
+        console.log('Notification error (non-critical):',e);
+    }
+}
+
+/* ========= LEGACY COTAÇÃO GENERATOR (kept for reference) ========= */
 async function generateCotacao(){
     chatInput.innerHTML='';chatInput.classList.remove('active');
     const d=chatData;
@@ -776,9 +1670,6 @@ function calcRisk(d){
     if(d.backup==='none'){score+=2.5;items.push('Sem backup — um incidente pode significar perda total de dados')}
     else if(d.backup==='manual'){score+=1.5;items.push('Backup manual é falho — risco de esquecimento e perda parcial')}
     else if(d.backup==='unknown'){score+=1;items.push('Backup desconhecido — não há garantia de recuperação')}
-    if(d.security==='none'){score+=2;items.push('Sem antivírus ou políticas — empresa totalmente exposta a ataques')}
-    else if(d.security==='individual'){score+=1.5;items.push('Segurança descentralizada — cada colaborador é um ponto de risco')}
-    else if(d.security==='partial'){score+=0.5;items.push('Antivírus sem políticas — proteção parcial, gestão limitada')}
     if(d.ai_usage==='none'){score+=0.5;items.push('Sem IA — concorrentes que adotam ganham vantagem competitiva')}
     else if(d.ai_usage==='scattered'){score+=1;items.push('IA sem governança — risco de vazamento de dados sensíveis')}
     if(d.satisfaction&&d.satisfaction<=2){score+=1;items.push('Baixa satisfação com TI — pode estar impactando a operação diariamente')}
@@ -797,7 +1688,6 @@ function calcPotential(d){
     else if(d.infra==='hybrid'){score+=1;items.push('Otimizar modelo híbrido para máxima eficiência e menor custo')}
     if(d.it_status==='none'||d.it_status==='outsourced'){score+=2;items.push('Gestão profissional de TI pode elevar uptime para 99.9%')}
     if(d.backup==='none'||d.backup==='manual'){score+=1;items.push('Backup automatizado na nuvem garante continuidade do negócio')}
-    if(d.security==='none'||d.security==='individual'){score+=1;items.push('Segurança corporativa pode prevenir até 99% das ameaças comuns')}
     const emp=d.employees||'';
     if(emp==='50-100'||emp==='100+'){score+=1;items.push('Escala da empresa maximiza ROI de cada investimento em tecnologia')}
     if(d.satisfaction&&d.satisfaction<=3){score+=0.5;items.push('Grande margem para melhoria na experiência de TI dos colaboradores')}
@@ -820,10 +1710,6 @@ function calcMaturity(d){
     else if(d.backup==='manual'){score-=1.5;items.push('Backup manual — processo frágil')}
     else if(d.backup==='none'){score-=2.5;items.push('Sem backup — risco crítico')}
 
-    if(d.security==='full'){items.push('Segurança corporativa implementada')}
-    else if(d.security==='none'){score-=2;items.push('Sem proteção de segurança')}
-    else if(d.security==='individual'){score-=1.5;items.push('Segurança individual — sem gestão centralizada')}
-
     if(d.ai_usage==='optimize'){items.push('Já utiliza IA — empresa inovadora')}
     else if(d.ai_usage==='none'){score-=1;items.push('Sem uso de IA — oportunidade latente')}
 
@@ -844,7 +1730,6 @@ function recommendSvcs(d){
     if(d.repetitive_tasks==='many'||d.automation_interest==='high')svcs.add('ai_development');
     const emp=d.employees||'';
     if(emp==='50-100'||emp==='100+'||emp==='100-500'||emp==='500+')svcs.add('cto_service');
-    if(d.security==='none'||d.security==='individual')svcs.add('it_management');
     if(svcs.size===0)svcs.add('it_management');
     return[...svcs];
 }
@@ -856,9 +1741,6 @@ function getDetailedRecs(d,risk,maturity){
     }
     if(d.backup==='none'||d.backup==='manual'){
         recs.push({icon:'💾',title:'Backup & Disaster Recovery',desc:'Backup automático na nuvem com recuperação rápida. Nunca mais perca dados por incidente ou ransomware.'});
-    }
-    if(d.security==='none'||d.security==='individual'){
-        recs.push({icon:'🔒',title:'Segurança Corporativa + LGPD',desc:'Antivírus gerenciado (Bitdefender), políticas de acesso, treinamento anti-phishing e adequação LGPD.'});
     }
     if(d.ai_usage==='none'||d.ai_usage==='scattered'||d.ai_usage==='basic'){
         recs.push({icon:'🤖',title:'IA Aplicada & Automação',desc:'Implementar IA com governança: automação de processos, chatbots, dashboards inteligentes com Gemini e Claude.'});
@@ -896,9 +1778,6 @@ function calcROI(d,risk){
     if(d.infra==='onprem'){
         roi.push({value:'↓ 40%',label:'Custo de infraestrutura'});
     }
-    if(d.security==='none'||d.security==='individual'){
-        roi.push({value:'↓ 99%',label:'Ameaças bloqueadas'});
-    }
     if(d.satisfaction&&d.satisfaction<=3){
         roi.push({value:'↑ 4x',label:'Satisfação da equipe com TI'});
     }
@@ -930,7 +1809,9 @@ async function sendByEmail(type){
 
     // Build beautiful HTML email
     const htmlContent=generateEmailHTML(type,d);
-    const subject=type==='diagnostico'
+    const subject=type==='analise'
+        ?`Análise Completa & Proposta — ${company} | Guinux.IA`
+        :type==='diagnostico'
         ?`Diagnóstico Digital — ${company} | Guinux.IA`
         :`Cotação Personalizada — ${company} | Guinux.IA`;
 
@@ -944,15 +1825,12 @@ async function sendByEmail(type){
         if(data.success){
             addBotMsg(`✅ Enviado com sucesso para <strong>${esc(email)}</strong>! Verifique sua caixa de entrada (e spam, por precaução).`);
         }else{
-            throw new Error(data.error||'Falha no envio');
+            console.error('Email API error:',data);
+            addBotMsg(`⚠️ Falha no envio (${data.status||'erro'}). Tente novamente ou entre em contato pelo telefone (41) 4063-9294.`);
         }
     }catch(err){
         console.error('Email send error:',err);
-        // Fallback to mailto
-        const fallbackSubject=encodeURIComponent(subject);
-        const fallbackBody=encodeURIComponent(`Olá ${name},\n\nSegue seu ${type==='diagnostico'?'diagnóstico':'cotação'} da ${company}.\n\nPara ver o resultado completo, acesse: www.guinux.com.br e refaça o processo.\n\nAtenciosamente,\nGuinux.IA`);
-        window.open(`mailto:${encodeURIComponent(email)}?subject=${fallbackSubject}&body=${fallbackBody}`,'_blank');
-        addBotMsg(`📧 E-mail preparado para <strong>${esc(email)}</strong>. Confira seu cliente de e-mail.`);
+        addBotMsg(`⚠️ Erro de conexão ao enviar e-mail. Tente novamente em instantes.`);
     }
 }
 
@@ -967,7 +1845,101 @@ function generateEmailHTML(type,d){
 
     let content='';
 
-    if(type==='diagnostico'){
+    if(type==='analise'){
+        const cr=d.companyResearch||{};
+        const risk=calcRisk(d);
+        const maturity=calcMaturity(d);
+        const pot=calcPotential(d);
+        const riskLabel=risk.score>=7?'ALTO':risk.score>=4?'MÉDIO':'BAIXO';
+        const matLabel=maturity.score>=7?'AVANÇADA':maturity.score>=4?'INTERMEDIÁRIA':'INICIAL';
+        const riskColor=risk.score>=7?'#e74c3c':risk.score>=4?'#f39c12':'#27ae60';
+        const matColor=maturity.score>=7?'#27ae60':maturity.score>=4?'#f39c12':'#e74c3c';
+        const employeeEst=cr.employeeEstimate||'25-50';
+        const revenueEst=cr.revenueEstimate||'R$ 2M – R$ 10M/ano';
+        const segLabel=cr.segmentLabel||'';
+        const seg=cr.segment||'outro';
+        const empMap2={'10-25':20,'25-50':40,'50-100':80,'100+':200};
+        const empCount2=empMap2[employeeEst]||30;
+        const taskMult2=(d.repetitive_tasks==='many')?0.15:(d.repetitive_tasks==='some')?0.08:0.04;
+        const hoursSaved2=Math.round(empCount2*taskMult2*4);
+        const recs=getDetailedRecs(d,risk,maturity);
+        const roi=calcROI(d,risk);
+        const needs=Array.isArray(d.needs)?d.needs:(d.needs?[d.needs]:[]);
+
+        // Build service recommendations for email
+        const emailSvcs=[];
+        if(needs.includes('suporte')||d.it_status==='none'||d.it_status==='outsourced') emailSvcs.push({n:'Gestão de TI Completa',i:'🛡️',w:'Help Desk dedicado, monitoramento 24/7'});
+        if(needs.includes('google')) emailSvcs.push({n:'Google Workspace com IA Gemini',i:'📧',w:'E-mail corporativo + Gemini AI'});
+        if(needs.includes('ia')||needs.includes('automacao')||d.repetitive_tasks==='many') emailSvcs.push({n:'IA Aplicada & Automação',i:'🤖',w:'Dashboards, chatbots e automação'});
+        if(needs.includes('portal')) emailSvcs.push({n:'Portal Corporativo com IA',i:'🌐',w:'Portal inteligente com IA nativa'});
+        if(needs.includes('cto')) emailSvcs.push({n:'CTO as a Service',i:'🎯',w:'Liderança tech estratégica'});
+        if(emailSvcs.length===0) emailSvcs.push({n:'Consultoria de Inovação',i:'🚀',w:'Roadmap de transformação digital'});
+
+        content=`
+        <div style="background:${bgColor};padding:20px;border-radius:12px;margin:20px 0">
+            <h2 style="color:#1A1A2A;margin:0 0 4px">${company}</h2>
+            <p style="color:#666;margin:0;font-size:14px">${segLabel?'📌 '+segLabel+' · ':''}👥 ~${employeeEst} colaboradores · 💰 ${revenueEst}</p>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="12" style="margin:20px 0">
+            <tr>
+                <td style="background:#fff;border:2px solid ${riskColor};border-radius:12px;padding:20px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${riskColor}">${risk.score}<span style="font-size:16px;color:#999">/10</span></div>
+                    <div style="font-size:12px;font-weight:700;color:${riskColor};text-transform:uppercase">Risco ${riskLabel}</div>
+                </td>
+                <td style="background:#fff;border:2px solid ${matColor};border-radius:12px;padding:20px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${matColor}">${maturity.score}<span style="font-size:16px;color:#999">/10</span></div>
+                    <div style="font-size:12px;font-weight:700;color:${matColor};text-transform:uppercase">Maturidade ${matLabel}</div>
+                </td>
+                <td style="background:#fff;border:2px solid ${headerColor};border-radius:12px;padding:20px;text-align:center;width:33%">
+                    <div style="font-size:36px;font-weight:800;color:${headerColor}">${pot.score}<span style="font-size:16px;color:#999">/10</span></div>
+                    <div style="font-size:12px;font-weight:700;color:${headerColor};text-transform:uppercase">Potencial</div>
+                </td>
+            </tr>
+        </table>
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0;border-left:4px solid ${riskColor}">
+            <h3 style="color:#1A1A2A;margin:0 0 12px">⚠️ Análise de Risco</h3>
+            ${risk.items.map(i=>`<p style="color:#555;margin:4px 0;font-size:14px">• ${i}</p>`).join('')}
+        </div>
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0;border-left:4px solid ${matColor}">
+            <h3 style="color:#1A1A2A;margin:0 0 12px">📊 Maturidade Digital</h3>
+            ${maturity.items.map(i=>`<p style="color:#555;margin:4px 0;font-size:14px">• ${i}</p>`).join('')}
+        </div>
+
+        ${hoursSaved2>0?`
+        <div style="background:linear-gradient(135deg,#1A7A7A10,#2B5A8C10);border-radius:12px;padding:20px;margin:16px 0;border:1px solid #1A7A7A30">
+            <h3 style="color:#1A1A2A;margin:0 0 8px">⚡ Potencial de Automação</h3>
+            <p style="color:#1A7A7A;font-size:24px;font-weight:800;margin:8px 0">${hoursSaved2}+ horas/mês</p>
+            <p style="color:#666;font-size:14px;margin:0">podem ser economizadas com automação e IA (≈ R$ ${(hoursSaved2*45).toLocaleString('pt-BR')}/mês)</p>
+        </div>`:''}
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0;border-left:4px solid ${headerColor}">
+            <h3 style="color:#1A1A2A;margin:0 0 12px">🚀 Potencial de Melhoria</h3>
+            ${pot.items.map(i=>`<p style="color:#555;margin:4px 0;font-size:14px">• ${i}</p>`).join('')}
+        </div>
+
+        <div style="background:#fff;border-radius:12px;padding:20px;margin:16px 0">
+            <h3 style="color:#1A1A2A;margin:0 0 16px">✨ Proposta de Serviços Personalizados</h3>
+            ${emailSvcs.map(s=>`<div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:${bgColor};border-radius:8px;margin:8px 0">
+                <span style="font-size:24px">${s.i}</span>
+                <div><strong style="color:#1A1A2A">${s.n}</strong><br><span style="color:#666;font-size:13px">${s.w}</span></div>
+            </div>`).join('')}
+        </div>
+
+        <div style="background:linear-gradient(135deg,#1A7A7A,#2B5A8C);border-radius:12px;padding:24px;margin:16px 0;color:#fff">
+            <h3 style="color:#fff;margin:0 0 16px">📈 Estimativa de Impacto (12 meses)</h3>
+            <table width="100%" cellpadding="8" cellspacing="0">
+                <tr>${roi.slice(0,4).map(r=>`<td style="text-align:center"><div style="font-size:24px;font-weight:800">${r.value}</div><div style="font-size:11px;opacity:.8">${r.label}</div></td>`).join('')}</tr>
+            </table>
+        </div>
+
+        ${d.biggest_pain?`<div style="background:#FFF3E0;border-radius:12px;padding:16px;margin:16px 0;border-left:4px solid #FF9800">
+            <p style="color:#333;margin:0;font-size:14px">🎯 Sobre "<em>${d.biggest_pain}</em>" — isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</p>
+        </div>`:''}`;
+
+    } else if(type==='diagnostico'){
         const risk=calcRisk(d);
         const maturity=calcMaturity(d);
         const pot=calcPotential(d);
@@ -1075,12 +2047,12 @@ function generateEmailHTML(type,d){
     return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
     <div style="max-width:640px;margin:0 auto;padding:20px">
         <div style="background:linear-gradient(135deg,#1A7A7A,#2B5A8C);border-radius:16px 16px 0 0;padding:30px;text-align:center">
-            <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800">GUINUX</h1>
-            <p style="color:rgba(255,255,255,.8);margin:4px 0 0;font-size:13px;letter-spacing:2px">INTELIGÊNCIA EM TI</p>
+            <img src="https://www.guinux.com.br/logogx-ia.png" alt="Guinux.IA" width="180" style="display:block;margin:0 auto 12px;max-width:180px;height:auto">
+            <p style="color:rgba(255,255,255,.8);margin:0;font-size:13px;letter-spacing:2px">INTELIGÊNCIA EM TI</p>
         </div>
         <div style="background:#fff;border-radius:0 0 16px 16px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,.08)">
             <p style="color:#333;font-size:16px">Olá <strong>${name}</strong>,</p>
-            <p style="color:#555;font-size:14px">Segue o resultado do seu ${type==='diagnostico'?'diagnóstico digital':'cotação personalizada'}, gerado pela <strong>Guinux.IA</strong>.</p>
+            <p style="color:#555;font-size:14px">Segue o resultado do seu ${type==='analise'?'análise completa e proposta personalizada':type==='diagnostico'?'diagnóstico digital':'cotação personalizada'}, gerado pela <strong>Guinux.IA</strong>.</p>
             ${content}
             <div style="text-align:center;margin:30px 0 10px">
                 <a href="https://wa.me/554140639294" style="display:inline-block;background:linear-gradient(135deg,#1A7A7A,#2B5A8C);color:#fff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px">Falar com especialista →</a>

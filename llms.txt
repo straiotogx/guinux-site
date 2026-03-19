@@ -42,7 +42,21 @@ Dashboards executivos com IA, chatbots corporativos (WhatsApp, site, sistemas), 
 Estratégia tecnológica personalizada, roadmap de inovação, governança e compliance de TI, avaliação e seleção de fornecedores, mentoria para equipes internas.
 
 ## Clientes (50+ empresas)
-OAB/PR, Leal Embalagens, Sanetran, Saneloc, Ekron, CM Grupo, Vernalha Pereira, DCL Real Estate, Crystal, Signo Vinces, TK, Index, Glomb, Victor S, Ritter, Vidya, Seleme, Febrapo, Pegoraro, Forte Werken, Denver, i9, CM2 Arquitetura, Ouro Gran, Keune, Argo, Felippetto, AIMS International, Polisoftware, AG1 Turismo, XVBM, Moageira, D-Espaço, Park Shopping, Valim Dias, Anaturbay, Correa, Oliveira.
+
+### Indústria (IT Managed)
+Leal Embalagens, Signo Vinces, Ourogran, I9 Engenharia, Moageira Cereais (GW)
+
+### Real Estate Expert (IT Managed)
+Grupo Soifer (Shopping Mueller), Argo (Shopping Crystal, Colombo Shopping, Argo Shopping Centers) (GW), DCL Real Estate
+
+### Real Estate — Histórico
+Patio Batel (2016–2020), Shopping São José (2013–2020), Brmalls/Allos: Shopping Estação (2002–2024), Shopping Curitiba (2012–2023), PolloShop (2018–2020)
+
+### Escritórios de Advocacia (IT Managed)
+OAB PR, Vernalha Pereira, Glomb Advogados, Victor Marins Advogados, Seleme Advogados, CM Baiak, Grupo Pegoraro, Ritter Advogados, Corrêa & Santos de Lima, Oliveira & Rabah, Valim Dias, RGIFC, XVBM (GW), Filippetto (GW)
+
+### Serviços Profissionais (IT Managed e Google)
+Grupo CM (CM Grupo +12 Negócios), Sanetran, Vidya Tec, De Bernt, AIMS USA, Index-IBL, Denver Contábil, Seleme Consulting, Febrapo, TK Brasil, CM2 Engenharia, BMT Interbiz, Keune do Brasil (GW), AG-1 Tur (GW)
 
 ## Cases de Sucesso (Aprovados pelo Google)
 - **Leal Embalagens:** Migração completa para Google Workspace. Melhoria em produtividade, colaboração e segurança de dados.
