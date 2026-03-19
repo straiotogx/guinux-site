@@ -7,7 +7,10 @@ export async function onRequestPost(context) {
     };
 
     try {
-        const { domain } = await context.request.json();
+        const body = await context.request.json();
+        const domain = body.domain;
+        const clientHtml = body.html || ''; // HTML fetched by the browser (bypasses CF challenges)
+        const clientName = body.companyName || ''; // Company name provided by chat context
         if (!domain) return new Response(JSON.stringify({ error: 'No domain' }), { status: 400, headers: cors });
 
         const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*/, '').trim().toLowerCase();
@@ -115,13 +118,24 @@ export async function onRequestPost(context) {
         let allTexts = [];
         let title = '', description = '', mainBodyText = '', mainHtml = '';
 
-        // Fetch main page first (we need it for CNPJ extraction)
-        mainHtml = await fetchPage(`https://${cleanDomain}`);
-        if (!mainHtml) mainHtml = await fetchPage(`https://www.${cleanDomain}`);
+        // Use client-provided HTML first (browser bypasses CF challenges), then try server fetch
+        if (clientHtml && clientHtml.length > 500) {
+            mainHtml = clientHtml;
+            console.log(`Using client-provided HTML (${clientHtml.length} chars)`);
+        } else {
+            mainHtml = await fetchPage(`https://${cleanDomain}`);
+            if (!mainHtml) mainHtml = await fetchPage(`https://www.${cleanDomain}`);
+        }
 
         if (mainHtml) {
             const titleMatch = mainHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
-            if (titleMatch) title = titleMatch[1].trim();
+            if (titleMatch) {
+                const rawTitle = titleMatch[1].trim();
+                // Reject bogus titles from challenge pages
+                if (!rawTitle.match(/^(Google Search|Just a moment|Checking|Access denied|403|Attention Required)/i)) {
+                    title = rawTitle;
+                }
+            }
 
             const descMatch = mainHtml.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
                 || mainHtml.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
@@ -132,10 +146,14 @@ export async function onRequestPost(context) {
             }
 
             mainBodyText = stripHtml(mainHtml).substring(0, 15000);
-            allTexts.push(mainBodyText);
+            // Only add if it's real content (not a challenge page)
+            if (mainBodyText.length > 200) allTexts.push(mainBodyText);
         }
 
-        const companyName = title ? title.split(/[|\-–—·]/)[0].trim() : cleanDomain.split('.')[0];
+        // Smart company name: clientName > title > domain
+        const companyName = clientName
+            || (title ? title.split(/[|\-–—·]/)[0].trim() : '')
+            || cleanDomain.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
         // ========= Extract CNPJ early (needed for API queries) =========
         let extractedCnpj = null;
@@ -190,13 +208,12 @@ export async function onRequestPost(context) {
             fetchPromises.cnpjWs = fetchJSON(`https://publica.cnpj.ws/cnpj/${extractedCnpj}`, 10000);
         }
 
-        // --- Google Search (via alternative sources for company intel) ---
-        // Search for company on Google via allorigins proxy or direct scraping
-        fetchPromises.googleSearch = fetchPage(
-            `https://www.google.com/search?q=${companyNameEncoded}+${domainEncoded}&hl=pt-BR&num=10`, 8000
+        // --- DuckDuckGo Search (works from Workers, unlike Google) ---
+        fetchPromises.ddgSearch = fetchPage(
+            `https://html.duckduckgo.com/html/?q=${companyNameEncoded}+${domainEncoded}`, 8000
         );
-        fetchPromises.googleNews = fetchPage(
-            `https://www.google.com/search?q=${companyNameEncoded}+site:linkedin.com+OR+site:glassdoor.com.br+OR+site:reclameaqui.com.br&hl=pt-BR&num=10`, 8000
+        fetchPromises.ddgLinkedin = fetchPage(
+            `https://html.duckduckgo.com/html/?q=${companyNameEncoded}+linkedin.com+empresa`, 8000
         );
 
         // --- ReclameAqui (reputation & complaints) ---
@@ -217,45 +234,28 @@ export async function onRequestPost(context) {
             `https://www.glassdoor.com.br/Avalia%C3%A7%C3%B5es/${companyNameEncoded}-avalia%C3%A7%C3%B5es-E0.htm`, 6000
         );
 
-        // --- LinkedIn Company Page (public) ---
+        // --- LinkedIn Company Page (via DuckDuckGo) ---
         fetchPromises.linkedinSearch = fetchPage(
-            `https://www.google.com/search?q=site:linkedin.com/company+${companyNameEncoded}&hl=pt-BR`, 6000
+            `https://html.duckduckgo.com/html/?q=site:linkedin.com/company+${companyNameEncoded}`, 6000
         );
 
         // --- Domain WHOIS / DNS info ---
         fetchPromises.dnsInfo = fetchJSON(`https://dns.google/resolve?name=${cleanDomain}&type=A`, 5000);
         fetchPromises.dnsInfo2 = fetchJSON(`https://dns.google/resolve?name=${cleanDomain}&type=MX`, 5000);
 
-        // --- CNPJ search by company name (multiple strategies) ---
+        // --- CNPJ search by company name (multiple strategies via DuckDuckGo) ---
         if (!extractedCnpj) {
-            // Strategy 1: Google search for CNPJ
+            // Strategy 1: DuckDuckGo search for CNPJ (WORKS from Workers!)
             fetchPromises.cnpjSearch = fetchPage(
-                `https://www.google.com/search?q=CNPJ+"${companyNameEncoded}"&hl=pt-BR&num=10`, 8000
+                `https://html.duckduckgo.com/html/?q=CNPJ+"${companyNameEncoded}"`, 8000
             );
-            // Strategy 2: Casa dos Dados API (free CNPJ search by name)
-            fetchPromises.cnpjSearchCasa = (async () => {
-                try {
-                    const res = await fetch('https://api.casadosdados.com.br/v2/public/cnpj/search', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-                        body: JSON.stringify({
-                            query: { termo: [companyName.substring(0, 60)], uf: [], municipio: [], situacao_cadastral: 'ATIVA' },
-                            range: { inicio: 0, fim: 3 },
-                            extras: { somente_mei: false, excluir_mei: false, com_contato_telefonico: false, somente_fixo: false, somente_celular: false, somente_matriz: true }
-                        }),
-                        signal: AbortSignal.timeout(8000)
-                    });
-                    if (!res.ok) return null;
-                    return await res.json();
-                } catch (e) { return null; }
-            })();
-            // Strategy 3: CNPJ.biz search
-            fetchPromises.cnpjBiz = fetchPage(
-                `https://cnpj.biz/procura/${companyNameEncoded}`, 6000
-            );
-            // Strategy 4: Google search with domain for CNPJ
+            // Strategy 2: DuckDuckGo with domain
             fetchPromises.cnpjSearchDomain = fetchPage(
-                `https://www.google.com/search?q=CNPJ+site:${domainEncoded}&hl=pt-BR`, 6000
+                `https://html.duckduckgo.com/html/?q=CNPJ+${domainEncoded}`, 8000
+            );
+            // Strategy 3: ReceitaWS CNPJ search (works from Workers)
+            fetchPromises.cnpjReceitaWS = fetchPage(
+                `https://html.duckduckgo.com/html/?q=CNPJ+${companyNameEncoded}+site:receitaws.com.br+OR+site:cnpja.com`, 6000
             );
         }
 
@@ -306,20 +306,8 @@ export async function onRequestPost(context) {
         if (!cnpjData) {
             let foundCnpjRaw = null;
 
-            // Strategy 1: Casa dos Dados API response
-            if (!foundCnpjRaw && results.cnpjSearchCasa && results.cnpjSearchCasa.cnpj) {
-                const items = results.cnpjSearchCasa.cnpj || [];
-                if (items.length > 0) {
-                    const raw = String(items[0].cnpj || '').replace(/[.\-\/]/g, '');
-                    if (raw.length === 14 && validateCnpj(raw)) {
-                        foundCnpjRaw = raw;
-                        console.log(`CNPJ found via Casa dos Dados: ${raw}`);
-                    }
-                }
-            }
-
-            // Strategy 2: Google search results
-            const searchSources = [results.cnpjSearch, results.cnpjSearchDomain, results.cnpjBiz].filter(Boolean);
+            // Strategy 1: DuckDuckGo search results (most reliable from Workers)
+            const searchSources = [results.cnpjSearch, results.cnpjSearchDomain, results.cnpjReceitaWS].filter(Boolean);
             for (const src of searchSources) {
                 if (foundCnpjRaw) break;
                 const searchText = stripHtml(src);
@@ -361,31 +349,36 @@ export async function onRequestPost(context) {
         }
 
         // ====================================================================
-        //  PHASE 5: PROCESS GOOGLE SEARCH RESULTS (reputation, news, mentions)
+        //  PHASE 5: PROCESS DUCKDUCKGO SEARCH RESULTS
         // ====================================================================
         let googleMentions = [];
-        let googleNewsItems = [];
         let linkedinUrl = '';
         let linkedinEmployees = null;
 
-        if (results.googleSearch) {
-            const gText = stripHtml(results.googleSearch);
+        if (results.ddgSearch) {
+            const gText = stripHtml(results.ddgSearch);
             // Extract search result snippets for market intelligence
-            const snippets = gText.match(/[^.]{30,200}(?:empresa|company|líder|mercado|cliente|solução|tecnologia|fundad|crescimento|faturamento|colaborador|funcionário|prêmio|award)[^.]{0,150}\./gi) || [];
+            const snippets = gText.match(/[^.]{30,200}(?:empresa|company|líder|mercado|cliente|solução|tecnologia|fundad|crescimento|faturamento|colaborador|funcionário|prêmio|award|advogado|advocacia|seccional)[^.]{0,150}\./gi) || [];
             googleMentions = snippets.slice(0, 10).map(s => s.trim());
-        }
 
-        if (results.googleNews) {
-            const newsText = stripHtml(results.googleNews);
-            // Extract LinkedIn employee mentions
-            const empMatch = newsText.match(/(\d[\d.,]*)\s*(?:funcionários|colaboradores|employees|seguidores|followers)/i);
+            // Also extract employee mentions from search results
+            const empMatch = gText.match(/(\d[\d.,]*)\s*(?:funcionários|colaboradores|employees|seguidores|followers|advogados|associados|membros)/i);
             if (empMatch) {
                 const num = parseInt(empMatch[1].replace(/[.,]/g, ''));
                 if (num >= 5 && num <= 500000) linkedinEmployees = num;
             }
         }
 
-        // Extract LinkedIn company URL
+        if (results.ddgLinkedin) {
+            const liText = stripHtml(results.ddgLinkedin);
+            const empMatch2 = liText.match(/(\d[\d.,]*)\s*(?:funcionários|colaboradores|employees|followers)/i);
+            if (empMatch2 && !linkedinEmployees) {
+                const num = parseInt(empMatch2[1].replace(/[.,]/g, ''));
+                if (num >= 5 && num <= 500000) linkedinEmployees = num;
+            }
+        }
+
+        // Extract LinkedIn company URL from DuckDuckGo results
         if (results.linkedinSearch) {
             const liMatch = results.linkedinSearch.match(/https:\/\/(?:www\.)?linkedin\.com\/company\/[a-z0-9\-]+/i);
             if (liMatch) linkedinUrl = liMatch[0];

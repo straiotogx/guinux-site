@@ -475,11 +475,22 @@ async function handleCompanyLookup(){
     // Corporate email — research the company silently
     await showTyping(400);
 
+    // Try to fetch site HTML from browser (bypasses Cloudflare challenges)
+    let clientHtml='';
+    try{
+        const siteRes=await fetch(`https://${domain}`,{mode:'no-cors',signal:AbortSignal.timeout(6000)}).catch(()=>null);
+        // no-cors returns opaque response, try cors first
+        const corsRes=await fetch(`https://${domain}`,{signal:AbortSignal.timeout(8000)}).catch(()=>null);
+        if(corsRes&&corsRes.ok){
+            clientHtml=await corsRes.text().catch(()=>'');
+        }
+    }catch(e){/* CORS blocked, Worker will fetch server-side */}
+
     try{
         const res=await fetch('/api/lookup-company',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({domain})
+            body:JSON.stringify({domain, html:clientHtml.substring(0,100000), companyName:chatData.company||''})
         });
         const data=await res.json();
 
