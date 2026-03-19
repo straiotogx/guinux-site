@@ -1074,56 +1074,243 @@ export async function onRequestPost(context) {
         // ====================================================================
         //  PHASE 17: AUTOMATION OPPORTUNITIES (enhanced with ReclameAqui data)
         // ====================================================================
-        const automationOpportunities = [];
-        const opportunityMap = [
-            { triggers: ['atendimento ao cliente', 'atendimento', 'suporte', 'sac', 'call center'], opportunity: 'Chatbot IA para atendimento 24/7', priority: 'alta' },
-            { triggers: ['relatório', 'relatorio', 'report', 'dados', 'analytics', 'kpi'], opportunity: 'Dashboards inteligentes com IA', priority: 'alta' },
-            { triggers: ['contrato', 'documento', 'documental', 'arquivo', 'protocolo'], opportunity: 'Gestão documental inteligente com IA', priority: 'alta' },
-            { triggers: ['vendas', 'comercial', 'prospecção', 'lead', 'pipeline', 'funil'], opportunity: 'CRM com IA para prospecção e vendas', priority: 'alta' },
-            { triggers: ['nota fiscal', 'nfe', 'fiscal', 'tributári', 'tributar', 'imposto'], opportunity: 'Automação fiscal e tributária', priority: 'media' },
-            { triggers: ['rh', 'recursos humanos', 'recrutamento', 'seleção', 'folha de pagamento'], opportunity: 'IA para RH: triagem de currículos e onboarding', priority: 'media' },
-            { triggers: ['marketing', 'comunicação', 'conteúdo', 'redes sociais', 'campanha'], opportunity: 'IA para geração de conteúdo e marketing', priority: 'media' },
-            { triggers: ['logística', 'logistica', 'entrega', 'transporte', 'frete', 'rota'], opportunity: 'Otimização logística com IA (rotas e previsão)', priority: 'alta' },
-            { triggers: ['estoque', 'inventário', 'armazém', 'wms'], opportunity: 'Gestão de estoque preditiva com IA', priority: 'media' },
-            { triggers: ['compras', 'procurement', 'fornecedor', 'cotação', 'licitação'], opportunity: 'Automação de compras e cotações', priority: 'media' },
-            { triggers: ['agendamento', 'agenda', 'consulta', 'reserva'], opportunity: 'Agendamento inteligente automatizado', priority: 'media' },
-            { triggers: ['cobrança', 'inadimplência', 'pagamento', 'boleto', 'financeiro'], opportunity: 'Automação de cobranças e conciliação financeira', priority: 'alta' },
-            { triggers: ['qualidade', 'inspeção', 'auditoria', 'conformidade'], opportunity: 'IA para controle de qualidade e compliance', priority: 'media' },
-            { triggers: ['treinamento', 'capacitação', 'educação', 'ensino', 'curso'], opportunity: 'Plataforma de treinamento com IA adaptativa', priority: 'baixa' },
-            { triggers: ['e-mail', 'email', 'correspondência'], opportunity: 'Triagem e resposta automática de e-mails com IA', priority: 'media' },
-            { triggers: ['jurídic', 'juridic', 'advog', 'processo', 'petição', 'prazo'], opportunity: 'IA jurídica para análise de documentos e prazos', priority: 'alta' },
-            { triggers: ['produção', 'manufatura', 'fábrica', 'industrial'], opportunity: 'IA para planejamento e otimização de produção', priority: 'alta' },
-            { triggers: ['projeto', 'obra', 'cronograma', 'planejamento'], opportunity: 'Gestão de projetos inteligente com IA', priority: 'media' },
-            { triggers: ['segurança', 'monitoramento', 'vigilância', 'cftv'], opportunity: 'Monitoramento inteligente com visão computacional', priority: 'baixa' },
-            { triggers: ['manutenção', 'preventiva', 'corretiva', 'equipamento'], opportunity: 'Manutenção preditiva com IA', priority: 'media' },
-        ];
 
-        const seenOpportunities = new Set();
-        for (const opp of opportunityMap) {
-            if (opp.triggers.some(t => allText.includes(t)) && !seenOpportunities.has(opp.opportunity)) {
-                seenOpportunities.add(opp.opportunity);
-                automationOpportunities.push({ opportunity: opp.opportunity, priority: opp.priority });
+        // --- 17a: Deep website content analysis ---
+        const htmlLower = (mainHtml || '').toLowerCase();
+
+        // Chatbot detection
+        const chatbotProviders = [
+            { name: 'Tawk.to', patterns: ['tawk.to', 'tawk.messenger'] },
+            { name: 'Intercom', patterns: ['intercom', 'intercom-container', 'intercom-frame'] },
+            { name: 'Zendesk', patterns: ['zendesk', 'zopim', 'zdassets.com'] },
+            { name: 'Drift', patterns: ['drift.com', 'drift-widget', 'driftt.com'] },
+            { name: 'Crisp', patterns: ['crisp.chat', 'client.crisp.chat'] },
+            { name: 'LiveChat', patterns: ['livechat', 'livechatinc.com'] },
+            { name: 'JivoChat', patterns: ['jivochat', 'jivosite.com'] },
+            { name: 'HubSpot Chat', patterns: ['hubspot', 'hs-scripts.com', 'hbspt'] },
+            { name: 'Tidio', patterns: ['tidio', 'tidiochat'] },
+            { name: 'Freshdesk', patterns: ['freshdesk', 'freshchat'] },
+            { name: 'Olark', patterns: ['olark'] },
+            { name: 'SmartSupp', patterns: ['smartsupp'] },
+            { name: 'WhatsApp Widget', patterns: ['wa.me', 'api.whatsapp.com', 'whatsapp-widget', 'btn-whatsapp'] },
+        ];
+        let detectedChatbotProvider = null;
+        for (const provider of chatbotProviders) {
+            if (provider.patterns.some(p => htmlLower.includes(p))) {
+                detectedChatbotProvider = provider.name;
+                break;
+            }
+        }
+        const hasChatbot = detectedChatbotProvider !== null;
+
+        // Search feature detection
+        const hasSearch = /(<input[^>]*type=["']search["']|<form[^>]*action=["'][^"']*(?:busca|search|pesquis)[^"']*["']|<input[^>]*(?:placeholder|name|id)=["'][^"']*(?:busca|search|pesquis)[^"']*["']|\/busca|\/search|\/pesquisa)/i.test(mainHtml || '');
+
+        // Form count detection
+        const formMatches = (mainHtml || '').match(/<form[\s>]/gi);
+        const formCount = formMatches ? formMatches.length : 0;
+
+        // FAQ detection
+        const hasFAQ = /(?:faq|perguntas?\s+frequentes|dúvidas?\s+frequentes|frequently\s+asked|ajuda|central\s+de\s+ajuda)/i.test(allText)
+            || /<[^>]*(?:id|class)=["'][^"']*faq[^"']*["']/i.test(mainHtml || '');
+
+        // Contact/support page detection (just email/phone = opportunity for AI)
+        const hasContactPage = /(?:contato|contact|fale\s+conosco|entre\s+em\s+contato|suporte|support)/i.test(allText);
+
+        // Manual process detection
+        const manualProcessPatterns = [
+            { pattern: /agendamento/gi, label: 'Agendamento' },
+            { pattern: /cotação|cotacao/gi, label: 'Cotação' },
+            { pattern: /orçamento|orcamento/gi, label: 'Orçamento' },
+            { pattern: /pedido/gi, label: 'Pedido' },
+            { pattern: /solicitação|solicitacao/gi, label: 'Solicitação' },
+            { pattern: /reserva/gi, label: 'Reserva' },
+            { pattern: /cadastro/gi, label: 'Cadastro' },
+            { pattern: /matrícula|matricula/gi, label: 'Matrícula' },
+            { pattern: /inscrição|inscricao/gi, label: 'Inscrição' },
+            { pattern: /abertura\s+de\s+(?:chamado|ticket)/gi, label: 'Abertura de chamado' },
+            { pattern: /simulação|simulacao|simulador/gi, label: 'Simulação' },
+        ];
+        const detectedManualProcesses = [];
+        const seenProcesses = new Set();
+        for (const mp of manualProcessPatterns) {
+            mp.pattern.lastIndex = 0;
+            if (mp.pattern.test(allText) && !seenProcesses.has(mp.label)) {
+                seenProcesses.add(mp.label);
+                detectedManualProcesses.push(mp.label);
             }
         }
 
-        // Add opportunities based on ReclameAqui complaint themes
+        const siteAnalysis = {
+            hasChatbot,
+            chatbotProvider: detectedChatbotProvider,
+            hasSearch,
+            formCount,
+            hasFAQ,
+            hasContactPage,
+            manualProcesses: detectedManualProcesses,
+        };
+
+        // --- 17b: Build automation opportunities ---
+        const automationOpportunities = [];
+        const seenOpportunities = new Set();
+
+        const nameForDesc = companyName || cleanDomain;
+
+        // Site-analysis-driven opportunities (high-value, specific)
+        if (!hasChatbot) {
+            automationOpportunities.push({
+                opportunity: `Chatbot com IA treinado com dados da ${nameForDesc} — atendimento 24/7 sem fila`,
+                priority: 'alta',
+                description: `A ${nameForDesc} não possui chatbot no site. Um assistente virtual com IA treinado com dados da empresa pode atender clientes 24/7, reduzir tempo de espera e resolver até 80% das dúvidas sem intervenção humana.`,
+                impact: 'alto',
+                source: 'site-analysis',
+            });
+            seenOpportunities.add('chatbot-ia');
+        } else {
+            automationOpportunities.push({
+                opportunity: `Upgrade do chatbot atual (${detectedChatbotProvider}) para IA generativa treinada com dados próprios`,
+                priority: 'alta',
+                description: `A ${nameForDesc} já usa ${detectedChatbotProvider}, mas um upgrade para IA generativa treinada com dados internos pode aumentar a taxa de resolução em até 3x, oferecendo respostas contextuais e personalizadas em vez de fluxos pré-programados.`,
+                impact: 'alto',
+                source: 'site-analysis',
+            });
+            seenOpportunities.add('chatbot-upgrade');
+        }
+
+        if (!hasSearch) {
+            automationOpportunities.push({
+                opportunity: 'Busca inteligente com IA no site — encontrar produtos/serviços/informações instantaneamente',
+                priority: 'alta',
+                description: `O site da ${nameForDesc} não possui busca ou possui uma busca básica. Uma busca com IA semântica permite que visitantes encontrem exatamente o que procuram usando linguagem natural, aumentando conversão e reduzindo abandono.`,
+                impact: 'alto',
+                source: 'site-analysis',
+            });
+            seenOpportunities.add('busca-ia');
+        }
+
+        if (formCount > 0) {
+            automationOpportunities.push({
+                opportunity: 'Formulários inteligentes com IA — preenchimento automático e validação em tempo real',
+                priority: 'media',
+                description: `Foram detectados ${formCount} formulário(s) no site da ${nameForDesc}. Formulários com IA podem auto-completar campos, validar dados em tempo real e reduzir erros de preenchimento em até 60%, melhorando a experiência do usuário.`,
+                impact: 'medio',
+                source: 'site-analysis',
+            });
+            seenOpportunities.add('forms-ia');
+        }
+
+        if (hasFAQ) {
+            automationOpportunities.push({
+                opportunity: 'FAQ inteligente com IA — respostas contextuais sem precisar de humano',
+                priority: 'alta',
+                description: `A ${nameForDesc} já possui FAQ/Central de Ajuda. Transformar isso em um FAQ inteligente com IA permite respostas dinâmicas e contextuais, aprendendo com novas perguntas e reduzindo drasticamente os chamados de suporte.`,
+                impact: 'alto',
+                source: 'site-analysis',
+            });
+            seenOpportunities.add('faq-ia');
+        }
+
+        if (hasContactPage) {
+            automationOpportunities.push({
+                opportunity: 'Triagem automática de e-mails com IA — classificação e resposta automática',
+                priority: 'alta',
+                description: `A ${nameForDesc} tem página de contato/suporte. IA pode classificar automaticamente os e-mails recebidos por urgência e tema, gerar respostas automáticas para questões comuns e encaminhar os complexos para o time certo.`,
+                impact: 'alto',
+                source: 'site-analysis',
+            });
+            seenOpportunities.add('email-triage-ia');
+        }
+
+        if (detectedManualProcesses.length > 0) {
+            const processList = detectedManualProcesses.slice(0, 4).join(', ');
+            automationOpportunities.push({
+                opportunity: 'Automação de processos repetitivos com RPA + IA',
+                priority: 'alta',
+                description: `Foram detectados processos manuais no site: ${processList}. Automação com RPA + IA pode eliminar tarefas repetitivas, reduzir erros humanos e liberar a equipe da ${nameForDesc} para atividades estratégicas.`,
+                impact: 'alto',
+                source: 'site-analysis',
+            });
+            seenOpportunities.add('rpa-ia');
+        }
+
+        // Always-relevant AI opportunities
+        automationOpportunities.push({
+            opportunity: 'Geração automática de documentos/propostas/contratos com IA',
+            priority: 'media',
+            description: `IA generativa pode criar automaticamente propostas comerciais, contratos e documentos padronizados para a ${nameForDesc}, reduzindo tempo de elaboração de horas para minutos e mantendo consistência.`,
+            impact: 'medio',
+            source: 'ai-general',
+        });
+        seenOpportunities.add('doc-gen-ia');
+
+        automationOpportunities.push({
+            opportunity: 'Análise preditiva de clientes com IA — churn, upsell, comportamento',
+            priority: 'media',
+            description: `IA pode analisar dados de clientes da ${nameForDesc} para prever cancelamentos (churn), identificar oportunidades de upsell/cross-sell e entender padrões de comportamento para personalizar a abordagem comercial.`,
+            impact: 'alto',
+            source: 'ai-general',
+        });
+        seenOpportunities.add('customer-insights-ia');
+
+        automationOpportunities.push({
+            opportunity: 'Onboarding automatizado de clientes/funcionários com IA',
+            priority: 'media',
+            description: `Um fluxo de onboarding com IA pode guiar novos clientes ou funcionários da ${nameForDesc} de forma personalizada, respondendo dúvidas em tempo real e garantindo que nenhuma etapa seja perdida no processo.`,
+            impact: 'medio',
+            source: 'ai-general',
+        });
+        seenOpportunities.add('onboarding-ia');
+
+        // --- 17c: Keyword-triggered opportunities (original logic, enhanced with descriptions) ---
+        const opportunityMap = [
+            { triggers: ['atendimento ao cliente', 'atendimento', 'suporte', 'sac', 'call center'], opportunity: 'Chatbot IA para atendimento 24/7', priority: 'alta', description: `O site menciona atendimento/suporte. IA pode automatizar até 80% do atendimento da ${nameForDesc}, reduzindo tempo de resposta e custos operacionais.`, impact: 'alto' },
+            { triggers: ['relatório', 'relatorio', 'report', 'dados', 'analytics', 'kpi'], opportunity: 'Dashboards inteligentes com IA', priority: 'alta', description: `A ${nameForDesc} trabalha com dados/relatórios. Dashboards com IA geram insights automáticos, detectam anomalias e sugerem ações em tempo real.`, impact: 'alto' },
+            { triggers: ['contrato', 'documento', 'documental', 'arquivo', 'protocolo'], opportunity: 'Gestão documental inteligente com IA', priority: 'alta', description: `IA pode classificar, extrair informações e organizar automaticamente documentos da ${nameForDesc}, eliminando busca manual e reduzindo erros.`, impact: 'alto' },
+            { triggers: ['vendas', 'comercial', 'prospecção', 'lead', 'pipeline', 'funil'], opportunity: 'CRM com IA para prospecção e vendas', priority: 'alta', description: `IA pode qualificar leads automaticamente, priorizar oportunidades e sugerir próximos passos para a equipe comercial da ${nameForDesc}.`, impact: 'alto' },
+            { triggers: ['nota fiscal', 'nfe', 'fiscal', 'tributári', 'tributar', 'imposto'], opportunity: 'Automação fiscal e tributária', priority: 'media', description: `Automação pode eliminar tarefas manuais fiscais e tributárias, reduzindo risco de erros e multas para a ${nameForDesc}.`, impact: 'medio' },
+            { triggers: ['rh', 'recursos humanos', 'recrutamento', 'seleção', 'folha de pagamento'], opportunity: 'IA para RH: triagem de currículos e onboarding', priority: 'media', description: `IA pode triar currículos, agendar entrevistas e automatizar o onboarding de novos colaboradores da ${nameForDesc}.`, impact: 'medio' },
+            { triggers: ['marketing', 'comunicação', 'conteúdo', 'redes sociais', 'campanha'], opportunity: 'IA para geração de conteúdo e marketing', priority: 'media', description: `IA generativa pode criar textos, posts e campanhas alinhados à marca da ${nameForDesc}, acelerando a produção de conteúdo em até 10x.`, impact: 'medio' },
+            { triggers: ['logística', 'logistica', 'entrega', 'transporte', 'frete', 'rota'], opportunity: 'Otimização logística com IA (rotas e previsão)', priority: 'alta', description: `IA pode otimizar rotas de entrega, prever demanda e reduzir custos logísticos da ${nameForDesc} em até 30%.`, impact: 'alto' },
+            { triggers: ['estoque', 'inventário', 'armazém', 'wms'], opportunity: 'Gestão de estoque preditiva com IA', priority: 'media', description: `IA preditiva pode antecipar necessidades de reposição de estoque da ${nameForDesc}, evitando rupturas e excesso de inventário.`, impact: 'medio' },
+            { triggers: ['compras', 'procurement', 'fornecedor', 'cotação', 'licitação'], opportunity: 'Automação de compras e cotações', priority: 'media', description: `IA pode automatizar cotações com fornecedores, comparar preços e otimizar o processo de compras da ${nameForDesc}.`, impact: 'medio' },
+            { triggers: ['agendamento', 'agenda', 'consulta', 'reserva'], opportunity: 'Agendamento inteligente automatizado', priority: 'media', description: `Agendamento com IA permite que clientes da ${nameForDesc} marquem horários 24/7, com confirmação automática e redução de no-shows.`, impact: 'medio' },
+            { triggers: ['cobrança', 'inadimplência', 'pagamento', 'boleto', 'financeiro'], opportunity: 'Automação de cobranças e conciliação financeira', priority: 'alta', description: `IA pode automatizar réguas de cobrança, conciliar pagamentos e reduzir inadimplência da ${nameForDesc} com comunicação personalizada.`, impact: 'alto' },
+            { triggers: ['qualidade', 'inspeção', 'auditoria', 'conformidade'], opportunity: 'IA para controle de qualidade e compliance', priority: 'media', description: `IA pode automatizar inspeções, monitorar conformidade e gerar alertas de desvio para a ${nameForDesc}.`, impact: 'medio' },
+            { triggers: ['treinamento', 'capacitação', 'educação', 'ensino', 'curso'], opportunity: 'Plataforma de treinamento com IA adaptativa', priority: 'baixa', description: `IA adaptativa pode personalizar trilhas de aprendizado para colaboradores da ${nameForDesc}, melhorando retenção e eficiência do treinamento.`, impact: 'baixo' },
+            { triggers: ['e-mail', 'email', 'correspondência'], opportunity: 'Triagem e resposta automática de e-mails com IA', priority: 'media', description: `IA pode classificar e-mails por prioridade, gerar respostas automáticas e reduzir o tempo de tratamento de mensagens da ${nameForDesc}.`, impact: 'medio' },
+            { triggers: ['jurídic', 'juridic', 'advog', 'processo', 'petição', 'prazo'], opportunity: 'IA jurídica para análise de documentos e prazos', priority: 'alta', description: `IA jurídica pode analisar contratos, monitorar prazos processuais e gerar minutas automaticamente para a ${nameForDesc}.`, impact: 'alto' },
+            { triggers: ['produção', 'manufatura', 'fábrica', 'industrial'], opportunity: 'IA para planejamento e otimização de produção', priority: 'alta', description: `IA pode otimizar o planejamento de produção da ${nameForDesc}, prever falhas em equipamentos e maximizar a eficiência da linha produtiva.`, impact: 'alto' },
+            { triggers: ['projeto', 'obra', 'cronograma', 'planejamento'], opportunity: 'Gestão de projetos inteligente com IA', priority: 'media', description: `IA pode prever atrasos, otimizar alocação de recursos e automatizar relatórios de progresso dos projetos da ${nameForDesc}.`, impact: 'medio' },
+            { triggers: ['segurança', 'monitoramento', 'vigilância', 'cftv'], opportunity: 'Monitoramento inteligente com visão computacional', priority: 'baixa', description: `Visão computacional com IA pode automatizar o monitoramento de segurança da ${nameForDesc}, detectando eventos em tempo real.`, impact: 'baixo' },
+            { triggers: ['manutenção', 'preventiva', 'corretiva', 'equipamento'], opportunity: 'Manutenção preditiva com IA', priority: 'media', description: `IA preditiva pode antecipar falhas em equipamentos da ${nameForDesc}, reduzindo paradas não programadas e custos de manutenção.`, impact: 'medio' },
+        ];
+
+        for (const opp of opportunityMap) {
+            if (opp.triggers.some(t => allText.includes(t)) && !seenOpportunities.has(opp.opportunity)) {
+                seenOpportunities.add(opp.opportunity);
+                automationOpportunities.push({ opportunity: opp.opportunity, priority: opp.priority, description: opp.description, impact: opp.impact });
+            }
+        }
+
+        // --- 17d: Add opportunities based on ReclameAqui complaint themes ---
         if (reclameAquiData && reclameAquiData.themes.length > 0) {
             const complaintOpps = {
-                'atendimento': 'Chatbot IA para resolver reclamações de atendimento',
-                'entrega': 'Automação de tracking e comunicação de entregas',
-                'cobrança': 'Automação de cobranças transparentes',
-                'qualidade': 'IA para controle de qualidade de produtos/serviços',
-                'prazo': 'Automação de gestão de prazos e alertas',
-                'cancelamento': 'IA para retenção de clientes (churn prediction)',
-                'estorno': 'Automação de processos de estorno/reembolso',
-                'produto': 'IA para controle de qualidade de produtos',
+                'atendimento': { opp: 'Chatbot IA para resolver reclamações de atendimento', desc: `Reclamações de atendimento detectadas no ReclameAqui. IA pode resolver automaticamente as queixas mais comuns e escalar apenas casos complexos, melhorando a nota da ${nameForDesc}.`, impact: 'alto' },
+                'entrega': { opp: 'Automação de tracking e comunicação de entregas', desc: `Reclamações de entrega detectadas. Automação de rastreamento com notificações proativas pode reduzir drasticamente as reclamações de entrega da ${nameForDesc}.`, impact: 'alto' },
+                'cobrança': { opp: 'Automação de cobranças transparentes', desc: `Problemas de cobrança identificados no ReclameAqui. Automação pode garantir transparência e corrigir erros antes que virem reclamações.`, impact: 'alto' },
+                'qualidade': { opp: 'IA para controle de qualidade de produtos/serviços', desc: `Reclamações de qualidade detectadas. IA pode monitorar padrões e alertar sobre desvios antes que afetem os clientes.`, impact: 'alto' },
+                'prazo': { opp: 'Automação de gestão de prazos e alertas', desc: `Reclamações de prazo detectadas. Automação pode monitorar e alertar sobre prazos, enviando comunicação proativa aos clientes.`, impact: 'alto' },
+                'cancelamento': { opp: 'IA para retenção de clientes (churn prediction)', desc: `Cancelamentos detectados no ReclameAqui. IA preditiva pode identificar sinais de churn e acionar ações de retenção automaticamente.`, impact: 'alto' },
+                'estorno': { opp: 'Automação de processos de estorno/reembolso', desc: `Reclamações de estorno detectadas. Automação pode processar reembolsos elegíveis instantaneamente, melhorando satisfação do cliente.`, impact: 'medio' },
+                'produto': { opp: 'IA para controle de qualidade de produtos', desc: `Reclamações sobre produtos detectadas. IA pode analisar padrões de defeitos e sugerir melhorias no processo produtivo.`, impact: 'alto' },
             };
             for (const theme of reclameAquiData.themes) {
                 const themeLower = theme.toLowerCase();
-                for (const [key, opp] of Object.entries(complaintOpps)) {
-                    if (themeLower.includes(key) && !seenOpportunities.has(opp)) {
-                        seenOpportunities.add(opp);
-                        automationOpportunities.push({ opportunity: opp, priority: 'alta', source: 'ReclameAqui' });
+                for (const [key, val] of Object.entries(complaintOpps)) {
+                    if (themeLower.includes(key) && !seenOpportunities.has(val.opp)) {
+                        seenOpportunities.add(val.opp);
+                        automationOpportunities.push({ opportunity: val.opp, priority: 'alta', description: val.desc, impact: val.impact, source: 'ReclameAqui' });
                     }
                 }
             }
@@ -1248,6 +1435,7 @@ export async function onRequestPost(context) {
             digitalMaturityScore: maturityScore,
             companyValues,
             automationOpportunities: automationOpportunities.slice(0, 20),
+            siteAnalysis,
             // Deep analysis fields
             cnpjData,
             socialMedia,

@@ -1017,7 +1017,7 @@ async function generateAnalise(){
     notifySimulation(d, {risk:riskLabel, riskScore:risk.score, matLabel, matScore:maturity.score, potScore:pot.score, hoursSaved, revenueEstimate, employeeEstimate, services:recDetails.map(s=>s.svc).join(', ')});
 }
 
-/* ========= DOWNLOAD PDF — EXECUTIVE ========= */
+/* ========= DOWNLOAD PDF — EXECUTIVE (OAB-STYLE) ========= */
 async function downloadAnalisePDF(){
     const d=chatData;
     const name=d.name||'Cliente';
@@ -1028,13 +1028,14 @@ async function downloadAnalisePDF(){
     const pot=calcPotential(d);
     const riskLabel=risk.score>=7?'ALTO':risk.score>=4?'MÉDIO':'BAIXO';
     const matLabel=maturity.score>=7?'AVANÇADA':maturity.score>=4?'INTERMEDIÁRIA':'INICIAL';
-    const riskColor=risk.score>=7?'#DC3545':risk.score>=4?'#F0AD4E':'#28A745';
-    const matColor=maturity.score>=7?'#28A745':maturity.score>=4?'#F0AD4E':'#DC3545';
-    const T='#1A7A7A';const B='#2B5A8C';
+    const riskColor=risk.score>=7?'#EF4444':risk.score>=4?'#F59E0B':'#22C55E';
+    const matColor=maturity.score>=7?'#22C55E':maturity.score>=4?'#F59E0B':'#EF4444';
+    // OAB-style color palette
+    const OD='#0D1B2A';const OB='#2B5A8C';const OA='#6BBED0';const OG='#22C55E';const OP='#8B5CF6';const OR='#EF4444';const OL='#F0F7FA';
     const employeeEst=cr.employeeEstimate||'25-50';
     const revenueEst=cr.revenueEstimate||'R$ 2M – R$ 10M/ano';
     const segLabel=cr.segmentLabel||'';
-    const empMap={'10-25':20,'25-50':40,'50-100':80,'100+':200};
+    const empMap={'10-25':20,'25-50':40,'50-100':80,'100+':200,'5-15':10,'15-30':25,'15-50':35,'30-60':50,'50-150':100,'60-100':80,'100-200':150,'150-500':300,'200-500':350,'500+':600,'500-1.000':750};
     const empCount=empMap[employeeEst]||30;
     const taskMult=(d.repetitive_tasks==='many')?0.15:(d.repetitive_tasks==='some')?0.08:0.04;
     const hoursSaved=Math.round(empCount*taskMult*4);
@@ -1042,11 +1043,14 @@ async function downloadAnalisePDF(){
     const needs=Array.isArray(d.needs)?d.needs:(d.needs?[d.needs]:['suporte']);
     const today=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
     const docNum='GX-'+Date.now().toString(36).toUpperCase();
+    const siteAnalysis=cr.siteAnalysis||{};
 
     // Extra research data for PDF
     const companyServices=(cr.companyServices||[]).slice(0,5);
     const techStack=(cr.techStack||[]).map(t=>typeof t==='string'?t:t.name||t).filter(Boolean);
-    const autoOpps=(cr.automationOpportunities||[]).map(a=>typeof a==='string'?a:a.opportunity||a).filter(Boolean);
+    const autoOppsRaw=(cr.automationOpportunities||[]);
+    const autoOpps=autoOppsRaw.map(a=>typeof a==='string'?a:a.opportunity||a).filter(Boolean);
+    const autoOppsDetailed=autoOppsRaw.filter(a=>a&&a.opportunity);
     const cnpjData=cr.cnpjData||null;
     const socialMedia=cr.socialMedia||{};
     const companyDescription=cr.companyDescription||cr.description||'';
@@ -1070,230 +1074,243 @@ async function downloadAnalisePDF(){
     if(needs.includes('cto')) svcs.push({n:'CTO as a Service',d:'Liderança tecnológica experiente sem custo de C-level fixo. Estratégia digital, roadmap de inovação e governança de TI.',items:['Estratégia digital personalizada','Roadmap de inovação','Governança e compliance (LGPD)','Avaliação de fornecedores','Mentoria para equipes']});
     if(svcs.length===0) svcs.push({n:'Consultoria de Inovação',d:'Roadmap personalizado para transformação digital da sua empresa com IA.',items:['Diagnóstico completo','Roadmap de transformação','Priorização de iniciativas','Quick wins identificados','Acompanhamento trimestral']});
 
+    // Color assignments for service cards
+    const svcColors=[OB,OA,OG,OP,OD,OR,OA,OB];
+
     const pdfHtml=`
-    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1A1A2A;width:700px;margin:0 auto;line-height:1.5">
+    <div style="font-family:'Plus Jakarta Sans','Helvetica Neue',Helvetica,Arial,sans-serif;color:#1a1a2e;width:700px;margin:0 auto;line-height:1.5">
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-        <!-- ===== PAGE 1: COVER ===== -->
-        <div style="background:linear-gradient(135deg,${T} 0%,${B} 100%);padding:60px 36px;color:#fff;text-align:center;min-height:280px;position:relative">
-            <div style="position:absolute;top:30px;right:36px;font-size:11px;opacity:.5">${docNum}</div>
-            ${logoSrc?`<img src="${logoSrc}" style="height:55px;margin-bottom:24px">`:'<div style="height:55px;margin-bottom:24px"></div>'}
-            <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.5px;color:#fff">ANÁLISE COMPLETA<br>&amp; PROPOSTA INTELIGENTE</h1>
-            <div style="width:60px;height:3px;background:rgba(255,255,255,.5);margin:16px auto"></div>
-            <h2 style="margin:12px 0 0;font-size:19px;font-weight:400;color:rgba(255,255,255,.9)">${company}</h2>
-            <p style="margin:24px 0 0;font-size:13px;color:rgba(255,255,255,.6)">Preparado para ${name} · ${today}</p>
-            <p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,.4)">Gerado por Guinux.IA — Inteligência Artificial</p>
-        </div>
-
-        <!-- ===== QUEM SOMOS ===== -->
-        <div style="padding:28px 36px 20px;page-break-inside:avoid">
-            <div style="border-left:4px solid ${T};padding-left:16px;margin-bottom:20px">
-                <h3 style="margin:0 0 8px;font-size:15px;color:${T}">Sobre a Guinux</h3>
-                <p style="margin:0;font-size:12px;color:#444;line-height:1.7">
-                    Há mais de <strong>23 anos</strong> a Guinux transforma empresas com tecnologia, IA e inovação.
-                    <strong>Google Cloud Partner desde 2013</strong>, atendemos mais de <strong>50 empresas recorrentes</strong>
-                    e 200+ ao longo de nossa trajetória — incluindo a <strong>OAB Paraná</strong> (90 mil+ advogados),
-                    <strong>Leal Embalagens</strong>, <strong>CM Grupo</strong>, <strong>Vernalha Pereira</strong> e <strong>AIMS International</strong>.
-                </p>
-            </div>
-            <div style="margin-bottom:8px">
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🏢 23+ anos</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">☁️ Google Cloud Partner</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🛡️ Bitdefender Partner</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🌎 4× Google Next</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🎓 Technion Israel</span>
-                <span style="display:inline-block;background:#f0fafa;color:${T};padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:3px 3px">🏆 Prêmio Inovação PR</span>
-            </div>
-        </div>
-
-        <div style="height:1px;background:#e8e8e8;margin:0 36px"></div>
-
-        <!-- ===== PERFIL DA EMPRESA ===== -->
-        <div style="padding:20px 36px;page-break-inside:avoid">
-            <h3 style="margin:0 0 14px;font-size:15px;color:${B}">📋 Perfil — ${company}</h3>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:140px">
-                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Contato</div>
-                    <div style="font-size:12px;font-weight:600">${name}</div>
-                    <div style="font-size:11px;color:#666">${d.email||''}</div>
-                    <div style="font-size:11px;color:#666">${d.phone||''}</div>
-                </div>
-                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:120px">
-                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Segmento</div>
-                    <div style="font-size:12px;font-weight:600">${segLabel||'Não identificado'}</div>
-                </div>
-                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:100px">
-                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Colaboradores</div>
-                    <div style="font-size:12px;font-weight:600">~${employeeEst}</div>
-                </div>
-                <div style="background:#f7f8fa;border-radius:10px;padding:12px;flex:1;min-width:120px">
-                    <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Faturamento est.</div>
-                    <div style="font-size:12px;font-weight:600">${revenueEst}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== INTELIGÊNCIA COLETADA ===== -->
-        ${(cnpjData||companyServices.length>0||techStack.length>0||companyDescription)?`
-        <div style="padding:0 36px 20px;page-break-inside:avoid">
-            <h3 style="margin:0 0 12px;font-size:15px;color:${B}">🔍 Inteligência Coletada — ${company}</h3>
-            ${companyDescription?`<p style="margin:0 0 12px;font-size:11px;color:#555;line-height:1.6">${companyDescription.substring(0,300)}${companyDescription.length>300?'...':''}</p>`:''}
-            ${cnpjData?`
-            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px">
-                ${cnpjData.razao_social?`<tr><td style="padding:4px 8px;color:#888;width:35%">Razão Social</td><td style="padding:4px 8px;font-weight:600">${cnpjData.razao_social}</td></tr>`:''}
-                ${cnpjData.cnpj?`<tr><td style="padding:4px 8px;color:#888">CNPJ</td><td style="padding:4px 8px">${cnpjData.cnpj}</td></tr>`:''}
-                ${cnpjData.natureza_juridica?`<tr><td style="padding:4px 8px;color:#888">Natureza Jurídica</td><td style="padding:4px 8px">${cnpjData.natureza_juridica}</td></tr>`:''}
-                ${cnpjData.porte?`<tr><td style="padding:4px 8px;color:#888">Porte</td><td style="padding:4px 8px">${cnpjData.porte}</td></tr>`:''}
-                ${cnpjData.capital_social?`<tr><td style="padding:4px 8px;color:#888">Capital Social</td><td style="padding:4px 8px">R$ ${Number(cnpjData.capital_social).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`:''}
-                ${cnpjData.atividade_principal?`<tr><td style="padding:4px 8px;color:#888">Atividade Principal</td><td style="padding:4px 8px">${cnpjData.atividade_principal}</td></tr>`:''}
-                ${cnpjData.municipio?`<tr><td style="padding:4px 8px;color:#888">Localização</td><td style="padding:4px 8px">${cnpjData.municipio}${cnpjData.uf?' - '+cnpjData.uf:''}</td></tr>`:''}
-                ${cnpjData.data_abertura?`<tr><td style="padding:4px 8px;color:#888">Abertura</td><td style="padding:4px 8px">${cnpjData.data_abertura}</td></tr>`:''}
-            </table>`:''}
-            ${companyServices.length>0?`
-            <div style="margin-bottom:8px">
-                <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Serviços/Produtos Identificados</div>
-                ${companyServices.map(s=>`<span style="display:inline-block;background:#e8f4f8;color:#1A7A7A;padding:3px 10px;border-radius:12px;font-size:10px;margin:2px 3px">${s}</span>`).join('')}
-            </div>`:''}
-            ${techStack.length>0?`
-            <div style="margin-bottom:8px">
-                <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Tecnologias Detectadas</div>
-                ${techStack.map(t=>`<span style="display:inline-block;background:#f0f0f0;color:#555;padding:3px 10px;border-radius:12px;font-size:10px;margin:2px 3px">${t}</span>`).join('')}
-            </div>`:''}
-            ${autoOpps.length>0?`
+        <!-- ===== HEADER BAR ===== -->
+        <div style="background:linear-gradient(135deg,${OD} 0%,${OB} 50%,#1a4a6e 100%);padding:20px 36px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid ${OA}">
             <div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;margin-bottom:4px">Oportunidades de Automação com IA</div>
-                ${autoOpps.slice(0,5).map(a=>`<p style="margin:2px 0;font-size:11px;color:#555">⚡ ${a}</p>`).join('')}
+                <div style="color:#fff;font-size:16px;font-weight:800;letter-spacing:-.3px">Análise Completa &amp; Proposta <span style="color:${OA}">${company}</span></div>
+                <div style="color:rgba(255,255,255,.5);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-top:2px">Diagnóstico digital + proposta inteligente</div>
+            </div>
+            <div style="text-align:right">
+                ${logoSrc?`<img src="${logoSrc}" style="height:32px;filter:grayscale(1) brightness(3);opacity:.9">`:''}
+                <div style="color:rgba(255,255,255,.5);font-size:8px;margin-top:4px">${docNum} · ${today}</div>
+            </div>
+        </div>
+
+        <!-- ===== HERO SECTION ===== -->
+        <div style="background:linear-gradient(160deg,${OD} 0%,#162d4a 100%);padding:28px 36px;position:relative;overflow:hidden">
+            <div style="font-size:24px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:8px;position:relative;z-index:1">
+                Diagnóstico Digital <span style="color:${OA}">Completo</span><br>+ Proposta <span style="color:${OA}">Inteligente</span>
+            </div>
+            <div style="font-size:11px;color:rgba(255,255,255,.7);line-height:1.6;max-width:85%;margin-bottom:16px;position:relative;z-index:1">
+                Preparado exclusivamente para <strong style="color:#fff">${name}</strong> da <strong style="color:#fff">${company}</strong>.
+                Análise baseada em ${cr.sourcesQueried?cr.sourcesQueried.length:5}+ fontes de dados incluindo Receita Federal, análise de site, DNS, segurança e tecnologias.
+            </div>
+            <div style="display:flex;gap:14px;position:relative;z-index:1">
+                <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;text-align:center">
+                    <span style="font-size:22px;font-weight:800;color:${riskColor};display:block">${risk.score}/10</span>
+                    <span style="font-size:8px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.8px">Risco ${riskLabel}</span>
+                </div>
+                <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;text-align:center">
+                    <span style="font-size:22px;font-weight:800;color:${matColor};display:block">${maturity.score}/10</span>
+                    <span style="font-size:8px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.8px">Maturidade ${matLabel}</span>
+                </div>
+                <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;text-align:center">
+                    <span style="font-size:22px;font-weight:800;color:${OA};display:block">${pot.score}/10</span>
+                    <span style="font-size:8px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.8px">Potencial</span>
+                </div>
+                ${hoursSaved>0?`<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;text-align:center">
+                    <span style="font-size:22px;font-weight:800;color:${OA};display:block">${hoursSaved}h+</span>
+                    <span style="font-size:8px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.8px">Horas/mês automação</span>
+                </div>`:''}
+                <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;text-align:center">
+                    <span style="font-size:22px;font-weight:800;color:${OA};display:block">~${employeeEst}</span>
+                    <span style="font-size:8px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.8px">Colaboradores</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PERFIL + INTELIGÊNCIA ===== -->
+        <div style="padding:20px 36px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+                <div style="width:18px;height:3px;background:${OB};border-radius:2px"></div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${OB}">Perfil da Empresa</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+                <div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;border-left:3px solid ${OB};flex:1;min-width:140px">
+                    <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:2px">CONTATO</div>
+                    <div style="font-size:11px;font-weight:700;color:${OD}">${name}</div>
+                    <div style="font-size:9px;color:#64748b">${d.email||''}</div>
+                </div>
+                <div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;border-left:3px solid ${OA};flex:1;min-width:120px">
+                    <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:2px">SEGMENTO</div>
+                    <div style="font-size:11px;font-weight:700;color:${OD}">${segLabel||'Não identificado'}</div>
+                </div>
+                <div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;border-left:3px solid ${OG};flex:1;min-width:110px">
+                    <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:2px">FATURAMENTO EST.</div>
+                    <div style="font-size:11px;font-weight:700;color:${OD}">${revenueEst}</div>
+                </div>
+                ${cnpjData&&cnpjData.municipio?`<div style="border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;border-left:3px solid ${OP};flex:1;min-width:110px">
+                    <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:2px">LOCALIZAÇÃO</div>
+                    <div style="font-size:11px;font-weight:700;color:${OD}">${cnpjData.municipio}${cnpjData.uf?'-'+cnpjData.uf:''}</div>
+                </div>`:''}
+            </div>
+
+            ${cnpjData?`
+            <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10px">
+                ${cnpjData.razao_social?`<tr><td style="padding:3px 8px;color:#94a3b8;width:30%">Razão Social</td><td style="padding:3px 8px;font-weight:600;color:${OD}">${cnpjData.razao_social}</td></tr>`:''}
+                ${cnpjData.cnpj?`<tr style="background:#f8fafc"><td style="padding:3px 8px;color:#94a3b8">CNPJ</td><td style="padding:3px 8px;font-weight:600">${cnpjData.cnpj}</td></tr>`:''}
+                ${cnpjData.atividade_principal?`<tr><td style="padding:3px 8px;color:#94a3b8">Atividade</td><td style="padding:3px 8px">${cnpjData.atividade_principal}</td></tr>`:''}
+                ${cnpjData.capital_social?`<tr style="background:#f8fafc"><td style="padding:3px 8px;color:#94a3b8">Capital Social</td><td style="padding:3px 8px">R$ ${Number(cnpjData.capital_social).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`:''}
+                ${cnpjData.data_abertura?`<tr><td style="padding:3px 8px;color:#94a3b8">Abertura</td><td style="padding:3px 8px">${cnpjData.data_abertura}</td></tr>`:''}
+            </table>`:''}
+
+            ${techStack.length>0?`<div style="margin-bottom:10px">
+                <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:4px">TECNOLOGIAS DETECTADAS</div>
+                ${techStack.slice(0,12).map(t=>`<span style="display:inline-block;background:${OL};color:${OB};padding:2px 8px;border-radius:4px;font-size:8px;font-weight:600;margin:2px 2px">${t}</span>`).join('')}
+            </div>`:''}
+            ${companyServices.length>0?`<div style="margin-bottom:10px">
+                <div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:4px">SERVIÇOS IDENTIFICADOS</div>
+                ${companyServices.map(s=>`<span style="display:inline-block;background:#e8f4f8;color:#0D1B2A;padding:2px 8px;border-radius:4px;font-size:8px;font-weight:600;margin:2px 2px">${s}</span>`).join('')}
             </div>`:''}
         </div>
-        <div style="height:1px;background:#e8e8e8;margin:0 36px"></div>
-        `:''}
 
-        <!-- ===== SCORES ===== -->
-        <div style="padding:${(cnpjData||companyServices.length>0)?'20px':'0'} 36px 20px;page-break-inside:avoid">
-            <h3 style="margin:0 0 14px;font-size:15px;color:${B}">📊 Diagnóstico Digital</h3>
-            <div style="display:flex;gap:10px">
-                <div style="flex:1;background:#fff;border:2px solid ${riskColor};border-radius:12px;padding:16px;text-align:center">
-                    <div style="font-size:32px;font-weight:800;color:${riskColor};line-height:1">${risk.score}<span style="font-size:13px;color:#bbb">/10</span></div>
-                    <div style="font-size:10px;font-weight:700;color:${riskColor};text-transform:uppercase;margin-top:4px">RISCO ${riskLabel}</div>
-                </div>
-                <div style="flex:1;background:#fff;border:2px solid ${matColor};border-radius:12px;padding:16px;text-align:center">
-                    <div style="font-size:32px;font-weight:800;color:${matColor};line-height:1">${maturity.score}<span style="font-size:13px;color:#bbb">/10</span></div>
-                    <div style="font-size:10px;font-weight:700;color:${matColor};text-transform:uppercase;margin-top:4px">MATURIDADE ${matLabel}</div>
-                </div>
-                <div style="flex:1;background:#fff;border:2px solid ${T};border-radius:12px;padding:16px;text-align:center">
-                    <div style="font-size:32px;font-weight:800;color:${T};line-height:1">${pot.score}<span style="font-size:13px;color:#bbb">/10</span></div>
-                    <div style="font-size:10px;font-weight:700;color:${T};text-transform:uppercase;margin-top:4px">POTENCIAL</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Risk items -->
+        <!-- ===== DIAGNÓSTICO DETALHADO ===== -->
         <div style="padding:0 36px 16px">
-            <div style="background:#fff;border-left:4px solid ${riskColor};padding:14px 16px;margin-bottom:10px;page-break-inside:avoid">
-                <h4 style="margin:0 0 6px;font-size:12px;color:${riskColor}">⚠️ Pontos de Risco Identificados</h4>
-                ${risk.items.map(i=>`<p style="margin:2px 0;font-size:11px;color:#555">• ${i}</p>`).join('')}
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                <div style="width:18px;height:3px;background:${OB};border-radius:2px"></div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${OB}">Diagnóstico Detalhado</div>
             </div>
-            <div style="background:#fff;border-left:4px solid ${matColor};padding:14px 16px;margin-bottom:10px;page-break-inside:avoid">
-                <h4 style="margin:0 0 6px;font-size:12px;color:${matColor}">📊 Maturidade Digital</h4>
-                ${maturity.items.map(i=>`<p style="margin:2px 0;font-size:11px;color:#555">• ${i}</p>`).join('')}
+            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-left:3px solid ${riskColor};margin-bottom:8px;page-break-inside:avoid">
+                <div style="font-size:10px;font-weight:700;color:${riskColor};margin-bottom:4px">⚠️ Pontos de Risco (${risk.score}/10 — ${riskLabel})</div>
+                ${risk.items.map(i=>`<div style="font-size:9px;color:#475569;padding:2px 0 2px 12px;position:relative;line-height:1.4"><span style="position:absolute;left:0;color:${OA};font-weight:700">→</span>${i}</div>`).join('')}
             </div>
-            <div style="background:#fff;border-left:4px solid ${T};padding:14px 16px;page-break-inside:avoid">
-                <h4 style="margin:0 0 6px;font-size:12px;color:${T}">🚀 Potencial de Melhoria</h4>
-                ${pot.items.map(i=>`<p style="margin:2px 0;font-size:11px;color:#555">• ${i}</p>`).join('')}
+            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-left:3px solid ${matColor};margin-bottom:8px;page-break-inside:avoid">
+                <div style="font-size:10px;font-weight:700;color:${matColor};margin-bottom:4px">📊 Maturidade Digital (${maturity.score}/10 — ${matLabel})</div>
+                ${maturity.items.map(i=>`<div style="font-size:9px;color:#475569;padding:2px 0 2px 12px;position:relative;line-height:1.4"><span style="position:absolute;left:0;color:${OA};font-weight:700">→</span>${i}</div>`).join('')}
+            </div>
+            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-left:3px solid ${OA};page-break-inside:avoid">
+                <div style="font-size:10px;font-weight:700;color:${OA};margin-bottom:4px">🚀 Potencial de Melhoria (${pot.score}/10)</div>
+                ${pot.items.map(i=>`<div style="font-size:9px;color:#475569;padding:2px 0 2px 12px;position:relative;line-height:1.4"><span style="position:absolute;left:0;color:${OA};font-weight:700">→</span>${i}</div>`).join('')}
             </div>
         </div>
-
-        <!-- Automation highlight -->
-        ${hoursSaved>0?`
-        <div style="padding:0 36px 20px;page-break-inside:avoid">
-            <div style="background:linear-gradient(135deg,#f0fafa 0%,#e8f0f8 100%);border:1px solid #c8e6e6;border-radius:12px;padding:18px;text-align:center">
-                <div style="font-size:11px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:1px">Potencial de Automação com IA</div>
-                <div style="font-size:36px;font-weight:800;color:${T};margin:6px 0">${hoursSaved}+</div>
-                <div style="font-size:12px;color:#666">horas/mês economizadas (≈ <strong>R$ ${(hoursSaved*45).toLocaleString('pt-BR')}/mês</strong> em produtividade)</div>
-            </div>
-        </div>`:''}
 
         ${d.biggest_pain?`
-        <div style="padding:0 36px 20px;page-break-inside:avoid">
-            <div style="background:#FFF8E1;border-left:4px solid #FF9800;padding:12px 16px">
-                <p style="margin:0;font-size:11px;color:#555"><strong>🎯 Sua principal dor:</strong> "<em>${d.biggest_pain}</em>"</p>
-                <p style="margin:6px 0 0;font-size:11px;color:#777">Isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</p>
+        <div style="padding:0 36px 16px;page-break-inside:avoid">
+            <div style="background:#FFF8E1;border-left:4px solid #F59E0B;border-radius:0 8px 8px 0;padding:12px 16px">
+                <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:4px">🎯 Sua principal dor</div>
+                <div style="font-size:9px;color:#78716C;line-height:1.5">"<em>${d.biggest_pain}</em>" — Isso é exatamente o tipo de problema que resolvemos. Clientes com desafios similares viram resultados em menos de 30 dias.</div>
             </div>
         </div>`:''}
 
-        <div style="height:1px;background:#e8e8e8;margin:0 36px"></div>
-
-        <!-- ===== PROPOSTA DE SERVIÇOS ===== -->
-        <div style="padding:20px 36px">
-            <h3 style="margin:0 0 6px;font-size:17px;color:${B}">✨ Proposta de Serviços — ${company}</h3>
-            <p style="margin:0 0 16px;font-size:11px;color:#888">Serviços personalizados com base no diagnóstico acima</p>
-
-            ${svcs.map((s,i)=>`
-            <div style="background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:16px;margin-bottom:12px;page-break-inside:avoid">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-                    <div>
-                        <div style="font-size:10px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:.5px">Serviço ${String(i+1).padStart(2,'0')}</div>
-                        <h4 style="margin:2px 0 0;font-size:14px;color:#1A1A2A">${s.n}</h4>
-                    </div>
-                    <span style="display:inline-block;background:linear-gradient(135deg,${T},${B});color:#fff;padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0">Sob consulta</span>
+        <!-- ===== AUTOMAÇÃO & IA — THE HERO SECTION ===== -->
+        <div style="padding:0 36px 16px">
+            <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:22px 24px;position:relative;overflow:hidden;page-break-inside:avoid">
+                <div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;position:relative;z-index:1">
+                    <span style="color:${OA}">Oportunidades</span> de Automação &amp; IA
                 </div>
-                <p style="margin:0 0 8px;font-size:11px;color:#555;line-height:1.6">${s.d}</p>
-                <div>
-                    ${s.items.map(item=>`<span style="display:inline-block;background:#f7f8fa;color:#444;padding:3px 9px;border-radius:14px;font-size:10px;margin:2px 2px 2px 0">✓ ${item}</span>`).join('')}
+                <div style="font-size:9px;color:rgba(255,255,255,.65);margin-bottom:14px;line-height:1.5;position:relative;z-index:1">
+                    Análise do site da ${company}: ${siteAnalysis.hasChatbot?`chatbot detectado (${siteAnalysis.chatbotProvider||'genérico'})`:'sem chatbot'}${siteAnalysis.hasSearch?', com busca':', sem busca inteligente'}${siteAnalysis.formCount>0?`, ${siteAnalysis.formCount} formulário(s)`:''}.
+                    ${autoOppsDetailed.filter(a=>a.impact==='alto').length} oportunidades de alto impacto identificadas.
                 </div>
-            </div>`).join('')}
-        </div>
-
-        <!-- ROI -->
-        <div style="padding:0 36px 20px;page-break-inside:avoid">
-            <div style="background:linear-gradient(135deg,${T} 0%,${B} 100%);border-radius:12px;padding:20px;color:#fff">
-                <h3 style="color:#fff;margin:0 0 14px;font-size:14px;text-align:center">📈 Estimativa de Impacto — 12 meses</h3>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
-                    ${roi.slice(0,6).map(r=>`<div style="text-align:center;padding:8px;background:rgba(255,255,255,.15);border-radius:10px;flex:1;min-width:90px">
-                        <div style="font-size:18px;font-weight:800;color:#fff">${r.value}</div>
-                        <div style="font-size:9px;color:rgba(255,255,255,.7);margin-top:2px">${r.label}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1">
+                    ${autoOppsDetailed.slice(0,6).map(a=>`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;flex:1;min-width:180px">
+                        <div style="font-size:9px;font-weight:700;color:#fff;margin-bottom:2px">${a.opportunity||a}</div>
+                        <div style="font-size:7.5px;color:rgba(255,255,255,.55);line-height:1.4">${a.description||''}</div>
+                        ${a.impact?`<span style="display:inline-block;margin-top:4px;background:${a.impact==='alto'?'rgba(34,197,94,.2)':a.impact==='medio'?'rgba(245,158,11,.2)':'rgba(148,163,184,.2)'};color:${a.impact==='alto'?OG:a.impact==='medio'?'#F59E0B':'#94a3b8'};padding:1px 6px;border-radius:3px;font-size:7px;font-weight:700">Impacto ${a.impact}</span>`:''}
                     </div>`).join('')}
                 </div>
             </div>
         </div>
 
-        <!-- ===== INVESTIMENTO ===== -->
-        <div style="padding:0 36px 20px;page-break-inside:avoid">
-            <div style="background:#f7f8fa;border:2px dashed #bbb;border-radius:12px;padding:20px;text-align:center">
-                <div style="font-size:10px;color:${T};text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:6px">Investimento</div>
-                <div style="font-size:26px;font-weight:800;color:${T}">Sob Consulta</div>
-                <p style="margin:6px 0 0;font-size:11px;color:#888">O valor será personalizado após reunião com nosso time comercial, considerando o porte, necessidades e escopo de cada serviço.</p>
+        <!-- ===== PROPOSTA DE SERVIÇOS ===== -->
+        <div style="padding:0 36px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                <div style="width:18px;height:3px;background:${OB};border-radius:2px"></div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${OB}">Proposta de Serviços — ${company}</div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+                ${svcs.map((s,i)=>`<div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;border-left:3px solid ${svcColors[i%svcColors.length]};flex:1;min-width:280px;page-break-inside:avoid">
+                    <div style="font-size:10px;font-weight:700;color:${OD};margin-bottom:3px;line-height:1.2">${String(i+1).padStart(2,'0')}. ${s.n}</div>
+                    <div style="font-size:8px;color:#64748b;line-height:1.45;margin-bottom:5px">${s.d}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:3px">
+                        ${s.items.map(item=>`<span style="font-size:7px;background:${OL};color:${OB};padding:2px 6px;border-radius:3px;font-weight:600">${item}</span>`).join('')}
+                    </div>
+                </div>`).join('')}
+            </div>
+
+            <!-- Investment bar -->
+            <div style="background:linear-gradient(135deg,${OD},${OB});border-radius:12px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid">
+                <div>
+                    <div style="color:rgba(255,255,255,.7);font-size:9px;text-transform:uppercase;letter-spacing:1.5px">Investimento total</div>
+                    <div style="color:rgba(255,255,255,.5);font-size:8px;margin-top:1px">Personalizado após reunião de alinhamento</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="color:${OA};font-size:24px;font-weight:900;letter-spacing:-.5px">Sob Consulta</div>
+                    <div style="color:rgba(255,255,255,.5);font-size:8px">Possibilidade de fases</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ROI IMPACTO ===== -->
+        <div style="padding:0 36px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <div style="width:18px;height:3px;background:${OB};border-radius:2px"></div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${OB}">Impacto Projetado — 12 Meses</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;page-break-inside:avoid">
+                ${roi.slice(0,6).map((r,i)=>{
+                    const roiColors=[OA,OB,OG,OP,OD,OR];
+                    return `<div style="background:${OL};border-radius:8px;padding:10px;text-align:center;flex:1;min-width:90px${i===0?';border-left:4px solid '+OA+';background:linear-gradient(135deg,#0d2137,#1a3a5a)':''}">
+                        <div style="font-size:18px;font-weight:900;color:${i===0?OA:roiColors[i%roiColors.length]}">${r.value}</div>
+                        <div style="font-size:7px;color:${i===0?'rgba(255,255,255,.85)':'#64748b'};text-transform:uppercase;letter-spacing:.5px;margin-top:2px;line-height:1.3">${r.label}</div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>
+
+        <!-- ===== DIFERENCIAIS ===== -->
+        <div style="padding:0 36px 16px;page-break-inside:avoid">
+            <div style="background:linear-gradient(135deg,${OD},#1a3550);border-radius:10px;padding:14px 18px">
+                <div style="font-size:9px;font-weight:800;color:${OA};text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Diferenciais Guinux</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                    <div style="flex:1;min-width:180px"><div style="font-size:8px;color:#fff;font-weight:700;margin-bottom:1px">🏢 23+ anos no mercado</div><div style="font-size:7.5px;color:rgba(255,255,255,.6);line-height:1.4">200+ empresas atendidas, parceiro estratégico comprovado.</div></div>
+                    <div style="flex:1;min-width:180px"><div style="font-size:8px;color:#fff;font-weight:700;margin-bottom:1px">☁️ Google Cloud Partner</div><div style="font-size:7.5px;color:rgba(255,255,255,.6);line-height:1.4">Infraestrutura enterprise, SLA global, 4× Google Next.</div></div>
+                    <div style="flex:1;min-width:180px"><div style="font-size:8px;color:#fff;font-weight:700;margin-bottom:1px">🤖 IA proprietária</div><div style="font-size:7.5px;color:rgba(255,255,255,.6);line-height:1.4">IA treinada com dados do cliente — não genérica.</div></div>
+                </div>
             </div>
         </div>
 
         <!-- ===== PRÓXIMOS PASSOS ===== -->
-        <div style="padding:0 36px 20px;page-break-inside:avoid">
-            <h3 style="margin:0 0 12px;font-size:14px;color:${B}">📌 Próximos Passos</h3>
-            <div style="display:flex;gap:10px">
-                <div style="text-align:center;padding:12px;background:#f7f8fa;border-radius:10px;flex:1">
-                    <div style="font-size:22px;margin-bottom:4px">1️⃣</div>
-                    <div style="font-size:11px;font-weight:700;color:#333">Reunião de Alinhamento</div>
-                    <div style="font-size:10px;color:#888;margin-top:2px">30min com nosso especialista</div>
+        <div style="padding:0 36px 16px;page-break-inside:avoid">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <div style="width:18px;height:3px;background:${OB};border-radius:2px"></div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${OB}">Próximos Passos</div>
+            </div>
+            <div style="display:flex;gap:0;position:relative">
+                <div style="flex:1;text-align:center;position:relative">
+                    <div style="width:14px;height:14px;border-radius:50%;background:${OA};margin:0 auto 6px;border:2px solid #fff;box-shadow:0 0 0 2px ${OA}"></div>
+                    <div style="font-size:8px;font-weight:800;color:${OD};text-transform:uppercase">Reunião</div>
+                    <div style="font-size:7px;color:#94a3b8;margin-top:1px">30min com especialista</div>
                 </div>
-                <div style="text-align:center;padding:12px;background:#f7f8fa;border-radius:10px;flex:1">
-                    <div style="font-size:22px;margin-bottom:4px">2️⃣</div>
-                    <div style="font-size:11px;font-weight:700;color:#333">Proposta Formal</div>
-                    <div style="font-size:10px;color:#888;margin-top:2px">Escopo, valor e SLA detalhados</div>
+                <div style="flex:1;text-align:center;position:relative">
+                    <div style="width:14px;height:14px;border-radius:50%;background:${OP};margin:0 auto 6px;border:2px solid #fff;box-shadow:0 0 0 2px ${OP}"></div>
+                    <div style="font-size:8px;font-weight:800;color:${OD};text-transform:uppercase">Proposta Formal</div>
+                    <div style="font-size:7px;color:#94a3b8;margin-top:1px">Escopo, valor e SLA</div>
                 </div>
-                <div style="text-align:center;padding:12px;background:#f7f8fa;border-radius:10px;flex:1">
-                    <div style="font-size:22px;margin-bottom:4px">3️⃣</div>
-                    <div style="font-size:11px;font-weight:700;color:#333">Implementação</div>
-                    <div style="font-size:10px;color:#888;margin-top:2px">Onboarding ágil e dedicado</div>
+                <div style="flex:1;text-align:center;position:relative">
+                    <div style="width:14px;height:14px;border-radius:50%;background:${OA};margin:0 auto 6px;border:2px solid #fff;box-shadow:0 0 0 2px ${OA}"></div>
+                    <div style="font-size:8px;font-weight:800;color:${OD};text-transform:uppercase">Implementação</div>
+                    <div style="font-size:7px;color:#94a3b8;margin-top:1px">Onboarding ágil</div>
+                </div>
+                <div style="flex:1;text-align:center;position:relative">
+                    <div style="width:14px;height:14px;border-radius:50%;background:${OG};margin:0 auto 6px;border:2px solid #fff;box-shadow:0 0 0 2px ${OG}"></div>
+                    <div style="font-size:8px;font-weight:800;color:${OD};text-transform:uppercase">Resultados</div>
+                    <div style="font-size:7px;color:#94a3b8;margin-top:1px">Impacto em 30 dias</div>
                 </div>
             </div>
         </div>
 
         <!-- ===== FOOTER ===== -->
-        <div style="background:linear-gradient(135deg,#1A1A2A 0%,#2A2A3A 100%);padding:20px 36px;color:#fff;text-align:center">
-            ${logoSrc?`<img src="${logoSrc}" style="height:34px;margin-bottom:8px">`:''}
-            <p style="margin:0;font-size:12px;color:rgba(255,255,255,.7)">Guinux — InteligêncIA em TI</p>
-            <p style="margin:4px 0;font-size:11px;color:rgba(255,255,255,.5)">www.guinux.com.br · (41) 4063-9294 · contato@guinux.com.br</p>
-            <p style="margin:4px 0;font-size:11px;color:rgba(255,255,255,.5)">Av. Paraná, 1755 — Curitiba, PR · Google Cloud Partner desde 2013</p>
-            <p style="margin:8px 0 0;font-size:10px;color:rgba(255,255,255,.3)">Documento confidencial gerado por Guinux.IA · ${docNum} · ${today}</p>
+        <div style="background:${OD};padding:14px 36px;display:flex;justify-content:space-between;align-items:center">
+            <div style="color:rgba(255,255,255,.5);font-size:8px">Guinux Inteligênc<span style="color:${OA}">IA</span> — 23+ anos — guinux.com.br · (41) 4063-9294</div>
+            <div style="color:rgba(255,255,255,.35);font-size:7px">Documento confidencial · ${docNum}</div>
         </div>
     </div>`;
 
