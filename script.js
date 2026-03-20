@@ -280,6 +280,15 @@ function showTyping(ms){
     });
 }
 
+function showProcessingMsg(text){
+    const el=document.createElement('div');
+    el.className='msg msg-bot msg-processing';
+    el.innerHTML=`<div class="msg-avatar">G</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div> <span class="processing-text">${text}</span></div>`;
+    chatMsgs.appendChild(el);
+    scrollChat();
+    return el;
+}
+
 function addBotMsg(text){
     const el=document.createElement('div');
     el.className='msg msg-bot';
@@ -474,6 +483,8 @@ async function handleCompanyLookup(){
     // Corporate email — research the company silently
     await showTyping(400);
 
+    const processingEl=showProcessingMsg('Pesquisando sua empresa…');
+
     try{
         // Try fetching the site HTML from the browser (bypasses Cloudflare challenges)
         let clientHtml='';
@@ -489,6 +500,7 @@ async function handleCompanyLookup(){
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({domain, companyName:chatData.company||'', html:clientHtml})
         });
+        processingEl.remove();
         const data=await res.json();
 
         if(data.success&&data.companyName){
@@ -653,6 +665,7 @@ async function handleCompanyLookup(){
             throw new Error('No data');
         }
     }catch(err){
+        processingEl.remove();
         // Lookup failed — ask manually
         await showTyping(400);
         addBotMsg('Não consegui encontrar dados automáticos. Me diga o nome da sua empresa:');
@@ -1111,6 +1124,8 @@ async function downloadAnalisePDF(){
         ]
     };
 
+    const companyDescription=cr.companyDescription||cr.description||'';
+
     // Detect segment from company description, services, or domain
     const segText=(companyDescription+' '+(cr.segment||'')+' '+company).toLowerCase();
     let detectedSegment='default';
@@ -1133,7 +1148,6 @@ async function downloadAnalisePDF(){
     }
     const cnpjData=cr.cnpjData||null;
     const socialMedia=cr.socialMedia||{};
-    const companyDescription=cr.companyDescription||cr.description||'';
     const benchmark=cr.competitorBenchmark||null;
 
     // Pre-load logo as data URI to avoid CORS/tainted canvas issues
@@ -1446,10 +1460,17 @@ async function downloadAnalisePDF(){
         </div>
     </div>`;
 
+    // White overlay while PDF renders (hidden from html2canvas via onclone)
+    const pdfOverlay=document.createElement('div');
+    pdfOverlay.id='__pdf_overlay__';
+    pdfOverlay.style.cssText='position:fixed;inset:0;background:#fff;z-index:999999;display:flex;align-items:center;justify-content:center;';
+    pdfOverlay.innerHTML='<div style="font-family:sans-serif;font-size:15px;color:#666;display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B9EA8" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Gerando PDF…</div>';
+    document.body.appendChild(pdfOverlay);
+
     const container=document.createElement('div');
+    container.id='__pdf_container__';
     container.innerHTML=pdfHtml;
-    // Off-screen rendering — avoids z-index/opacity issues with html2canvas
-    container.style.cssText='position:absolute;left:-9999px;top:0;width:700px;background:#fff;overflow:hidden;';
+    container.style.cssText='position:fixed;left:0;top:0;width:700px;background:#fff;pointer-events:none;overflow:visible;';
     document.body.appendChild(container);
 
     // Force all images inside container to have explicit dimensions
@@ -1458,20 +1479,20 @@ async function downloadAnalisePDF(){
         img.style.display='inline-block';
     });
 
-    // Wait for any remaining images to load
+    // Wait for images to load
     const imgs=container.querySelectorAll('img');
     const imgPromises=[...imgs].map(img=>new Promise(resolve=>{
         if(img.complete&&img.naturalWidth>0) return resolve();
         img.onload=resolve;
         img.onerror=resolve;
-        setTimeout(resolve,3000); // fallback timeout per image
+        setTimeout(resolve,3000);
     }));
 
     try{
         await Promise.all(imgPromises);
-        // Extra delay for DOM to fully paint
-        await new Promise(r=>setTimeout(r,800));
+        await new Promise(r=>setTimeout(r,600));
 
+        const h=container.scrollHeight;
         const opt={
             margin:0,
             filename:`Guinux_Proposta_${company.replace(/[^a-zA-Z0-9]/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`,
@@ -1482,25 +1503,68 @@ async function downloadAnalisePDF(){
                 allowTaint:false,
                 letterRendering:true,
                 width:700,
+                height:h,
+                windowWidth:700,
+                windowHeight:h,
                 backgroundColor:'#ffffff',
                 scrollX:0,
                 scrollY:0,
+                x:0,
+                y:0,
                 logging:false,
                 onclone:function(clonedDoc){
-                    const el=clonedDoc.body.lastElementChild;
-                    if(el){el.style.position='static';el.style.left='0';}
+                    // Remove the white overlay so it doesn't paint over everything
+                    const ov=clonedDoc.getElementById('__pdf_overlay__');
+                    if(ov) ov.remove();
+                    // Fix container positioning for clean render
+                    const el=clonedDoc.getElementById('__pdf_container__');
+                    if(el){el.style.position='static';el.style.top='0';el.style.left='0';}
                 }
             },
             jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
             pagebreak:{mode:['css','legacy']}
         };
 
+        // Download PDF
         await html2pdf().set(opt).from(container).save();
         console.log('PDF generated successfully');
+
+        // Send by email automatically (non-blocking)
+        const visitorEmail = chatData.email || '';
+        if(visitorEmail){
+            // Generate blob separately for email attachment
+            const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob').catch(()=>null);
+            const base64 = pdfBlob ? await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.readAsDataURL(pdfBlob);
+                reader.onloadend = () => resolve((reader.result||'').split(',')[1] || null);
+                reader.onerror = () => resolve(null);
+            }) : null;
+            if(base64){
+                fetch('/api/send-report',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({
+                        to: visitorEmail,
+                        name: chatData.name || '',
+                        company,
+                        subject: `Sua Análise & Proposta — ${company} | Guinux.IA`,
+                        htmlContent: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e"><h2 style="color:#2B5A8C">Olá, ${chatData.name||''}!</h2><p>Segue em anexo sua <strong>Análise & Proposta personalizada</strong> para a <strong>${company}</strong>, gerada pela nossa IA.</p><p>O documento inclui diagnóstico digital completo, oportunidades de automação e uma proposta de serviços personalizada para o seu negócio.</p><p>Estamos à disposição para uma reunião de alinhamento — sem compromisso.</p><br><p style="color:#2B5A8C"><strong>Guinux InteligêncIA em TI</strong><br><a href="https://guinux.com.br" style="color:#6BBED0">guinux.com.br</a> · (41) 4063-9294</p></div>`,
+                        pdfBase64: base64,
+                        pdfFilename: opt.filename,
+                        type: 'proposal'
+                    })
+                }).then(r=>r.json()).then(r=>{
+                    if(r.success) console.log('PDF sent by email to', visitorEmail);
+                    else console.warn('Email send failed:', r.error);
+                }).catch(e=>console.warn('Email send error:', e));
+            }
+        }
     }catch(e){
         console.error('PDF error:',e);
         alert('Erro ao gerar PDF. Tente novamente.');
     }finally{
+        try{document.body.removeChild(pdfOverlay);}catch(ex){}
         try{document.body.removeChild(container);}catch(ex){}
     }
 }
@@ -2252,28 +2316,96 @@ function slidePanelAbrir(url, title) {
     const loader = document.getElementById('slidePanelLoader');
     const titleEl = document.getElementById('slidePanelTitle');
     const extLink = document.getElementById('slidePanelExternal');
+    const fallback = document.getElementById('slidePanelFallback');
 
     titleEl.textContent = title || url;
     extLink.href = url;
+
+    // Reset state
     iframe.src = 'about:blank';
+    iframe.style.display = '';
     loader.classList.remove('hidden');
+    fallback.classList.add('hidden');
+    fallback.querySelector('.slide-panel-fallback-link').href = url;
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
 
-    // Small delay so the slide animation shows the loader first
-    setTimeout(() => {
-        iframe.src = url;
-    }, 100);
+    // Static image previews for known URLs that block iframe embedding
+    const staticPreviews = {
+        'cloud.google.com': 'assets/googlepartner.png'
+    };
+
+    // Domains known to block iframe embedding
+    const knownBlocked = ['google.com', 'linkedin.com', 'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'youtube.com', 'github.com', 'apple.com', 'microsoft.com'];
+    let hostname = '';
+    try { hostname = new URL(url).hostname; } catch(e) {}
+    const isKnownBlocked = knownBlocked.some(d => hostname === d || hostname.endsWith('.' + d));
+
+    // Check if there's a static preview image for this hostname
+    const staticImg = staticPreviews[hostname];
+
+    let fallbackTimer;
+    let settled = false;
+
+    function showFallback(imgSrc) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(fallbackTimer);
+        loader.classList.add('hidden');
+        iframe.style.display = 'none';
+        if (imgSrc) {
+            fallback.classList.add('has-preview');
+            const existing = fallback.querySelector('.slide-panel-fallback-img');
+            if (existing) existing.remove();
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.className = 'slide-panel-fallback-img';
+            img.alt = title || url;
+            fallback.insertBefore(img, fallback.firstChild);
+        } else {
+            fallback.classList.remove('has-preview');
+            const existing = fallback.querySelector('.slide-panel-fallback-img');
+            if (existing) existing.remove();
+        }
+        fallback.classList.remove('hidden');
+    }
+
+    function showSuccess() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(fallbackTimer);
+        loader.classList.add('hidden');
+    }
+
+    // If we have a static preview, skip iframe loading entirely
+    if (staticImg) {
+        setTimeout(() => showFallback(staticImg), 100);
+        return;
+    }
+
+    // Timeout: fast for known-blocked, longer for unknown
+    fallbackTimer = setTimeout(() => showFallback(null), isKnownBlocked ? 1500 : 8000);
+
+    setTimeout(() => { iframe.src = url; }, 100);
 
     iframe.onload = () => {
-        loader.classList.add('hidden');
-        // Try to get the page title from iframe (same-origin only)
+        if (settled) return;
+        try {
+            const doc = iframe.contentDocument;
+            if (doc !== null) {
+                const bodyLen = (doc.body?.innerText || '').trim().length;
+                if (bodyLen < 50) { showFallback(null); return; }
+            }
+        } catch(e) {}
+        showSuccess();
         try {
             const iframeTitle = iframe.contentDocument?.title;
             if (iframeTitle) titleEl.textContent = iframeTitle;
-        } catch (e) { /* cross-origin, keep original title */ }
+        } catch(e) {}
     };
+
+    iframe.onerror = () => { showFallback(null); };
 }
 
 function slidePanelFechar() {
