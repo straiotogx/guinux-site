@@ -1454,9 +1454,17 @@ async function downloadAnalisePDF(){
         </div>
 
         <!-- ===== FOOTER ===== -->
-        <div style="background:${OD};padding:14px 36px;display:flex;justify-content:space-between;align-items:center">
-            <div style="color:rgba(255,255,255,.5);font-size:8px">Guinux Inteligênc<span style="color:${OA}">IA</span> — 23+ anos — guinux.com.br · (41) 4063-9294</div>
-            <div style="color:rgba(255,255,255,.35);font-size:7px">Documento confidencial · ${docNum}</div>
+        <div style="background:${OD};padding:16px 36px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="color:rgba(255,255,255,.5);font-size:8px">Guinux Inteligênc<span style="color:${OA}">IA</span> em TI · 23+ anos</div>
+                <div style="color:rgba(255,255,255,.35);font-size:7px">Documento confidencial · ${docNum}</div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:8px;display:flex;gap:20px;flex-wrap:wrap">
+                <span style="color:rgba(255,255,255,.55);font-size:8px">✉ hq@guinux.com.br</span>
+                <span style="color:rgba(255,255,255,.55);font-size:8px">📞 (41) 4063-9294</span>
+                <span style="color:rgba(255,255,255,.55);font-size:8px">🌐 guinux.com.br</span>
+                <span style="color:rgba(255,255,255,.55);font-size:8px">📍 Curitiba — PR</span>
+            </div>
         </div>
     </div>`;
 
@@ -1529,35 +1537,65 @@ async function downloadAnalisePDF(){
         await html2pdf().set(opt).from(container).save();
         console.log('PDF generated successfully');
 
-        // Send by email automatically (non-blocking)
-        const visitorEmail = chatData.email || '';
-        if(visitorEmail){
-            // Generate blob separately for email attachment
-            const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob').catch(()=>null);
-            const base64 = pdfBlob ? await new Promise(resolve => {
-                const reader = new FileReader();
-                reader.readAsDataURL(pdfBlob);
-                reader.onloadend = () => resolve((reader.result||'').split(',')[1] || null);
-                reader.onerror = () => resolve(null);
-            }) : null;
-            if(base64){
+        // Generate blob for storage + email
+        const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob').catch(()=>null);
+        const base64 = pdfBlob ? await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.readAsDataURL(pdfBlob);
+            reader.onloadend = () => resolve((reader.result||'').split(',')[1] || null);
+            reader.onerror = () => resolve(null);
+        }) : null;
+
+        if(base64){
+            // 1. Save PDF to KV storage, get shareable URL
+            let pdfUrl = null;
+            try{
+                const saveRes = await fetch('/api/save-pdf',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({ pdfBase64:base64, filename:opt.filename, company, email:chatData.email||'', name:chatData.name||'' })
+                });
+                const saveData = await saveRes.json();
+                if(saveData.url){ pdfUrl = saveData.url; console.log('PDF saved:', pdfUrl); }
+            }catch(e){ console.warn('PDF save error:', e); }
+
+            // 2. Show link + copy button in chat
+            if(pdfUrl) showPdfLink(pdfUrl, company);
+
+            // 3. Send email with attachment + download link
+            const visitorEmail = chatData.email || '';
+            if(visitorEmail){
+                const linkLine = pdfUrl ? `<p style="margin:12px 0"><a href="${pdfUrl}" style="display:inline-block;background:#2B5A8C;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600">⬇ Baixar PDF online</a></p>` : '';
                 fetch('/api/send-report',{
                     method:'POST',
                     headers:{'Content-Type':'application/json'},
                     body:JSON.stringify({
                         to: visitorEmail,
-                        name: chatData.name || '',
+                        name: chatData.name||'',
                         company,
-                        subject: `Sua Análise & Proposta — ${company} | Guinux.IA`,
-                        htmlContent: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e"><h2 style="color:#2B5A8C">Olá, ${chatData.name||''}!</h2><p>Segue em anexo sua <strong>Análise & Proposta personalizada</strong> para a <strong>${company}</strong>, gerada pela nossa IA.</p><p>O documento inclui diagnóstico digital completo, oportunidades de automação e uma proposta de serviços personalizada para o seu negócio.</p><p>Estamos à disposição para uma reunião de alinhamento — sem compromisso.</p><br><p style="color:#2B5A8C"><strong>Guinux InteligêncIA em TI</strong><br><a href="https://guinux.com.br" style="color:#6BBED0">guinux.com.br</a> · (41) 4063-9294</p></div>`,
+                        subject:`Sua Análise & Proposta — ${company} | Guinux.IA`,
+                        htmlContent:`<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e"><h2 style="color:#2B5A8C">Olá, ${chatData.name||''}!</h2><p>Segue em anexo sua <strong>Análise & Proposta personalizada</strong> para a <strong>${company}</strong>, gerada pela nossa IA.</p>${linkLine}<p>O documento inclui diagnóstico digital completo, oportunidades de automação e proposta personalizada para o seu negócio.</p><p>Estamos à disposição para uma reunião de alinhamento — sem compromisso.</p><br><p style="color:#2B5A8C"><strong>Guinux InteligêncIA em TI</strong><br>✉ hq@guinux.com.br · 📞 (41) 4063-9294<br><a href="https://guinux.com.br" style="color:#6BBED0">guinux.com.br</a></p></div>`,
                         pdfBase64: base64,
                         pdfFilename: opt.filename,
-                        type: 'proposal'
+                        type:'proposal'
                     })
                 }).then(r=>r.json()).then(r=>{
                     if(r.success) console.log('PDF sent by email to', visitorEmail);
                     else console.warn('Email send failed:', r.error);
                 }).catch(e=>console.warn('Email send error:', e));
+            }
+
+            // 4. Send WhatsApp via Freshchat (if phone available and PDF URL exists)
+            if(pdfUrl && chatData.phone){
+                fetch('/api/whatsapp',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({ phone:chatData.phone, name:chatData.name||'', company, pdfUrl })
+                }).then(r=>r.json()).then(r=>{
+                    if(r.success) console.log('PDF link sent via WhatsApp');
+                    else if(r.skipped) console.log('WhatsApp skipped:', r.reason);
+                    else console.warn('WhatsApp send failed:', r.error);
+                }).catch(e=>console.warn('WhatsApp error:', e));
             }
         }
     }catch(e){
@@ -2433,6 +2471,23 @@ function slidePanelAbrirHtml(html, title) {
     iframe.onload = () => loader.classList.add('hidden');
     iframe.removeAttribute('src');
     iframe.srcdoc = html;
+}
+
+function showPdfLink(url, company) {
+    // Chat bubble with link + copy button
+    const el = document.createElement('div');
+    el.className = 'msg bot';
+    const safeUrl = url.replace(/'/g, '%27');
+    el.innerHTML = `<div class="msg-bubble" style="max-width:100%">
+        <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#6bbed0">📎 PDF salvo — ${company}</div>
+        <div style="font-size:11px;color:#94a3b8;word-break:break-all;margin-bottom:10px">${url}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="${url}" target="_blank" rel="noopener" style="background:rgba(107,190,208,.15);color:#6bbed0;border:1px solid rgba(107,190,208,.3);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;text-decoration:none">⬇ Abrir PDF</a>
+            <button onclick="navigator.clipboard.writeText('${safeUrl}').then(()=>{this.textContent='✓ Copiado!';setTimeout(()=>this.textContent='Copiar link',2500)})" style="background:#6bbed0;color:#0d1b2e;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:11px;font-weight:700">Copiar link</button>
+        </div>
+    </div>`;
+    const chatMsgs = document.getElementById('chatMessages');
+    if(chatMsgs){ chatMsgs.appendChild(el); scrollChat(); }
 }
 
 function mostrarTodosEventos() {
