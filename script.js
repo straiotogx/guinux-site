@@ -2413,8 +2413,63 @@ function slidePanelFechar() {
     const iframe = document.getElementById('slidePanelIframe');
     overlay.classList.remove('open');
     document.body.style.overflow = '';
-    // Clear iframe after transition
-    setTimeout(() => { iframe.src = 'about:blank'; }, 350);
+    setTimeout(() => { iframe.src = 'about:blank'; iframe.removeAttribute('srcdoc'); }, 350);
+}
+
+function slidePanelAbrirHtml(html, title) {
+    const overlay = document.getElementById('slidePanelOverlay');
+    const iframe = document.getElementById('slidePanelIframe');
+    const loader = document.getElementById('slidePanelLoader');
+    const titleEl = document.getElementById('slidePanelTitle');
+    const extLink = document.getElementById('slidePanelExternal');
+    const fallback = document.getElementById('slidePanelFallback');
+    titleEl.textContent = title || '';
+    extLink.href = '#';
+    iframe.style.display = '';
+    loader.classList.remove('hidden');
+    fallback.classList.add('hidden');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    iframe.onload = () => loader.classList.add('hidden');
+    iframe.removeAttribute('src');
+    iframe.srcdoc = html;
+}
+
+function mostrarTodosEventos() {
+    const eventos = [
+        {ano:2012, nome:'VMware World',          local:'Las Vegas',      href:''},
+        {ano:2014, nome:'Amazon re:Invent',       local:'Las Vegas',      href:'blog/amazon-reinvent-2014-las-vegas.html'},
+        {ano:2018, nome:'Google Cloud Next',      local:'São Francisco',  href:'blog/google-next-2018-san-francisco.html'},
+        {ano:2019, nome:'Google Cloud Next',      local:'São Francisco',  href:'blog/google-next-2019-san-francisco.html'},
+        {ano:2022, nome:'Imersão Technion',       local:'Haifa, Israel',  href:'blog/imersao-tecnologica-israel.html', destaque:true},
+        {ano:2022, nome:'Imersão Vale do Silício',local:'SF & Tel Aviv',  href:'blog/san-francisco-cultura-inovacao.html', destaque:true},
+        {ano:2023, nome:'Google Cloud Next',      local:'São Francisco',  href:''},
+        {ano:2024, nome:'Google Cloud Next',      local:'Las Vegas',      href:'blog/google-next-2024-las-vegas.html'},
+    ];
+    const rows = eventos.map(e => {
+        const arrow = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>`;
+        const inner = `<span class="ey">${e.ano}</span><span class="en">${e.nome}</span><span class="el">${e.local}${e.href?' '+arrow:''}</span>`;
+        return e.href
+            ? `<a class="er${e.destaque?' ea':''}" href="${e.href}">${inner}</a>`
+            : `<div class="er">${inner}</div>`;
+    }).join('');
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;background:#0d1b2e;color:#e0e8f0;padding:28px 24px}
+h2{font-size:17px;font-weight:800;color:#fff;margin-bottom:3px}
+.sub{font-size:11px;color:#6b9ea8;margin-bottom:20px;letter-spacing:.3px}
+.er{display:flex;align-items:center;gap:0;padding:11px 14px;border-radius:10px;margin-bottom:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);text-decoration:none;color:inherit;transition:.15s}
+a.er:hover{background:rgba(107,190,208,.13);border-color:rgba(107,190,208,.35);color:#6bbed0}
+.ea{border-color:rgba(107,190,208,.22);background:rgba(107,190,208,.07)}
+.ey{width:40px;font-size:12px;font-weight:700;color:#6bbed0;flex-shrink:0}
+.en{flex:1;font-size:13px;font-weight:600}
+.el{font-size:11px;color:#7a9aaa;margin-left:auto;padding-left:12px;display:flex;align-items:center;gap:5px}
+</style></head><body>
+<h2>Eventos Internacionais</h2>
+<p class="sub">8 eventos · ordenados por ano</p>
+${rows}
+</body></html>`;
+    slidePanelAbrirHtml(html, 'Todos os Eventos');
 }
 
 // Close panel on overlay click (outside the panel)
