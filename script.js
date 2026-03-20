@@ -1052,10 +1052,15 @@ async function generateAnalise(){
 
     // Silent notification to Guinux about this simulation
     notifySimulation(d, {risk:riskLabel, riskScore:risk.score, matLabel, matScore:maturity.score, potScore:pot.score, hoursSaved, revenueEstimate, employeeEstimate, services:recDetails.map(s=>s.svc).join(', ')});
+
+    // Auto-generate PDF in background: save to KV + send email + WhatsApp
+    autoEnviarPDF();
 }
 
 /* ========= DOWNLOAD PDF — EXECUTIVE (OAB-STYLE) ========= */
-async function downloadAnalisePDF(){
+async function downloadAnalisePDF(opts={}){
+    const isAuto = opts.auto === true;      // true = background auto, false = manual button click
+    const doDownload = !isAuto;             // only download file on manual click
     const d=chatData;
     const name=d.name||'Cliente';
     const company=d.company||'Empresa';
@@ -1468,12 +1473,14 @@ async function downloadAnalisePDF(){
         </div>
     </div>`;
 
-    // White overlay while PDF renders (hidden from html2canvas via onclone)
+    // White overlay — only shown for manual download, not for auto background generation
     const pdfOverlay=document.createElement('div');
     pdfOverlay.id='__pdf_overlay__';
-    pdfOverlay.style.cssText='position:fixed;inset:0;background:#fff;z-index:999999;display:flex;align-items:center;justify-content:center;';
-    pdfOverlay.innerHTML='<div style="font-family:sans-serif;font-size:15px;color:#666;display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B9EA8" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Gerando PDF…</div>';
-    document.body.appendChild(pdfOverlay);
+    if(!isAuto){
+        pdfOverlay.style.cssText='position:fixed;inset:0;background:#fff;z-index:999999;display:flex;align-items:center;justify-content:center;';
+        pdfOverlay.innerHTML='<div style="font-family:sans-serif;font-size:15px;color:#666;display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B9EA8" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Gerando PDF…</div>';
+        document.body.appendChild(pdfOverlay);
+    }
 
     const container=document.createElement('div');
     container.id='__pdf_container__';
@@ -1533,9 +1540,11 @@ async function downloadAnalisePDF(){
             pagebreak:{mode:['css','legacy']}
         };
 
-        // Download PDF
-        await html2pdf().set(opt).from(container).save();
-        console.log('PDF generated successfully');
+        // Download PDF — only on manual click
+        if(doDownload){
+            await html2pdf().set(opt).from(container).save();
+            console.log('PDF downloaded');
+        }
 
         // Generate blob for storage + email
         const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob').catch(()=>null);
@@ -1600,11 +1609,18 @@ async function downloadAnalisePDF(){
         }
     }catch(e){
         console.error('PDF error:',e);
-        alert('Erro ao gerar PDF. Tente novamente.');
+        if(!isAuto) alert('Erro ao gerar PDF. Tente novamente.');
     }finally{
-        try{document.body.removeChild(pdfOverlay);}catch(ex){}
+        if(!isAuto) try{document.body.removeChild(pdfOverlay);}catch(ex){}
         try{document.body.removeChild(container);}catch(ex){}
     }
+}
+
+/* Auto-generate PDF in background after analysis — no download, just save + email + WhatsApp */
+async function autoEnviarPDF(){
+    await new Promise(r=>setTimeout(r, 2500)); // wait for chat to render
+    try{ await downloadAnalisePDF({auto:true}); }
+    catch(e){ console.warn('autoEnviarPDF error:', e); }
 }
 
 /* ========= SILENT NOTIFICATION (Email + Google Chat Webhook) ========= */
